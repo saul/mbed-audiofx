@@ -1,18 +1,12 @@
-# Object files
+# Compilation intermediates
+*~
 *.o
-*.ko
 
 # Libraries
 *.lib
 *.a
 
-# Shared objects (inc. Windows DLLs)
-*.dll
+# Executables/shared objects
 *.so
 *.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
+bin/*

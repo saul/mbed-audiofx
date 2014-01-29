@@ -1,0 +1,369 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"pStage",
+				"pStage"
+			],
+			[
+				"g_",
+				"g_iSampleCursor"
+			],
+			[
+				"delay",
+				"delayData2b1"
+			],
+			[
+				"pStage2",
+				"pStage2b1"
+			],
+			[
+				"CHain",
+				"ChainStageHeader_t"
+			],
+			[
+				"ChainSta",
+				"ChainStage_t"
+			],
+			[
+				"ChainStage",
+				"ChainStageHeader_t"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "Makefile",
+			"settings":
+			{
+				"buffer_size": 2709,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "main.c",
+			"settings":
+			{
+				"buffer_size": 3312,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Compile and sync",
+	"command_palette":
+	{
+		"height": 117.0,
+		"selected_items":
+		[
+			[
+				"settings",
+				"Preferences: Package Control Settings – Default"
+			],
+			[
+				"list p",
+				"Package Control: List Packages"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"linter s",
+				"Preferences: SublimeLinter Settings – User"
+			],
+			[
+				"makef",
+				"Set Syntax: Makefile"
+			],
+			[
+				"linter",
+				"Preferences: SublimeLinter Settings – User"
+			],
+			[
+				"list",
+				"Package Control: List Packages"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"install p",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 139.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/filters.h",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/main.c",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/samples.c",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/filters/delay.h",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/filters/delay.c",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/filters.c",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/chain.c",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/chain.h",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/rtfx.sublime-project",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/Makefile",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/config.h",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/usbcon.c",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/dbg.c",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/samples.h",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/adc.c",
+		"/usr/userfs/s/sr868/.config/sublime-text-3/Packages/Package Control/Package Control.sublime-settings",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/dbg.h",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/ticktime.c",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/dac.c",
+		"/usr/userfs/s/sr868/Desktop/samples.c",
+		"/usr/userfs/s/sr868/.config/sublime-text-3/Packages/User/SublimeLinter.sublime-settings",
+		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/make_stripcolour.sh",
+		"/usr/userfs/s/sr868/.config/sublime-text-3/Packages/User/Default (Linux).sublime-keymap",
+		"/usr/userfs/s/sr868/.config/sublime-text-3/Packages/Default/Default (Linux).sublime-keymap",
+		"/usr/userfs/s/sr868/.config/sublime-text-3/Packages/User/Preferences.sublime-settings",
+		"/usr/userfs/s/sr868/.config/sublime-text-3/Packages/Default/Preferences.sublime-settings"
+	],
+	"find":
+	{
+		"height": 27.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"usbcon_writef",
+			"0x",
+			"vali",
+			"THUMB2LIB",
+			"sourcery",
+			"-I"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "Makefile",
+					"settings":
+					{
+						"buffer_size": 2709,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1215,
+								1215
+							]
+						],
+						"settings":
+						{
+							"buffer_scroll_name": "f4c17ed6",
+							"syntax": "Packages/Makefile/Makefile.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		},
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 1,
+					"file": "main.c",
+					"settings":
+					{
+						"buffer_size": 3312,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								682,
+								682
+							]
+						],
+						"settings":
+						{
+							"buffer_scroll_name": "e0ac7de5",
+							"syntax": "Packages/C++/C.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 456.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 27.0
+	},
+	"input":
+	{
+		"height": 33.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			],
+			[
+				1,
+				0,
+				2,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			0.5,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 118.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"replace":
+	{
+		"height": 50.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"usbcon",
+				"usbcon.c"
+			],
+			[
+				"filtersh",
+				"filters.h"
+			],
+			[
+				"samplesh",
+				"samples.h"
+			],
+			[
+				"make",
+				"Makefile"
+			],
+			[
+				"dle",
+				"filters/delay.c"
+			],
+			[
+				"dbg",
+				"dbg.c"
+			],
+			[
+				"chainh",
+				"chain.h"
+			],
+			[
+				"makefi",
+				"Makefile"
+			],
+			[
+				"dbgh",
+				"dbg.h"
+			],
+			[
+				"tickt",
+				"ticktime.c"
+			],
+			[
+				"makef",
+				"Makefile"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 150.0,
+	"status_bar_visible": true
+}
