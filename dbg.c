@@ -1,3 +1,10 @@
+/*
+ * dbg.c - Debug functions
+ *
+ * Defines several functions for assertions, warnings and errors (program
+ * termination)
+ */
+
 #include <stdio.h>
 
 #include "dbg.h"
@@ -5,6 +12,13 @@
 #include "usbcon.h"
 
 
+/*
+ * _dbg_error (use macro dbg_error)
+ *
+ * Prints an error in red to the console and halts program execution.
+ *
+ * If the LED subsystem has been setup, the LEDs will blink indefinitely.
+ */
 void _dbg_error(const char *file, int line, const char *func, const char *format, ...)
 {
 	char buf[256];
@@ -33,6 +47,11 @@ void _dbg_error(const char *file, int line, const char *func, const char *format
 }
 
 
+/*
+ * _dbg_assert (use macro dbg_assert)
+ *
+ * If condition is false, error and halt program execution.
+ */
 void _dbg_assert(const char *file, int line, const char *func, const char *condition, const char *format, ...)
 {
 	char buf[256];
@@ -41,6 +60,11 @@ void _dbg_assert(const char *file, int line, const char *func, const char *condi
 }
 
 
+/*
+ * _dbg_warning (use macro dbg_warning)
+ *
+ * Print a warning in yellow to console.
+ */
 void _dbg_warning(const char *file, int line, const char *func, const char *format, ...)
 {
 	char buf[256];

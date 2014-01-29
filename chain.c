@@ -1,3 +1,9 @@
+/*
+ * chain.c - Filter chain
+ *
+ * Defines structures and functions to manage and manipulate the filter chain.
+ */
+
 #include <stdlib.h>
 
 #include "dbg.h"
@@ -5,17 +11,27 @@
 #include "chain.h"
 
 
+ /*
+  * stage_alloc
+  *
+  * Allocates a chain stage with `nBranches` branches.
+  *
+  * @returns pointer to the header for this chain stage
+  */
 ChainStageHeader_t *stage_alloc(uint8_t nBranches)
 {
 	dbg_assert(nBranches > 0, "cannot allocate stage with no filters");
 
+	// Allocate chain stage header and enough space for each branch
 	unsigned char *pBase = (unsigned char *)malloc(sizeof(ChainStageHeader_t) + (nBranches * sizeof(ChainStage_t)));
 	dbg_assert(pBase, "unable to allocate chain stage");
 
+	// Initialise the header
 	ChainStageHeader_t *pHdr = (ChainStageHeader_t *)pBase;
 	pHdr->nBranches = nBranches;
 	pHdr->pNext = NULL;
 
+	// Initialise each branch with empty data
 	for(uint8_t i = 0; i < nBranches; ++i)
 	{
 		ChainStage_t *pStage = STAGE_BY_INDEX(pBase, i);
@@ -29,6 +45,11 @@ ChainStageHeader_t *stage_alloc(uint8_t nBranches)
 }
 
 
+/*
+ * stage_free
+ *
+ * Deallocates a chain stage.
+ */
 void stage_free(ChainStageHeader_t *pStageHdr)
 {
 	dbg_assert(pStageHdr, "cannot free NULL header");
@@ -36,20 +57,31 @@ void stage_free(ChainStageHeader_t *pStageHdr)
 }
 
 
+/*
+ * stage_apply
+ *
+ * Applies each branch in a chain stage to a sample `iSample`.
+ *
+ * Note `iSample` should be a 32-bit sample i.e., in the range [0..4294967295))
+ *
+ * @returns filtered 32-bit sample
+ */
 uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 {
-	//usbcon_writef("    stage_apply(%p, %u)\r\n", (void *)pStageHdr, (unsigned int)iSample);
-
+	// Is this a simple one stage branch?
 	if(pStageHdr->nBranches == 1)
 	{
 		ChainStage_t *pStage = STAGE_BY_INDEX(pStageHdr, 0);
-		//usbcon_writef("    1 branch, stage=%p\r\n", (void *)pStage);
 
+		// If we are using STAGEFLAG_FULL_MIX, skip the floating point
+		// multiplication to save some clock cycles
 		if(pStage->flags & STAGEFLAG_FULL_MIX)
 			return pStage->pFilter->pfnApply(iSample, pStage->pPrivate);
-		else
-			return pStage->pFilter->pfnApply(iSample, pStage->pPrivate) * pStage->flMixPerc;
+
+		return pStage->pFilter->pfnApply(iSample, pStage->pPrivate) * pStage->flMixPerc;
 	}
+
+	// Does this stage have multiple parallel branches that must be mixed?
 	else
 	{
 		uint32_t iResult = 0;
@@ -57,8 +89,6 @@ uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 		for(uint8_t i = 0; i < pStageHdr->nBranches; ++i)
 		{
 			ChainStage_t *pStage = STAGE_BY_INDEX(pStageHdr, i);
-			//usbcon_writef("    stage[%d]=%p\r\n", i, (void *)pStage);
-
 			iResult += pStage->pFilter->pfnApply(iSample, pStage->pPrivate) * pStage->flMixPerc;
 		}
 
@@ -67,25 +97,39 @@ uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 }
 
 
-// Input: 10-bit, output: 12-bit
+/*
+ * chain_apply
+ *
+ * Applies each stage in an entire filter chain.
+ *
+ * Note `iSample` should be a 12-bit sample from the ADC.
+ *
+ * @returns filtered 10-bit sample
+ */
 uint16_t chain_apply(const ChainStageHeader_t *pRoot, uint16_t iSample)
 {
+	// Upscale 12-bit ADC sample to 32-bit
 	uint32_t iIntermediate = iSample << 20;
-	//usbcon_writef("\r\nchain_apply(%p, %u):\r\n", (void *)pRoot, iSample);
 
 	const ChainStageHeader_t *pStage = pRoot;
 
 	while(pStage)
 	{
-		//usbcon_writef("  - stage %p\r\n", (void *)pStage);
 		iIntermediate = stage_apply(pStage, iIntermediate);
 		pStage = pStage->pNext;
 	}
 
+	// Downscale 32-bit intermediate value to 10-bit for DAC
 	return iIntermediate >> 22;
 }
 
 
+/*
+ * stage_debug
+ *
+ * Prints debug information for a single chain stage (which may have multiple
+ * branches).
+ */
 void stage_debug(const ChainStageHeader_t *pStageHdr)
 {
 	usbcon_writef("Stage with %d branch(es):\r\n", pStageHdr->nBranches);
@@ -107,6 +151,11 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
 }
 
 
+/*
+ * chain_debug
+ *
+ * Prints debug information for each stage in an entire chain.
+ */
 void chain_debug(const ChainStageHeader_t *pRoot)
 {
 	usbcon_writef(" === chain_debug(%p) ===\r\n", (void *)pRoot);

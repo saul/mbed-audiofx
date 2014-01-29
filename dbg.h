@@ -1,3 +1,10 @@
+/*
+ * dbg.c - Debug functions
+ *
+ * Defines several functions for assertions, warnings and errors (program
+ * termination)
+ */
+
 #ifndef _DBG_H_
 #define _DBG_H_
 

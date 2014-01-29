@@ -1,3 +1,7 @@
+/*
+ * filters.c - Audio effect filters
+ */
+
 #include <stdlib.h>
 #include <stdint.h>
 
@@ -6,11 +10,21 @@
 #include "filters/delay.h"
 
 
+ /*
+  * g_pFilters
+  *
+  * Global list of filter types.
+  */
 Filter_t g_pFilters[] = {
 	{"Delay", "Simple delay filter", filter_delay_apply, filter_delay_debug, NULL, sizeof(FilterDelayData_t)},
 };
 
 
+/*
+ * filter_debug
+ *
+ * Print a list of available filter types.
+ */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic" // ignore "function pointer -> void pointer" error
 void filter_debug(void)
