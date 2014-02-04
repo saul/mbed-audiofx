@@ -30,8 +30,6 @@ class PrintPacket(Packet):
 
 class FilterListPacket(Packet):
 	def receive(self, data):
-		print('FilterListPacket: %s' % data)
-
 		HEADER_FORMAT = '<B'
 		offset = 0
 		num_filters = struct.unpack_from(HEADER_FORMAT, data, offset)[0]
@@ -83,12 +81,16 @@ class SerialStream:
 			print('read_packet got invalid packet type %d' % pack_type)
 			return
 
-		# Read packet size
+		# Read packet data
 		size = struct.unpack('<B', self.serial.read(1))[0]
-
 		data = self.serial.read(size)
 
 		packet = PACKET_MAP[pack_type](size)
+
+		# Debug packet receipt
+		if packet.__class__ is not PrintPacket:
+			print(' * Received packet %s (size=%d,data=%s)' % (packet.__class__.__qualname__, size, data))
+
 		packet.receive(data)
 
 
