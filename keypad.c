@@ -1,6 +1,5 @@
 #include "i2c.h"
 #include "dbg.h"
-#include "usbcon.h"
 #include "keypad.h"
 
 
@@ -135,14 +134,14 @@ static uint8_t keypad_transfer(uint8_t tx)
  */
 char keypad_getc(void)
 {
-	usbcon_writef("keypad_getc: ");
+	dbg_printf("keypad_getc: ");
 
 	// Loop until we key a non NULL key press
 	char key;
 	while(!(key = keypad_scan()))
 		;
 
-	usbcon_writef("`%c`\r\n", key);
+	dbg_printf("`%c`\r\n", key);
 	return key;
 }
 

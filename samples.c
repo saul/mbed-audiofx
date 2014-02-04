@@ -1,7 +1,6 @@
 #include <stdint.h>
 
 #include "config.h"
-#include "usbcon.h"
 #include "dbg.h"
 #include "samples.h"
 

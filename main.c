@@ -4,7 +4,7 @@
 #include <string.h>
 
 // common
-#include "usbcon.h"
+#include "sercom.h"
 #include "ticktime.h"
 #include "led.h"
 #include "dbg.h"
@@ -14,12 +14,13 @@
 #include "dac.h"
 #include "microtimer.h"
 
-// rtfx
+// audiofx
 #include "config.h"
 #include "chain.h"
 #include "samples.h"
 #include "filters.h"
 #include "filters/delay.h"
+#include "packets.h"
 
 
 ChainStageHeader_t *g_pChainRoot = NULL;
@@ -53,7 +54,7 @@ void main(void)
 	//-----------------------------------------------------
 	// Initialisation
 	//-----------------------------------------------------
-	usbcon_init();
+	sercom_init();
 	led_init();
 
 	// Initialise timer
@@ -84,7 +85,7 @@ void main(void)
 
 	// Startup complete
 	t = time_tickcount() - t;
-	usbcon_writef(ANSI_COLOR_GREEN "Startup took %d msec\r\n\n" ANSI_COLOR_RESET, (int)(t * time_tickinterval() * 1000));
+	dbg_printf(ANSI_COLOR_GREEN "Startup took %d msec\r\n\n" ANSI_COLOR_RESET, (int)(t * time_tickinterval() * 1000));
 	led_blink(100, 5);
 
 	// Clear sample buffer
@@ -93,6 +94,7 @@ void main(void)
 
 	//
 	filter_debug();
+	packet_filter_list_send();
 
 	//-----------------------------------------------------
 	// Generate a filter chain

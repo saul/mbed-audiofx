@@ -1,5 +1,4 @@
 #include "dbg.h"
-#include "usbcon.h"
 #include "microtimer.h"
 
 typedef struct

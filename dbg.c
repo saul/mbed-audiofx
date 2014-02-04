@@ -6,10 +6,11 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "dbg.h"
 #include "led.h"
-#include "usbcon.h"
+#include "packets.h"
 
 
 /*
@@ -25,7 +26,7 @@ void _dbg_error(const char *file, int line, const char *func, const char *format
 	VA_FMT_STR(format, buf, sizeof(buf));
 
 	// write error message
-	usbcon_writef(
+	dbg_printf(
 		ANSI_COLOR_RED "ERROR "
 		ANSI_COLOR_GREEN "%s"
 		ANSI_COLOR_RESET ":"
@@ -34,8 +35,8 @@ void _dbg_error(const char *file, int line, const char *func, const char *format
 		ANSI_COLOR_CYAN "%s"
 		ANSI_COLOR_RED ":  "
 		, file, line, func);
-	usbcon_write(buf, -1);
-	usbcon_write(ANSI_COLOR_RESET "\r\n", -1);
+	dbg_printn(buf, -1);
+	dbg_printn(ANSI_COLOR_RESET "\r\n", -1);
 
 	// blink LEDs infinitely if LEDs are setup
 	if(led_setup())
@@ -70,7 +71,7 @@ void _dbg_warning(const char *file, int line, const char *func, const char *form
 	char buf[256];
 	VA_FMT_STR(format, buf, sizeof(buf));
 
-	usbcon_writef(
+	dbg_printf(
 		ANSI_COLOR_YELLOW "WARNING "
 		ANSI_COLOR_GREEN "%s"
 		ANSI_COLOR_RESET ":"
@@ -79,7 +80,40 @@ void _dbg_warning(const char *file, int line, const char *func, const char *form
 		ANSI_COLOR_CYAN "%s"
 		ANSI_COLOR_YELLOW ":  "
 		, file, line, func);
-	usbcon_write(buf, -1);
-	usbcon_write(ANSI_COLOR_RESET, -1);
+	dbg_printn(buf, -1);
+	dbg_printn(ANSI_COLOR_RESET, -1);
 }
 
+
+/*
+ * dbg_printn
+ *
+ * Writes a string to the console. If length < 0, the number of characters to
+ * write is taken as the length of `buf`.
+ */
+void dbg_printn(const char *buf, int length)
+{
+	if(length < 0)
+		length = strlen(buf);
+
+	packet_print_send(buf, length);
+}
+
+
+/*
+ * dbg_printf
+ *
+ * Writes a formatted string to the connected machine's console.
+ */
+void dbg_printf(const char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	char buf[128];
+	vsnprintf(buf, sizeof(buf), format, args);
+
+	va_end(args);
+
+	dbg_printn(buf, -1);
+}

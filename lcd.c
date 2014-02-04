@@ -2,14 +2,13 @@
 
 #include "i2c.h"
 #include "lcd.h"
-#include "usbcon.h"
 #include "dbg.h"
 
 
 // Reset sequence from p21 http://www-module.cs.york.ac.uk/hapr/resources/mbed_resources/datasheets/batron_operating_instructions_312175.pdf
 void lcd_init(void)
 {
-	usbcon_writef("Initialising LCD... ");
+	dbg_printf("Initialising LCD... ");
 
 	uint8_t buf[] = {
 		0x00, // NOP
@@ -52,7 +51,7 @@ void lcd_init(void)
 
 	lcd_blank();
 
-	usbcon_writef(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
+	dbg_printf(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
 }
 
 

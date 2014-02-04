@@ -20,7 +20,7 @@ LDSCRIPT=$(CMSIS)/lib/ldscript_rom_gnu.ld
 
 SHAREDFLAGS=-mcpu=cortex-m3 -march=armv7-m -mthumb -mthumb-interwork \
 	-Wall -Wextra -Werror -pedantic -Wformat=2 -Wno-unused-parameter \
-	-Wcast-align -Wpointer-arith -Wredundant-decls -Warray-bounds \
+	-Wpointer-arith -Wredundant-decls -Warray-bounds \
 	-Wdouble-promotion -Wno-error=double-promotion
 
 CFLAGS=$(SHAREDFLAGS) -mtune=cortex-m3 -O3 -std=c99 -fno-hosted \
@@ -36,7 +36,9 @@ LDFLAGS=$(SHAREDFLAGS) $(CMSISFL) -static \
 
 EXECNAME=bin/audiofx
 
-OBJ=usbcon.o \
+OBJ=sercom.o \
+	packets.o \
+	bytebuffer.o \
 	ticktime.o \
 	led.o \
 	dbg.o \

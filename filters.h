@@ -59,6 +59,7 @@ typedef struct
 {
 	const char *pszName;
 	const char *pszDescription;
+	const char *pszParamFormat;
 	SampleFilter_t pfnApply;
 	FilterDebug_t pfnDebug;
 
@@ -68,6 +69,7 @@ typedef struct
 #pragma pack(pop)
 
 extern Filter_t g_pFilters[];
+extern const size_t NUM_FILTERS;
 
 const Filter_t *filter_get(Filter_e idx);
 void filter_debug(void);

@@ -7,7 +7,6 @@
 #pragma GCC diagnostic pop
 
 #include "i2c.h"
-#include "usbcon.h"
 #include "dbg.h"
 
 
@@ -16,7 +15,7 @@ static int s_bI2CDebug = 0;
 
 void i2c_init(void)
 {
-	usbcon_writef("Initialising I2C... ");
+	dbg_printf("Initialising I2C... ");
 
 	PINSEL_CFG_Type PinCfg;
 	PinCfg.Funcnum = 3;
@@ -33,7 +32,7 @@ void i2c_init(void)
 	I2C_Init(I2C_DEV, I2C_CLK);
 	I2C_Cmd(I2C_DEV, ENABLE);
 
-	usbcon_writef(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
+	dbg_printf(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
 }
 
 
@@ -57,17 +56,17 @@ uint32_t i2c_transfer(uint32_t iAddr, uint8_t *pTx, uint32_t nTxLen, uint8_t *pR
 
 	if(s_bI2CDebug)
 	{
-		usbcon_writef("i2c_transfer @ 0x%lX\r\n", iAddr);
+		dbg_printf("i2c_transfer @ 0x%lX\r\n", iAddr);
 
 		// Debug transfer
 		if(pTx)
 		{
-			usbcon_write("\t---> ", -1);
+			dbg_printn("\t---> ", -1);
 
 			for(uint32_t i = 0; i < nTxLen-1; ++i)
-				usbcon_writef("0x%02X,", pTx[i]);
+				dbg_printf("0x%02X,", pTx[i]);
 
-			usbcon_writef("0x%02X\r\n", pTx[nTxLen-1]);
+			dbg_printf("0x%02X\r\n", pTx[nTxLen-1]);
 		}
 	}
 
@@ -78,12 +77,12 @@ uint32_t i2c_transfer(uint32_t iAddr, uint8_t *pTx, uint32_t nTxLen, uint8_t *pR
 
 	if(s_bI2CDebug && pRx)
 	{
-		usbcon_write("\t<--- ", -1);
+		dbg_printn("\t<--- ", -1);
 
 		for(uint32_t i = 0; i < nRxLen-1; ++i)
-			usbcon_writef("0x%02X,", pRx[i]);
+			dbg_printf("0x%02X,", pRx[i]);
 
-		usbcon_writef("0x%02X\r\n", pRx[nRxLen-1]);
+		dbg_printf("0x%02X\r\n", pRx[nRxLen-1]);
 
 		if(i2cCfg.rx_count != nRxLen)
 			dbg_warning("receive buffer %lu bytes, only read %lu\r\n", nRxLen, i2cCfg.rx_count);
@@ -114,7 +113,7 @@ int i2c_probe_addr(uint32_t iAddr)
 
 void i2c_scan(void)
 {
-	usbcon_writef("Scanning for I2C devices...\r\n");
+	dbg_printf("Scanning for I2C devices...\r\n");
 	int nDevices = 0;
 
 	for(int i = 0; i < (1<<7); ++i)
@@ -122,9 +121,9 @@ void i2c_scan(void)
 		if(!i2c_probe_addr(i))
 			continue;
 
-		usbcon_writef("\tdevice at 0x%02X\r\n", i);
+		dbg_printf("\tdevice at 0x%02X\r\n", i);
 		nDevices++;
 	}
 
-	usbcon_writef("Found " ANSI_COLOR_GREEN "%d" ANSI_COLOR_RESET " I2C device(s)\r\n", nDevices);
+	dbg_printf("Found " ANSI_COLOR_GREEN "%d" ANSI_COLOR_RESET " I2C device(s)\r\n", nDevices);
 }

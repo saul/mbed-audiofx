@@ -7,7 +7,6 @@
 #include <stdlib.h>
 
 #include "dbg.h"
-#include "usbcon.h"
 #include "chain.h"
 
 
@@ -132,21 +131,21 @@ uint16_t chain_apply(const ChainStageHeader_t *pRoot, uint16_t iSample)
  */
 void stage_debug(const ChainStageHeader_t *pStageHdr)
 {
-	usbcon_writef("Stage with %d branch(es):\r\n", pStageHdr->nBranches);
+	dbg_printf("Stage with %d branch(es):\r\n", pStageHdr->nBranches);
 
 	for(uint8_t i = 0; i < pStageHdr->nBranches; ++i)
 	{
 		const ChainStage_t *pStage = STAGE_BY_INDEX(pStageHdr, i);
 
-		usbcon_writef("  - #%d: filter=%s, flags=%x, mixperc=%.3f, private=%p", i+1, pStage->pFilter->pszName, pStage->flags, pStage->flMixPerc, (void *)pStage->pPrivate);
+		dbg_printf("  - #%d: filter=%s, flags=%x, mixperc=%.3f, private=%p", i+1, pStage->pFilter->pszName, pStage->flags, pStage->flMixPerc, (void *)pStage->pPrivate);
 
 		if(pStage->pFilter->pfnDebug)
 		{
-			usbcon_write(" -> ", -1);
+			dbg_printn(" -> ", -1);
 			pStage->pFilter->pfnDebug(pStage->pPrivate);
 		}
 
-		usbcon_write("\r\n", -1);
+		dbg_printn("\r\n", -1);
 	}
 }
 
@@ -158,14 +157,14 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
  */
 void chain_debug(const ChainStageHeader_t *pRoot)
 {
-	usbcon_writef(" === chain_debug(%p) ===\r\n", (void *)pRoot);
+	dbg_printf(" === chain_debug(%p) ===\r\n", (void *)pRoot);
 
 	uint i = 0;
 	const ChainStageHeader_t *pStage = pRoot;
 
 	while(pStage)
 	{
-		usbcon_writef("\r\n#%d: ", ++i);
+		dbg_printf("\r\n#%d: ", ++i);
 		stage_debug(pStage);
 		pStage = pStage->pNext;
 	}
