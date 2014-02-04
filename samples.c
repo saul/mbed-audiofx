@@ -44,3 +44,18 @@ void sample_set(int16_t index, uint16_t value)
 	else
 		g_pSampleBuffer[index/2].a = value;
 }
+
+uint16_t sample_get_interpolated(float index)
+{
+	// return interpolated sample from past
+	int16_t i;
+	if (index < 0)
+		i = (int) (index-1);
+	else
+		i = (int) index;
+
+	uint16_t si = sample_get(i);
+	uint16_t sj = sample_get(i+1);
+
+	return si + ((index - i) * (sj - si));
+}

@@ -36,18 +36,18 @@
 	"buffers":
 	[
 		{
-			"file": "Makefile",
+			"file": "samples.c",
 			"settings":
 			{
-				"buffer_size": 2709,
+				"buffer_size": 1266,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "main.c",
+			"file": "samples.h",
 			"settings":
 			{
-				"buffer_size": 3312,
+				"buffer_size": 407,
 				"line_ending": "Unix"
 			}
 		}
@@ -103,7 +103,10 @@
 	},
 	"console":
 	{
-		"height": 139.0
+		"height": 139.0,
+		"history":
+		[
+		]
 	},
 	"distraction_free":
 	{
@@ -116,6 +119,12 @@
 	},
 	"file_history":
 	[
+		"/usr/userfs/t/tb762/Documents/HAPR/Project/mbed-audiofx/Makefile",
+		"/usr/userfs/t/tb762/Documents/HAPR/Project/mbed-audiofx/main.c",
+		"/usr/userfs/t/tb762/Documents/HAPR/Project/mbed-audiofx/chain.c",
+		"/usr/userfs/t/tb762/Documents/HAPR/Project/mbed-audiofx/samples.h",
+		"/usr/userfs/t/tb762/Documents/HAPR/Project/mbed-audiofx/samples.c",
+		"/usr/userfs/t/tb762/Documents/HAPR/Project/mbed-audiofx/chain.h",
 		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/filters.h",
 		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/main.c",
 		"/usr/userfs/s/sr868/Documents/HAPR/rtfx/samples.c",
@@ -187,29 +196,31 @@
 			[
 				{
 					"buffer": 0,
-					"file": "Makefile",
+					"file": "samples.c",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2709,
+						"buffer_size": 1266,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1215,
-								1215
+								954,
+								954
 							]
 						],
 						"settings":
 						{
-							"buffer_scroll_name": "f4c17ed6",
-							"syntax": "Packages/Makefile/Makefile.tmLanguage"
+							"syntax": "Packages/C++/C++.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
+					"stack_index": 0,
 					"type": "text"
 				}
 			]
@@ -220,30 +231,30 @@
 			[
 				{
 					"buffer": 1,
-					"file": "main.c",
+					"file": "samples.h",
+					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3312,
+						"buffer_size": 407,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								682,
-								682
+								366,
+								366
 							]
 						],
 						"settings":
 						{
-							"buffer_scroll_name": "e0ac7de5",
-							"syntax": "Packages/C++/C.tmLanguage",
-							"translate_tabs_to_spaces": false
+							"syntax": "Packages/C++/C++.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 456.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
@@ -295,6 +306,7 @@
 	{
 		"height": 0.0
 	},
+	"project": "audiofx.sublime-project",
 	"replace":
 	{
 		"height": 50.0
@@ -306,16 +318,24 @@
 		"selected_items":
 		[
 			[
+				"samplesh",
+				"samples.h"
+			],
+			[
+				"samples",
+				"samples.c"
+			],
+			[
+				"chainc",
+				"chain.c"
+			],
+			[
 				"usbcon",
 				"usbcon.c"
 			],
 			[
 				"filtersh",
 				"filters.h"
-			],
-			[
-				"samplesh",
-				"samples.h"
 			],
 			[
 				"make",
@@ -360,10 +380,24 @@
 		],
 		"width": 0.0
 	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
 	"show_minimap": true,
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
 	"side_bar_width": 150.0,
-	"status_bar_visible": true
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
 }
