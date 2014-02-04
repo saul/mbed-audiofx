@@ -6,10 +6,12 @@
 #include "bytebuffer.h"
 #include "dbg.h"
 
+
 void packet_print_send(const char *pszLine, size_t size)
 {
 	sercom_send(B2U_PRINT, (const uint8_t *)pszLine, size);
 }
+
 
 void packet_filter_list_send(void)
 {

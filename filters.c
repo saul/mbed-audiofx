@@ -10,11 +10,11 @@
 #include "filters/delay.h"
 
 
- /*
-  * g_pFilters
-  *
-  * Global list of filter types.
-  */
+/*
+ * g_pFilters
+ *
+ * Global list of filter types.
+ */
 Filter_t g_pFilters[] = {
 	{"Delay", "Simple delay filter", "delay=H", filter_delay_apply, filter_delay_debug, NULL, sizeof(FilterDelayData_t)},
 };

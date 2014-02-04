@@ -68,8 +68,10 @@ typedef struct
 } Filter_t;
 #pragma pack(pop)
 
+
 extern Filter_t g_pFilters[];
 extern const size_t NUM_FILTERS;
+
 
 const Filter_t *filter_get(Filter_e idx);
 void filter_debug(void);
