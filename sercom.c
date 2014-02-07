@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
@@ -70,13 +71,11 @@ void sercom_init(void)
 	// Enable UART Transmit
 	UART_TxCmd((LPC_UART_TypeDef *)LPC_UART0, ENABLE);
 
-	// Wait to receive 'H'ello byte from the machine to proceed startup
-	uint8_t ch = 0;
+	// Send a probe packet. If a machine is connected, it will send a probe back
+	packet_probe_send();
 
-	do
-	{
-		UART_Receive((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)&ch, 1, BLOCKING);
-	} while(ch != 'H');
+	// Wait to receive probe from UI to proceed startup
+	packet_probe_wait();
 
 
 	// Move cursor to 1,1, clear display and print initialised message
@@ -89,7 +88,7 @@ void sercom_init(void)
  *
  * Send a packet header followed by the packet data (in `pBuf`).
  */
-void sercom_send(int packet_type, const uint8_t *pBuf, uint8_t size)
+void sercom_send(PacketType_e packet_type, const uint8_t *pBuf, uint8_t size)
 {
 	dbg_assert(packet_type < PACKET_TYPE_MAX, "invalid packet type %d", packet_type);
 
@@ -102,6 +101,56 @@ void sercom_send(int packet_type, const uint8_t *pBuf, uint8_t size)
 
 	UART_Send((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)&hdr, sizeof(hdr), BLOCKING);
 
+	if(!size)
+		return;
+
+	dbg_assert(pBuf, "packet size > 0 but no payload supplied");
+
 	// Send packet data
 	UART_Send((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)pBuf, size, BLOCKING);
+}
+
+
+bool sercom_receive(PacketHeader_t *pHdr, uint8_t **pPayload)
+{
+	dbg_assert(pHdr, "header must not be NULL");
+
+	// Read a packet header from serial
+	uint32_t nBytes = UART_Receive((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)pHdr, sizeof(*pHdr), BLOCKING);
+
+	if(nBytes != sizeof(*pHdr))
+	{
+		dbg_warning("failed to read %u bytes from serial\r\n", sizeof(*pHdr));
+		return false;
+	}
+
+	if(pHdr->ident != PACKET_IDENT)
+	{
+		dbg_warning("invalid packet identifier (%4c)\r\n", (int)pHdr->ident);
+		return false;
+	}
+
+	if(pHdr->type >= PACKET_TYPE_MAX)
+	{
+		dbg_warning("invalid packet type (%u)\r\n", pHdr->type);
+		return false;
+	}
+
+	// Read the packet payload
+	if(pHdr->size > 0)
+	{
+		if(!pPayload)
+		{
+			dbg_warning("packet has payload (size=%u), but pPayload is NULL\r\n", pHdr->size);
+			return false;
+		}
+
+		*pPayload = malloc(pHdr->size);
+		dbg_assert(*pPayload, "unable to allocate enough space for packet");
+
+		nBytes = UART_Receive((LPC_UART_TypeDef *)LPC_UART0, *pPayload, pHdr->size, BLOCKING);
+		dbg_assert(nBytes == pHdr->size, "failed to read payload (%lu of %u) from serial", nBytes, pHdr->size);
+	}
+
+	return true;
 }

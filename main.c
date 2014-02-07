@@ -54,18 +54,19 @@ void main(void)
 	//-----------------------------------------------------
 	// Initialisation
 	//-----------------------------------------------------
-	sercom_init();
-	led_init();
-
-	// Initialise timer
-	time_init(1);
-	unsigned long t = time_tickcount();
-
 	// Show all LEDs on init
+	led_init();
 	led_set(0, 1);
 	led_set(1, 1);
 	led_set(2, 1);
 	led_set(3, 1);
+
+	// Initialise serial console
+	sercom_init();
+
+	// Initialise timer
+	time_init(1);
+	unsigned long t = time_tickcount();
 
 	// I2C init
 	//i2c_init();
@@ -92,7 +93,7 @@ void main(void)
 	for(int i = 0; i < BUFFER_SAMPLES; ++i)
 		sample_set(i, 0);
 
-	//
+	// Debug filters
 	filter_debug();
 	packet_filter_list_send();
 
@@ -142,5 +143,8 @@ void main(void)
 	//-----------------------------------------------------
 	microtimer_enable(0, TIM_PRESCALE_USVAL, 100, 10000 / SAMPLE_RATE, time_tick, NULL);
 
-	while(1);
+	while(1)
+	{
+		packet_reset_wait();
+	}
 }
