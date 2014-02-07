@@ -1,6 +1,7 @@
 # Compilation intermediates
 *~
 *.o
+.nfs*
 
 # Libraries
 *.lib
@@ -11,6 +12,9 @@
 *.so.*
 bin/*
 
-# Python virtualenv
+# Python
 venv/
-/*.sublime-workspace
+__pycache__/
+
+# Misc
+*.sublime-workspace
