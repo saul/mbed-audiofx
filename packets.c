@@ -39,24 +39,6 @@ void packet_probe_send(void)
 }
 
 
-void packet_probe_wait(void)
-{
-	PacketHeader_t hdr;
-	uint8_t *pPayload;
-
-	for(;;)
-	{
-		if(!sercom_receive(&hdr, &pPayload))
-			continue;
-
-		if(hdr.type == A2A_PROBE)
-			break;
-
-		dbg_printf("packet_probe_wait: received packet %u(%s)\r\n", hdr.type, g_ppszPacketTypes[hdr.type]);
-	}
-}
-
-
 void packet_reset_wait(void)
 {
 	PacketHeader_t hdr;

@@ -19,6 +19,24 @@
 #include "dbg.h"
 
 
+static void startup_probe_wait(void)
+{
+	PacketHeader_t hdr;
+	uint8_t *pPayload;
+
+	for(;;)
+	{
+		if(!sercom_receive(&hdr, &pPayload))
+			continue;
+
+		if(hdr.type == A2A_PROBE || hdr.type == U2B_RESET)
+			break;
+
+		dbg_printf("startup_probe_wait: received packet %u(%s)\r\n", hdr.type, g_ppszPacketTypes[hdr.type]);
+	}
+}
+
+
 /*
  * sercom_init
  *
@@ -75,7 +93,7 @@ void sercom_init(void)
 	packet_probe_send();
 
 	// Wait to receive probe from UI to proceed startup
-	packet_probe_wait();
+	startup_probe_wait();
 
 
 	// Move cursor to 1,1, clear display and print initialised message

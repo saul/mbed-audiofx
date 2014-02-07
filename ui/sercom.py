@@ -109,8 +109,10 @@ class SerialStream:
 		time.sleep(1)
 		self.serial.flushInput()
 
-		# Send probe packet so board will boot
-		ProbePacket(self).send()
+		# Send reset packet so board will reboot
+		# If board is waiting for UI so it can start, the reset packet resumes
+		# startup
+		ResetPacket(self).send()
 
 	def read_packet(self):
 		"""Reads a packet from the serial port, doesn't return until a packet

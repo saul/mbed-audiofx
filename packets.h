@@ -17,7 +17,6 @@ typedef enum
 extern const char *g_ppszPacketTypes[];
 
 void packet_probe_send(void);
-void packet_probe_wait(void);
 void packet_reset_wait(void);
 void packet_print_send(const char *pszLine, size_t size);
 void packet_filter_list_send(void);
