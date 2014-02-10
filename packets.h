@@ -3,7 +3,7 @@
 
 typedef enum
 {
-	A2A_PROBE,			///< Board sends a probe packet on boot, waits for UI to respond with a probe
+	A2A_PROBE = 0,		///< Board sends a probe packet on boot, waits for UI to respond with a probe
 	U2B_RESET,			///< UI sends a packet to reset board
 	B2U_PRINT,			///< Board debug prints to UI console
 	B2U_FILTER_LIST,	///< Board sends available filters to UI

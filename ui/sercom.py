@@ -109,10 +109,8 @@ class SerialStream:
 		time.sleep(1)
 		self.serial.flushInput()
 
-		# Send reset packet so board will reboot
-		# If board is waiting for UI so it can start, the reset packet resumes
-		# startup
-		ResetPacket(self).send()
+		# Send probe packet so board will reboot/resume startup
+		ProbePacket(self).send()
 
 	def read_packet(self):
 		"""Reads a packet from the serial port, doesn't return until a packet
@@ -138,15 +136,11 @@ class SerialStream:
 		else:
 			data = self.serial.read(size)
 
-			#if b'\xff' in data:
-			#	print('read_packet: found \\xFF byte in packet payload, discarding')
-			#	return
-
 		packet = PACKET_MAP[pack_type](self)
 
 		# Debug packet receipt
 		if packet.__class__ is not PrintPacket:
-			print('read_packet: received packet %s (size=%d,data=%s)' % (packet.__class__.__qualname__, size, data))
+			print('read_packet: received packet %s (size=%d,data=%r)' % (packet.__class__.__qualname__, size, data))
 
 		try:
 			packet.receive(data)

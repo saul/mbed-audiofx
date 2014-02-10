@@ -29,12 +29,32 @@ static void startup_probe_wait(void)
 		if(!sercom_receive(&hdr, &pPayload))
 			continue;
 
-		if(hdr.type == A2A_PROBE || hdr.type == U2B_RESET)
+		dbg_printf("startup_probe_wait: received packet %u(%s)\r\n", hdr.type, g_ppszPacketTypes[hdr.type]);
+
+		if(hdr.type == A2A_PROBE)
 			break;
 
-		dbg_printf("startup_probe_wait: received packet %u(%s)\r\n", hdr.type, g_ppszPacketTypes[hdr.type]);
+		if(hdr.type == U2B_RESET)
+		{
+			NVIC_SystemReset();
+			return;
+		}
 	}
 }
+
+
+/*
+static void sercom_flush_input(void)
+{
+	volatile uint32_t tmp;
+
+	while(((LPC_UART_TypeDef *)LPC_UART0)->LSR & UART_LSR_RDR)
+	{
+		tmp = ((LPC_UART_TypeDef *)LPC_UART0)->RBR;
+		(void)tmp;
+	}
+}
+*/
 
 
 /*

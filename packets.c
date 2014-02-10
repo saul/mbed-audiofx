@@ -11,6 +11,7 @@
 #include "filters.h"
 #include "bytebuffer.h"
 #include "dbg.h"
+#include "ticktime.h"
 
 
 const char *g_ppszPacketTypes[] = {
@@ -49,8 +50,14 @@ void packet_reset_wait(void)
 		if(!sercom_receive(&hdr, &pPayload))
 			continue;
 
-		if(hdr.type == U2B_RESET)
+		// If we receive a probe or reset packet, reset the board
+		if(hdr.type == U2B_RESET || hdr.type == A2A_PROBE)
+		{
+			dbg_printf("Received %s packet, system rebooting in 1 second...\r\n", g_ppszPacketTypes[hdr.type]);
+			time_sleep(1000);
+
 			NVIC_SystemReset();
+		}
 	}
 }
 
