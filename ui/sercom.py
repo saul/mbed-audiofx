@@ -4,6 +4,7 @@ import struct
 import time
 import glob
 import os
+import sys
 
 
 def read_ascii_string(s, offset):
@@ -17,13 +18,26 @@ def read_ascii_string(s, offset):
 
 
 def determine_port():
-	if os.path.exists('/dev/ttyACM0'):
-		return '/dev/ttyACM0'
+	# On Linux, connect to /dev/ttyACM0 if it exists
+	if sys.platform.startswith('linux'):
+		if os.path.exists('/dev/ttyACM0'):
+			return '/dev/ttyACM0'
 
-	modems = glob.glob('/dev/tty.usbmodem*')
-	if modems:
-		assert len(modems) == 1
-		return modems[0]
+	# If OSX, connect to the first usbmodem
+	elif sys.platform == 'darwin':
+		modems = glob.glob('/dev/tty.usbmodem*')
+
+		if modems:
+			assert len(modems) == 1
+			return modems[0]
+
+	# HACK: connect to COM3 on Windows, actual port may vary!
+	elif sys.platform == 'win32':
+		return 'COM3'
+
+	# No idea... what platform is this?!
+	else:
+		raise RuntimeError('unknown platform')
 
 	raise RuntimeError('unable to determine serial port')
 
