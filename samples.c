@@ -52,8 +52,8 @@ uint32_t sample_get_interpolated(float index)
 {
 	// return interpolated sample from past
 	int16_t i;
-	if (index < 0)
-		i = (int) (index-1);
+	if(index < 0)
+		i = (int)(index - 1);
 	else
 		i = (int) index;
 
@@ -63,25 +63,26 @@ uint32_t sample_get_interpolated(float index)
 	return si + ((index - i) * (sj - si));
 }
 
+
 uint32_t sample_get_average(uint16_t nSamples)
 {
 	// Returns the average of the most recent 'nSamples' samples.
 	// Result is the average distance from baseline to peak (result <= ADC_MAX_VALUE / 2).
 	dbg_assert(nSamples <= BUFFER_SAMPLES, "requested average larger than buffer size");
 
-	if (sampleAverage->nSamples == nSamples)
+	if(sampleAverage->nSamples == nSamples)
 		return sampleAverage->average;
 
-	int32_t intermediate = 0;
 	int32_t sum = 0;
-	for (uint16_t i = 0; i < nSamples; ++i)
+	for(uint16_t i = 0; i < nSamples; ++i)
 	{
-		intermediate = sample_get(-i) >> 20;
+		int32_t intermediate = sample_get(-i) >> 20;
 		intermediate -= ((ADC_MAX_VALUE + 1) / 2);
-		sum += intermediate*intermediate;
+		sum += intermediate * intermediate;
 	}
-	sum = ((int) sqrt(sum / nSamples)) >> 20;
-	if (sampleAverage->nSamples == 0)
+
+	sum = ((int)sqrt(sum / nSamples)) << 20;
+	if(sampleAverage->nSamples == 0)
 	{
 		sampleAverage->nSamples = nSamples;
 		sampleAverage->average = sum;
@@ -89,10 +90,8 @@ uint32_t sample_get_average(uint16_t nSamples)
 	return sum;
 }
 
+
 void sample_clear_average()
 {
 	sampleAverage->nSamples = 0;
 }
-
-
-

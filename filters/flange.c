@@ -26,7 +26,7 @@ uint32_t filter_flange_apply(uint32_t input, void *pPrivate)
 	switch (pData->waveType)
 	{
 		case 0:
-			if (get_square(pData->speed) == 1)
+			if(get_square(pData->speed))
 				return output + pData->flangedMix * sample_get(-pData->nDelay*2);
 			else
 				return output + pData->flangedMix * sample_get(0);
