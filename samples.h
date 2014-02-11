@@ -19,8 +19,8 @@ typedef struct
 #pragma GCC diagnostic pop
 
 
-uint16_t sample_get(int16_t index);
+uint32_t sample_get(int16_t index);
 void sample_set(int16_t index, uint16_t value);
-uint16_t sample_get_interpolated(float index);
+uint32_t sample_get_interpolated(float index);
 
 #endif

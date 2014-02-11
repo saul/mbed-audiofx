@@ -9,7 +9,7 @@
 volatile uint16_t g_iSampleCursor = 0;
 
 
-uint16_t sample_get(int16_t index)
+uint32_t sample_get(int16_t index)
 {
 	// return sample from past
 	if(index < 0)
@@ -21,9 +21,9 @@ uint16_t sample_get(int16_t index)
 	dbg_assert(index < BUFFER_SAMPLES, "invalid sample index");
 
 	if(index & 1)
-		return g_pSampleBuffer[(index-1)/2].b;
+		return g_pSampleBuffer[(index-1)/2].b << 20;
 
-	return g_pSampleBuffer[index/2].a;
+	return g_pSampleBuffer[index/2].a << 20;
 }
 
 
@@ -45,7 +45,7 @@ void sample_set(int16_t index, uint16_t value)
 		g_pSampleBuffer[index/2].a = value;
 }
 
-uint16_t sample_get_interpolated(float index)
+uint32_t sample_get_interpolated(float index)
 {
 	// return interpolated sample from past
 	int16_t i;
@@ -54,8 +54,8 @@ uint16_t sample_get_interpolated(float index)
 	else
 		i = (int) index;
 
-	uint16_t si = sample_get(i);
-	uint16_t sj = sample_get(i+1);
+	uint32_t si = sample_get(i);
+	uint32_t sj = sample_get(i+1);
 
 	return si + ((index - i) * (sj - si));
 }
