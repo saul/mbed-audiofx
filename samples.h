@@ -6,7 +6,6 @@
 
 extern volatile uint16_t g_iSampleCursor;
 
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
 #pragma pack(push, 1)
@@ -18,9 +17,17 @@ typedef struct
 #pragma pack(pop)
 #pragma GCC diagnostic pop
 
+typdef struct
+{
+	uint16_t nSamples;
+	uint32_t average;
+} SampleAverage_t;
+
 
 uint32_t sample_get(int16_t index);
 void sample_set(int16_t index, uint16_t value);
 uint32_t sample_get_interpolated(float index);
+uint32_t sample_get_average(uint16_t nSamples);
+void sample_clear_average(void);
 
 #endif
