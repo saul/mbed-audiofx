@@ -10,7 +10,7 @@ typedef struct
 	float flangedMix;
 } FilterFlangeData_t;
 
-uint32_t filter_flange_apply(uint32_5 input, void *pPrivate);
+uint32_t filter_flange_apply(uint32_t input, void *pPrivate);
 void filter_delay_debug(void *pPrivate);
 
 #endif
