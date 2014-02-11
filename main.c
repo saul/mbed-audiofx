@@ -37,6 +37,8 @@ static void time_tick(void *pUserData)
 
 	uint16_t iFiltered = iSample >> 2;
 
+	sample_clear_average();
+
 	// If we have a filter chain, apply all filters to the sample
 	if(g_pChainRoot)
 		iFiltered = chain_apply(g_pChainRoot, iSample);

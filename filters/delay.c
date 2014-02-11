@@ -8,7 +8,7 @@
 uint32_t filter_delay_apply(uint32_t input, void *pPrivate)
 {
 	const FilterDelayData_t *pData = (const FilterDelayData_t *)pPrivate;
-	return sample_get(-pData->nDelay) << 20;
+	return sample_get(-pData->nDelay);
 }
 
 

@@ -51,6 +51,8 @@ OBJ=sercom.o \
 	chain.o \
 	filters.o \
 	filters/delay.o \
+	filters/flange.o \
+	waves.o \
 	samples.o \
 	main.o
 
