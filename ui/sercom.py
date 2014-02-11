@@ -2,6 +2,8 @@
 import serial
 import struct
 import time
+import glob
+import os
 
 
 def read_ascii_string(s, offset):
@@ -12,6 +14,18 @@ def read_ascii_string(s, offset):
 	s = s[offset:]
 	end = s.index(0)
 	return s[:end].decode('ascii'), offset + end + 1
+
+
+def determine_port():
+	if os.path.exists('/dev/ttyACM0'):
+		return '/dev/ttyACM0'
+
+	modems = glob.glob('/dev/tty.usbmodem*')
+	if modems:
+		assert len(modems) == 1
+		return modems[0]
+
+	raise RuntimeError('unable to determine serial port')
 
 
 # little-endian "MBED"
@@ -101,8 +115,11 @@ PACKET_MAP = [
 
 
 class SerialStream:
-	def __init__(self, baudrate=9600):
-		self.serial = serial.Serial('/dev/ttyACM0', baudrate)
+	def __init__(self, port=None, baudrate=9600):
+		if port is None:
+			port = determine_port()
+
+		self.serial = serial.Serial(port, baudrate)
 
 		# Flush input
 		print('Waiting to flush serial buffer...')
