@@ -13,8 +13,14 @@
 bin/*
 
 # Python
-venv/
 __pycache__/
+
+# UI ignores (HTML, CSS, JS, etc.)
+bootstrap-*/dist
+bootstrap*.css
+*.map
+*.min.*
+ui/dist
 
 # Misc
 *.sublime-workspace

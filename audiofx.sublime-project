@@ -4,7 +4,7 @@
 		{
 			"follow_symlinks": true,
 			"path": ".",
-			"folder_exclude_patterns": ["bin"],
+			"folder_exclude_patterns": ["bin", "dist"],
 			"file_exclude_patterns": ["*.o", "*~", ".nfs*"]
 		}
 	],

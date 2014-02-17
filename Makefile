@@ -1,7 +1,6 @@
 PKG=../arm-2013.05
 BIN=$(PKG)/bin
 
-SHELL=bash
 ARCH=arm-none-eabi
 CC=$(BIN)/$(ARCH)-gcc
 OBJCOPY=$(BIN)/$(ARCH)-objcopy

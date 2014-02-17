@@ -1,0 +1,48 @@
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+
+	<title>MBED Audio Effects</title>
+
+	<link rel="stylesheet" href="app://css/bootstrap.css">
+	<link rel="stylesheet" href="app://css/bootstrap-theme.css">
+
+	<script type="text/javascript" src="app://js/jquery-2.1.0.js"></script>
+	<script type="text/javascript" src="app://js/underscore-1.6.0.js"></script>
+	<script type="text/javascript" src="app://js/handlebars-v1.3.0.js"></script>
+	<script type="text/javascript" src="app://js/bootstrap.js"></script>
+	<script type="text/javascript" src="app://js/ansi_up.js"></script>
+
+	<script type="text/python">from py.sercom_bridge import init; init(window)</script>
+	<script type="text/javascript" src="app://js/network.js"></script>
+	<script type="text/javascript" src="app://js/templating.js"></script>
+	<script type="text/javascript" src="app://js/ui.js"></script>
+</head>
+
+<body>
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="#chain" data-toggle="tab">Filter chain</a></li>
+		<li><a href="#debug" data-toggle="tab">Debugging</a></li>
+	</ul>
+
+	<div class="tab-content">
+		<div class="tab-pane active" id="chain">
+			<div id="filter-container"></div>
+		</div>
+
+		<div class="tab-pane" id="debug">
+			<p class="text-right">
+				<button type="button" class="btn btn-default" id="clear-console">
+					<i class="glyphicon glyphicon-eye-close"></i> Clear console
+				</button>
+
+				<button type="button" class="btn btn-danger" id="reset-board">
+					<i class="glyphicon glyphicon-refresh"></i> Reset board
+				</button>
+			</p>
+
+			<pre id="console-text"></pre>
+		</div>
+	</div>
+</body>
+</html>

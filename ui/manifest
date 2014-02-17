@@ -1,0 +1,21 @@
+#appname:ui
+#appid:com.mbed.audiofx
+#publisher:Saul
+#image:default_app_logo.png
+#url:http://github.com/saul/mbed-audiofx
+#guid:16f06810-58cb-4d57-887b-3bb300c1708b
+#desc:No description provided
+#type:desktop
+runtime:1.3.1-beta
+app:1.3.1-beta
+codec:1.3.1-beta
+database:1.3.1-beta
+filesystem:1.3.1-beta
+media:1.3.1-beta
+monkey:1.3.1-beta
+network:1.3.1-beta
+platform:1.3.1-beta
+process:1.3.1-beta
+python:1.3.1-beta
+ui:1.3.1-beta
+worker:1.3.1-beta

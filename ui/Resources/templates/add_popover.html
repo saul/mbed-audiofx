@@ -1,0 +1,8 @@
+<select class="form-control" name="filter-create">
+	<option value="-" selected>Choose...</option>
+
+	{{#each filters}}
+		<option value="{{this.name}}">{{this.name}}</option>
+		}
+	{{/each}}
+</select>
