@@ -2,6 +2,15 @@
 import serial
 import struct
 import time
+import glob
+import os
+import sys
+
+
+__all__ = ['ProbePacket', 'ResetPacket', 'PrintPacket', 'FilterListPacket', 'SerialStream', 'PacketTypes', 'PACKET_MAP']
+
+# little-endian "MBED"
+PACKET_IDENT = ord('D') << 24 | ord('E') << 16 | ord('B') << 8 | ord('M')
 
 
 def read_ascii_string(s, offset):
@@ -10,23 +19,45 @@ def read_ascii_string(s, offset):
 	character after the NULL byte.
 	"""
 	s = s[offset:]
-	end = s.index(0)
+	end = s.index('\x00')
 	return s[:end].decode('ascii'), offset + end + 1
 
 
-# little-endian "MBED"
-PACKET_IDENT = ord('D') << 24 | ord('E') << 16 | ord('B') << 8 | ord('M')
+def determine_port():
+	# On Linux, connect to /dev/ttyACM0 if it exists
+	if sys.platform.startswith('linux'):
+		if os.path.exists('/dev/ttyACM0'):
+			return '/dev/ttyACM0'
 
-# TODO: replace with enum
-A2A_PROBE = 0
-U2B_RESET = 1
-B2U_PRINT = 2
-B2U_FILTER_LIST = 3
-U2B_FILTER_CHAIN = 4
-U2B_FILTER_MOD = 5
+	# If OSX, connect to the first usbmodem
+	elif sys.platform == 'darwin':
+		modems = glob.glob('/dev/tty.usbmodem*')
+
+		if modems:
+			assert len(modems) == 1
+			return modems[0]
+
+	# HACK: connect to COM3 on Windows, actual port may vary!
+	elif sys.platform == 'win32':
+		return 'COM3'
+
+	# No idea... what platform is this?!
+	else:
+		raise RuntimeError('unknown platform')
+
+	raise RuntimeError('unable to determine serial port')
 
 
-class Packet:
+class PacketTypes(object):
+	A2A_PROBE = 0
+	U2B_RESET = 1
+	B2U_PRINT = 2
+	B2U_FILTER_LIST = 3
+	U2B_FILTER_CHAIN = 4
+	U2B_FILTER_MOD = 5
+
+
+class Packet(object):
 	def __init__(self, stream):
 		self.stream = stream
 
@@ -46,7 +77,7 @@ class Packet:
 
 
 class ProbePacket(Packet):
-	type_ = A2A_PROBE
+	type_ = PacketTypes.A2A_PROBE
 
 	def receive(self, data):
 		# When we receive a probe packet, send one back
@@ -58,22 +89,23 @@ class ProbePacket(Packet):
 
 
 class ResetPacket(Packet):
-	type_ = U2B_RESET
+	type_ = PacketTypes.U2B_RESET
 
 	def construct(self):
 		return None
 
 
 class PrintPacket(Packet):
-	type_ = B2U_PRINT
+	type_ = PacketTypes.B2U_PRINT
 
 	def receive(self, data):
 		chars = struct.unpack('<%dc' % len(data), data)
-		print(b''.join(chars).decode('ascii'), end='')
+		self.msg = ''.join(chars).decode('ascii')
+		print self.msg,
 
 
 class FilterListPacket(Packet):
-	type_ = B2U_FILTER_LIST
+	type_ = PacketTypes.B2U_FILTER_LIST
 
 	def receive(self, data):
 		HEADER_FORMAT = '<B'
@@ -81,15 +113,21 @@ class FilterListPacket(Packet):
 		num_filters = struct.unpack_from(HEADER_FORMAT, data, offset)[0]
 		offset += struct.calcsize(HEADER_FORMAT)
 
+		self.filters = []
+
 		for i in range(num_filters):
 			name, offset = read_ascii_string(data, offset)
 			desc, offset = read_ascii_string(data, offset)
 			param_format, offset = read_ascii_string(data, offset)
 
-			print('Filter: %s, %s, %s' % (name, desc, param_format))
+			print 'Filter: %s, %s, %s' % (name, desc, param_format)
+			self.filters.append({
+				'name': name,
+				'desc': desc,
+				'format': param_format,
+			})
 
 
-# TODO: ordering doesn't matter
 PACKET_MAP = [
 	ProbePacket, # B2U_PROBE
 	ResetPacket, # U2B_RESET
@@ -101,16 +139,20 @@ PACKET_MAP = [
 
 
 class SerialStream:
-	def __init__(self, baudrate=9600):
-		self.serial = serial.Serial('/dev/ttyACM0', baudrate)
+	def __init__(self, port=None, baudrate=9600):
+		if port is None:
+			port = determine_port()
+
+		self.serial = serial.Serial(port, baudrate)
+		self._read_buf = ''
 
 		# Flush input
-		print('Waiting to flush serial buffer...')
+		print 'Waiting to flush serial buffer...'
 		time.sleep(1)
 		self.serial.flushInput()
 
 		# Send probe packet so board will reboot/resume startup
-		ProbePacket(self).send()
+		#ProbePacket(self).send()
 
 	def read_packet(self):
 		"""Reads a packet from the serial port, doesn't return until a packet
@@ -118,14 +160,18 @@ class SerialStream:
 		"""
 		ident = self.serial.read(4)
 
-		if ident != b'MBED':
-			print('read_packet: invalid packet ident (%s)' % ident)
+		if ident != 'MBED':
+			print 'read_packet: invalid packet ident (%s)' % ident
 			return
 
 		# Read packet type
 		pack_type = struct.unpack('<B', self.serial.read(1))[0]
-		if pack_type >= len(PACKET_MAP):
-			print('read_packet: got unknown packet type (%d)' % pack_type)
+
+		packet_cls = filter(lambda cls: cls.type_ == pack_type, PACKET_MAP)
+		assert len(packet_cls) <= 1, 'multiply defined packet handler'
+
+		if len(packet_cls) == 0:
+			print 'read_packet: got unknown packet type (%d)' % pack_type
 			return
 
 		# Read packet data
@@ -136,20 +182,23 @@ class SerialStream:
 		else:
 			data = self.serial.read(size)
 
-		packet = PACKET_MAP[pack_type](self)
+		packet = packet_cls[0](self)
 
 		# Debug packet receipt
 		if packet.__class__ is not PrintPacket:
-			print('read_packet: received packet %s (size=%d,data=%r)' % (packet.__class__.__qualname__, size, data))
+			print 'read_packet: received packet %s (size=%d,data=%r)' % (packet.__class__.__name__, size, data)
 
 		try:
 			packet.receive(data)
 		except:
-			print('read_packet: exception occurred when parsing packet data:\n%r' % data)
+			print 'read_packet: exception occurred when parsing packet data:\n%r' % data
 			raise
 
+		return packet
 
 	def send_packet(self, type_, data=None):
+		print 'Sending %s packet...' % type_
+
 		# Calculate payload size
 		size = len(data) if data is not None else 0
 

@@ -1,0 +1,30 @@
+<div class="filter panel panel-success">
+	<div class="panel-heading">
+		<h3 class="panel-title">
+			<label>
+				<input name="filter-enabled" type="checkbox" checked="checked"> {{name}}
+			</label>
+
+			<button type="button" class="close">&times;</button>
+		</h3>
+	</div>
+
+	<div class="panel-body">
+		{{#each parameters}}
+			<div class="form-group">
+				<label for="{{this.fieldName}}">{{this.name}}</label>
+
+				{{#ifEq this.type "range"}}
+				<input type="range" class="form-control" name="{{this.fieldName}}" min="{{this.min}}" max="{{this.max}}" step="{{this.step}}" value="{{this.value}}">
+				{{/ifEq}}
+				{{#ifEq this.type "choice"}}
+				<select class="form-control" name="{{this.fieldName}}">
+					{{#each this.choices}}
+						<option value="{{@index}}">{{this}}</option>
+					{{/each}}
+				</select>
+				{{/ifEq}}
+			</div>
+		{{/each}}
+	</div>
+</div>

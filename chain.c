@@ -129,6 +129,8 @@ uint16_t chain_apply(const ChainStageHeader_t *pRoot, uint16_t iSample)
  * Prints debug information for a single chain stage (which may have multiple
  * branches).
  */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
 void stage_debug(const ChainStageHeader_t *pStageHdr)
 {
 	dbg_printf("Stage with %d branch(es):\r\n", pStageHdr->nBranches);
@@ -148,6 +150,7 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
 		dbg_printn("\r\n", -1);
 	}
 }
+#pragma GCC diagnostic pop
 
 
 /*
