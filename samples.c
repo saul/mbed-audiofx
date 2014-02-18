@@ -69,6 +69,8 @@ uint32_t sample_get_average(uint16_t nSamples)
 	// Result is the average distance from baseline to peak (result <= ADC_MAX_VALUE / 2).
 	dbg_assert(nSamples <= BUFFER_SAMPLES, "requested average larger than buffer size");
 
+	// Enable reuse of calculations by storing the first average calculated each sample
+	// and returning it if the parameters match.
 	if (sampleAverage->nSamples == nSamples)
 		return sampleAverage->average;
 
@@ -93,6 +95,3 @@ void sample_clear_average()
 {
 	sampleAverage->nSamples = 0;
 }
-
-
-
