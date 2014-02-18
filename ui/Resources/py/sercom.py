@@ -48,6 +48,12 @@ def determine_port():
 	raise RuntimeError('unable to determine serial port')
 
 
+def get_packet_for_type(type_):
+	clss = filter(lambda cls: cls.type_ == type_, PACKET_MAP)
+	assert len(clss) <= 1, 'Handler for packet type %s multiply defined' % type_
+	return clss[0]
+
+
 class PacketTypes(object):
 	A2A_PROBE = 0
 	U2B_RESET = 1
@@ -197,7 +203,8 @@ class SerialStream:
 		return packet
 
 	def send_packet(self, type_, data=None):
-		print 'Sending %s packet...' % type_
+		cls = get_packet_for_type(type_)
+		print 'send_packet:  sending %s...' % cls.__name__
 
 		# Calculate payload size
 		size = len(data) if data is not None else 0

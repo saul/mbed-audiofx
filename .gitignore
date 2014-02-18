@@ -13,7 +13,7 @@
 bin/*
 
 # Python
-__pycache__/
+*.pyc
 
 # UI ignores (HTML, CSS, JS, etc.)
 bootstrap-*/dist

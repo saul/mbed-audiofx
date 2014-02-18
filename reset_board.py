@@ -1,4 +1,9 @@
-from ui import sercom
+# Setup path
+import sys
+import os
+sys.path.append(os.path.join(os.path.abspath('.'), 'ui', 'Resources', 'py'))
+
+import sercom
 
 def main():
 	stream = sercom.SerialStream()
