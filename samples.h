@@ -17,7 +17,7 @@ typedef struct
 #pragma pack(pop)
 #pragma GCC diagnostic pop
 
-typdef struct
+typedef struct
 {
 	uint16_t nSamples;
 	uint32_t average;

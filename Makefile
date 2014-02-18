@@ -1,3 +1,5 @@
+SHELL=bash
+
 PKG=../arm-2013.05
 BIN=$(PKG)/bin
 

@@ -72,8 +72,8 @@ uint32_t sample_get_average(uint16_t nSamples)
 
 	// Enable reuse of calculations by storing the first average calculated each sample
 	// and returning it if the parameters match.
-	if (sampleAverage->nSamples == nSamples)
-		return sampleAverage->average;
+	if (sampleAverage.nSamples == nSamples)
+		return sampleAverage.average;
 
 	int32_t sum = 0;
 	for(uint16_t i = 0; i < nSamples; ++i)
@@ -84,10 +84,10 @@ uint32_t sample_get_average(uint16_t nSamples)
 	}
 
 	sum = ((int)sqrt(sum / nSamples)) << 20;
-	if(sampleAverage->nSamples == 0)
+	if(sampleAverage.nSamples == 0)
 	{
-		sampleAverage->nSamples = nSamples;
-		sampleAverage->average = sum;
+		sampleAverage.nSamples = nSamples;
+		sampleAverage.average = sum;
 	}
 	return sum;
 }
@@ -95,5 +95,5 @@ uint32_t sample_get_average(uint16_t nSamples)
 
 void sample_clear_average()
 {
-	sampleAverage->nSamples = 0;
+	sampleAverage.nSamples = 0;
 }
