@@ -8,6 +8,7 @@
 
 void dac_init(void)
 {
+	// MBED Pin 18
 	PINSEL_CFG_Type pcfg;
 	pcfg.Pinmode = 0;
 	pcfg.Funcnum = 2;

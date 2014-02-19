@@ -12,6 +12,7 @@ void adc_init(uint32_t rate)
 }
 
 
+// MBED Pin mapping: http://www-users.cs.york.ac.uk/~pcc/MCP/MbedPins.html
 void adc_config(uint8_t chan, uint8_t bEnable)
 {
 	dbg_assert(chan < ADC_NUM_CHANNELS, "invalid channel (%u, max=%u)", chan, ADC_NUM_CHANNELS-1);
@@ -25,24 +26,24 @@ void adc_config(uint8_t chan, uint8_t bEnable)
 
 	switch(chan)
 	{
-	case 0:
+	case 0: // MBED Pin 15
 		adc_pcfg.Pinnum = 23;
 		break;
-	case 1:
+	case 1: // MBED Pin 16
 		adc_pcfg.Pinnum = 24;
 		break;
-	case 2:
+	case 2: // MBED Pin 17
 		adc_pcfg.Pinnum = 25;
 		break;
-	case 3: // also DAC (func 2)(MUTEX)
+	case 3: // MBED Pin 18 (also DAC@funcnum 2, mutually exclusive)
 		adc_pcfg.Pinnum = 26;
 		break;
-	case 4: // audio socket on UoY host board
+	case 4: // MBED Pin 19 (audio socket on UoY host board)
 		adc_pcfg.Pinnum = 30;
 		adc_pcfg.Portnum = 1;
 		adc_pcfg.Funcnum = 3;
 		break;
-	case 5:
+	case 5: // MBED Pin 20
 		adc_pcfg.Pinnum = 31;
 		adc_pcfg.Portnum = 1;
 		adc_pcfg.Funcnum = 3;
