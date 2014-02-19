@@ -27,7 +27,7 @@
 ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 
-volatile bool g_bVibratoActive
+volatile bool g_bVibratoActive = false;
 
 
 static uint16_t get_median_sample(void)
@@ -64,7 +64,7 @@ static void time_tick(void *pUserData)
 	// UNDONE: this doesn't seem to affect anything
 #if 0
 	// Do we have a sample ready to read in?
-	if (!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_0, ADC_DATA_DONE) ||
+	if(!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_0, ADC_DATA_DONE) ||
 		!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_4, ADC_DATA_DONE) ||
 		!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_5, ADC_DATA_DONE))
 		return;
@@ -93,10 +93,8 @@ static void time_tick(void *pUserData)
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
 
-	if (g_bVibratoActive)
+	if(g_bVibratoActive)
 		g_fVibratoSampleCursor = get_vibrato_pointer();
-	else
-		g_fVibratoSampleCursor = (float) g_iSampleCursor;
 }
 
 
