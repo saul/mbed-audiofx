@@ -3,10 +3,12 @@
 
 typedef struct
 {
-	uint32_t threshold;
-	uint8_t attack;
-	uint8_t release;
-	uint8_t hold;
-} FilterNoisegateData_t;
+	uint16_t sensitivity;
+	uint16_t threshold;
+} FilterNoiseGateData_t;
+
+
+uint32_t filter_noisegate_apply(uint32_t input, void *pPrivate);
+void filter_noisegate_debug(void *pPrivate);
 
 #endif

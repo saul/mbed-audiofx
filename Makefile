@@ -53,6 +53,7 @@ OBJ=sercom.o \
 	filters.o \
 	filters/delay.o \
 	filters/flange.o \
+	filters/dynamic.o \
 	waves.o \
 	samples.o \
 	main.o

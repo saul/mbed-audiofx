@@ -8,6 +8,7 @@
 #include "dbg.h"
 #include "filters.h"
 #include "filters/delay.h"
+#include "filters/dynamic.h"
 
 
 /*
@@ -16,7 +17,8 @@
  * Global list of filter types.
  */
 Filter_t g_pFilters[] = {
-	{"Delay", "Simple delay filter", "delay=H", filter_delay_apply, filter_delay_debug, NULL, sizeof(FilterDelayData_t)},
+	{"Delay", "TODO", filter_delay_apply, filter_delay_debug, sizeof(FilterDelayData_t)},
+	{"Noise gate", "TODO", filter_noisegate_apply, filter_noisegate_debug, sizeof(FilterNoiseGateData_t)},
 };
 
 const size_t NUM_FILTERS = sizeof(g_pFilters)/sizeof(g_pFilters[0]);
@@ -36,10 +38,9 @@ void filter_debug(void)
 	for(uint8_t i = 0; i < NUM_FILTERS; ++i)
 	{
 		const Filter_t *pFilter = &g_pFilters[i];
-		dbg_printf("\r\n#%02u: %s: %s\r\n", i, pFilter->pszName, pFilter->pszDescription);
+		dbg_printf("\r\n#%02u: %s\r\n", i, pFilter->pszName);
 		dbg_printf("     apply=%p\r\n", (void *)pFilter->pfnApply);
 		dbg_printf("     debug=%p\r\n", (void *)pFilter->pfnDebug);
-		dbg_printf("     validate=%p\r\n", (void *)pFilter->pfnValidate);
 		dbg_printf("     privateDataSize=%u\r\n", pFilter->nPrivateDataSize);
 	}
 

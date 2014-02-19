@@ -59,8 +59,10 @@ class PacketTypes(object):
 	U2B_RESET = 1
 	B2U_PRINT = 2
 	B2U_FILTER_LIST = 3
-	U2B_FILTER_CHAIN = 4
-	U2B_FILTER_MOD = 5
+	U2B_FILTER_CREATE = 4
+	U2B_FILTER_DELETE = 5
+	U2B_FILTER_FLAG = 6
+	U2B_FILTER_MOD = 7
 
 
 class Packet(object):
@@ -123,13 +125,11 @@ class FilterListPacket(Packet):
 
 		for i in range(num_filters):
 			name, offset = read_ascii_string(data, offset)
-			desc, offset = read_ascii_string(data, offset)
 			param_format, offset = read_ascii_string(data, offset)
 
-			print 'Filter: %s, %s, %s' % (name, desc, param_format)
+			print 'Filter: %s, %s' % (name, param_format)
 			self.filters.append({
 				'name': name,
-				'desc': desc,
 				'format': param_format,
 			})
 

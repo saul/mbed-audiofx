@@ -20,28 +20,70 @@
 #include "samples.h"
 #include "filters.h"
 #include "filters/delay.h"
+#include "filters/dynamic.h"
 #include "packets.h"
 
 
 ChainStageHeader_t *g_pChainRoot = NULL;
+volatile bool g_bChainLock = false;
+
+
+static uint16_t get_median_sample(void)
+{
+	uint16_t iSamples[] = {
+		ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_0),
+		ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_4),
+		ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_5),
+	};
+
+	if(iSamples[0] > iSamples[1])
+	{
+		if(iSamples[1] > iSamples[2])
+			return iSamples[1]
+;
+		if(iSamples[0] > iSamples[2])
+			return iSamples[2];
+
+		return iSamples[0];
+	}
+
+	if(iSamples[0] > iSamples[2])
+		return iSamples[0];
+
+	if(iSamples[1] > iSamples[2])
+		return iSamples[2];
+
+	return iSamples[1];
+}
 
 
 static void time_tick(void *pUserData)
 {
+	// UNDONE: this doesn't seem to affect anything
+#if 0
 	// Do we have a sample ready to read in?
-	if(!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_0, ADC_DATA_DONE))
+	if (!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_0, ADC_DATA_DONE) ||
+		!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_4, ADC_DATA_DONE) ||
+		!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_5, ADC_DATA_DONE))
 		return;
+#endif
 
-	uint16_t iSample = ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_0);
+	uint16_t iSample = get_median_sample();
 	sample_set(g_iSampleCursor, iSample);
 
 	uint16_t iFiltered = iSample >> 2;
 
-	sample_clear_average();
+	// If the filter chain is locked for modification (e.g., by a packet
+	// handler), don't try to apply the chain. It may be in an intermediate
+	// state/cause crashes/sound funky. Just passthru.
+	if(!g_bChainLock)
+	{
+		sample_clear_average();
 
-	// If we have a filter chain, apply all filters to the sample
-	if(g_pChainRoot)
-		iFiltered = chain_apply(g_pChainRoot, iSample);
+		// If we have a filter chain, apply all filters to the sample
+		if(g_pChainRoot)
+			iFiltered = chain_apply(g_pChainRoot, iSample);
+	}
 
 	// Output to DAC
 	dac_set(iFiltered);
@@ -79,12 +121,17 @@ void main(void)
 
 	// ADC init
 	adc_init(SAMPLE_RATE);
-	adc_config(0, ENABLE);
+	adc_config(0, ENABLE); // MBED pin 15
+	adc_config(4, ENABLE); // MBED pin 19
+	adc_config(5, ENABLE); // MBED pin 20
 	adc_start(ADC_START_CONTINUOUS);
 	adc_burst_config(ENABLE);
 
 	// DAC init
 	dac_init();
+
+	// Check static assertions (does nothing at run-time)
+	packet_static_assertions();
 
 	// Startup complete
 	t = time_tickcount() - t;
@@ -102,39 +149,34 @@ void main(void)
 	//-----------------------------------------------------
 	// Generate a filter chain
 	//-----------------------------------------------------
-	g_pChainRoot = stage_alloc(1);
+	g_pChainRoot = stage_alloc();
 
 	// Stage 1
 	//-------------------------------------------
-	ChainStage_t *pStage1 = STAGE_BY_INDEX(g_pChainRoot, 0);
-	pStage1->pFilter = &g_pFilters[FILTER_DELAY];
-	pStage1->flags = STAGEFLAG_FULL_MIX;
+	ChainStageHeader_t *pStage1 = g_pChainRoot;
 
-	FilterDelayData_t delayData;
-	delayData.nDelay = 5000; // ~0.5 secs
-	pStage1->pPrivate = &delayData;
+	// Stage 1, Branch 1
+	// -----------------
+	FilterDelayData_t *pDelayData;
+	StageBranch_t *pBranch1 = branch_alloc(FILTER_DELAY, STAGEFLAG_ENABLED, 0.75, (void**)&pDelayData);
 
-	// Stage 2
-	//-------------------------------------------
-	ChainStageHeader_t *pStage2 = stage_alloc(2);
-	g_pChainRoot->pNext = pStage2;
+	pDelayData->nDelay = 2500; // ~0.25 secs
 
-	ChainStage_t *pStage2b1 = STAGE_BY_INDEX(pStage2, 0);
-	pStage2b1->pFilter = &g_pFilters[FILTER_DELAY];
+	pStage1->nBranches++;
+	pStage1->pFirst = pBranch1;
 
-	FilterDelayData_t delayData2b1;
-	delayData2b1.nDelay = 7500; // ~0.75 secs
-	pStage2b1->pPrivate = &delayData2b1;
-	pStage2b1->flMixPerc = 0.5;
+#define MULTI_BRANCH_TEST
+#ifdef MULTI_BRANCH_TEST
+	// Stage 1, Branch 2
+	// -----------------
+	FilterDelayData_t *pDelayData2;
+	StageBranch_t *pBranch2 = branch_alloc(FILTER_DELAY, STAGEFLAG_ENABLED, 0.35, (void**)&pDelayData2);
 
+	pDelayData2->nDelay = 7500; // ~0.75 secs
 
-	ChainStage_t *pStage2b2 = STAGE_BY_INDEX(pStage2, 1);
-	pStage2b2->pFilter = &g_pFilters[FILTER_DELAY];
-
-	FilterDelayData_t delayData2b2;
-	delayData2b2.nDelay = 2500; // ~0.25 secs
-	pStage2b2->pPrivate = &delayData2b2;
-	pStage2b2->flMixPerc = 0.5;
+	pStage1->nBranches++;
+	pBranch1->pNext = pBranch2;
+#endif
 
 	// Debug chain
 	//-------------------------------------------
@@ -145,8 +187,11 @@ void main(void)
 	//-----------------------------------------------------
 	microtimer_enable(0, TIM_PRESCALE_USVAL, 100, 10000 / SAMPLE_RATE, time_tick, NULL);
 
+	//-----------------------------------------------------
+	// Packet receive loop
+	//-----------------------------------------------------
 	while(1)
 	{
-		packet_reset_wait();
+		packet_loop();
 	}
 }
