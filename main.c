@@ -22,6 +22,7 @@
 #include "filters/delay.h"
 #include "filters/dynamic.h"
 #include "packets.h"
+#include "vibrato.h"
 
 
 ChainStageHeader_t *g_pChainRoot = NULL;

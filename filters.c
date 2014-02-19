@@ -19,6 +19,8 @@
 Filter_t g_pFilters[] = {
 	{"Delay", "TODO", filter_delay_apply, filter_delay_debug, sizeof(FilterDelayData_t)},
 	{"Noise gate", "TODO", filter_noisegate_apply, filter_noisegate_debug, sizeof(FilterNoiseGateData_t)},
+	{"Vibrato", "TODO", filter_vibrato_apply, filter_vibrato_debug, sizeof(FilterVibratoData_t)},
+	{"Tremolo", "TODO", filter_tremolo_apply, filter_tremolo_debug, sizeof(FilterTremoloData_t)},
 };
 
 const size_t NUM_FILTERS = sizeof(g_pFilters)/sizeof(g_pFilters[0]);

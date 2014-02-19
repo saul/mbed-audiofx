@@ -20,23 +20,30 @@ uint32_t filter_flange_apply(uint32_t input, void *pPrivate)
 	//       parameter checks in the filter apply code
 	dbg_assert(pData->nDelay < BUFFER_SAMPLES / 2, "invalid flange parameter (nDelay)");
 
-	uint32_t output = pData->originalMix * sample_get(-pData->nDelay);
+	uint32_t output = (1 - pData->flangedMix) * sample_get(-pData->nDelay);
 
 	// TODO: validate waveType value
 	switch (pData->waveType)
 	{
 		case 0:
-			if(get_square(pData->speed))
+			if(get_square(pData->frequency))
 				return output + pData->flangedMix * sample_get(-pData->nDelay*2);
 			else
 				return output + pData->flangedMix * sample_get(0);
 		case 1:
-			return output +	pData->flangedMix * sample_get_interpolated(-get_sawtooth(pData->speed)*pData->nDelay*2);
+			return output +	pData->flangedMix * sample_get_interpolated(-get_sawtooth(pData->frequency)*pData->nDelay*2);
 		case 2:
-			return output + pData->flangedMix * sample_get_interpolated(-get_inverse_sawtooth(pData->speed)*pData->nDelay*2);
+			return output + pData->flangedMix * sample_get_interpolated(-get_inverse_sawtooth(pData->frequency)*pData->nDelay*2);
 		case 3:
-			return output + pData->flangedMix * sample_get_interpolated(-get_triangle(pData->speed)*pData->nDelay*2);
+			return output + pData->flangedMix * sample_get_interpolated(-get_triangle(pData->frequency)*pData->nDelay*2);
 		default:
 			return 0;
 	}
+}
+
+
+void filter_flange_debug(void *pPrivate)
+{
+	const FilterFlangeData_t *pData = (const FilterFlangeData_t *)pPrivate;
+	dbg_printf("nDelay=%u, frequency=%u, waveType=%u, flangedMix=%f", pData->nDelay, pData->frequency, pData->waveType, pData->flangedMix);
 }

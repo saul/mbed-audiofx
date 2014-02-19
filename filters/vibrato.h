@@ -8,6 +8,9 @@ typedef struct
 	uint8_t waveType; ///< 0 = Square, 1 = Sawtooth, 2 = Inverse Sawtooth, 3 = Triangle
 } FilterVibratoData_t;
 
-float get_vibrato_pointer(void *pPrivate)
+
+float get_vibrato_pointer(void *pPrivate);
+uint32_t filter_vibrato_apply(uint32_t input, void *pPrivate);
+void filter_vibrato_debug(void *pPrivate);
 
 #endif

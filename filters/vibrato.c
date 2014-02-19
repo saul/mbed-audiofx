@@ -27,8 +27,15 @@ float get_vibrato_pointer(void *pPrivate)
 }
 
 
-void filter_noisegate_debug(void *pPrivate)
+uint32_t filter_vibrato_apply(uint32_t input, void *pPrivate)
 {
-	const FilterNoiseGateData_t *pData = (const FilterNoiseGateData_t *)pPrivate;
-	dbg_printf("sensitivity=%u, threshold=%u", pData->sensitivity, pData->threshold);
+	g_bVibratoActive = true;
+	return input;
+}
+
+
+void filter_vibrato_debug(void *pPrivate)
+{
+	const FilterVibratoData_t *pData = (const FilterVibratoData_t *)pPrivate;
+	dbg_printf("nDelay=%u, frequency=%u, waveType=%u", pData->nDelay, pData->frequency, pData->waveType);
 }
