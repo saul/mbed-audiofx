@@ -22,7 +22,7 @@ float get_vibrato_pointer(void *pPrivate)
 		case 3:
 			return g_iSampleCursor - (pData->nDelay * 2 * get_triangle(pData->frequency));
 		default:
-			return input;
+			return g_iSampleCursor;
 	}
 }
 
