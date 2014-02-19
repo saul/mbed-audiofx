@@ -15,10 +15,16 @@
  * g_pFilters
  *
  * Global list of filter types.
+ *
+ * Parameters:
+ * - f: struct.pack format character
+ *      (see http://docs.python.org/2/library/struct.html#format-characters)
+ * - o: offset into private data
+ * - t: widget type (range or choice)
  */
 Filter_t g_pFilters[] = {
-	{"Delay", "TODO", filter_delay_apply, filter_delay_debug, sizeof(FilterDelayData_t)},
-	{"Noise gate", "TODO", filter_noisegate_apply, filter_noisegate_debug, sizeof(FilterNoiseGateData_t)},
+	{"Delay", "Delay;f=H;o=0;t=range;min=0;max=10000;step=1;val=0", filter_delay_apply, filter_delay_debug, sizeof(FilterDelayData_t)},
+	{"Noise gate", "", filter_noisegate_apply, filter_noisegate_debug, sizeof(FilterNoiseGateData_t)},
 };
 
 const size_t NUM_FILTERS = sizeof(g_pFilters)/sizeof(g_pFilters[0]);

@@ -5,6 +5,9 @@ import time
 import glob
 import os
 import sys
+import pprint
+from slugify import slugify
+from ordereddict import OrderedDict
 
 
 __all__ = ['ProbePacket', 'ResetPacket', 'PrintPacket', 'FilterListPacket', 'SerialStream', 'PacketTypes', 'PACKET_MAP']
@@ -127,11 +130,61 @@ class FilterListPacket(Packet):
 			name, offset = read_ascii_string(data, offset)
 			param_format, offset = read_ascii_string(data, offset)
 
-			print 'Filter: %s, %s' % (name, param_format)
+			params = OrderedDict()
+
+			for param in param_format.split('|'):
+				attrs = param.split(';')
+				name = attrs[0]
+
+				params[name] = {}
+				params[name]['slug'] = slugify(name)
+
+				for kv in attrs[1:]:
+					key, value = kv.split('=', 1)
+
+					if key not in params[name]:
+						params[name][key] = value
+						continue
+
+					if not isinstance(params[name][key], list):
+						params[name][key] = [params[name][key]]
+
+					params[name][key].append(value)
+
+			print 'Filter: %s, %s -> %s' % (name, param_format, pprint.pformat(params))
 			self.filters.append({
 				'name': name,
-				'format': param_format,
+				'slug': slugify(name),
+				'params': params,
 			})
+
+
+class FilterCreatePacket(Packet):
+	type_ = PacketTypes.U2B_FILTER_CREATE
+
+	def construct(self, stage, filter_type, flags, mix_perc):
+		return struct.pack('<BBBf', stage, filter_type, flags, mix_perc)
+
+
+class FilterDeletePacket(Packet):
+	type_ = PacketTypes.U2B_FILTER_DELETE
+
+	def construct(self, stage, branch):
+		return struct.pack('<BB', stage, branch)
+
+
+class FilterFlagPacket(Packet):
+	type_ = PacketTypes.U2B_FILTER_DELETE
+
+	def construct(self, stage, branch, bit, enable):
+		return struct.pack('<BBBB', stage, branch, bit, enable)
+
+
+class FilterModPacket(Packet):
+	type_ = PacketTypes.U2B_FILTER_MOD
+
+	def construct(self, stage, branch, offset, format, val):
+		return struct.pack('<BBBB' + format, stage, branch, offset, val)
 
 
 PACKET_MAP = [
@@ -139,8 +192,10 @@ PACKET_MAP = [
 	ResetPacket, # U2B_RESET
 	PrintPacket, # B2U_PRINT
 	FilterListPacket, # B2U_FILTER_LIST
-	#FilterChainPacket, # U2B_FILTER_CHAIN
-	#FilterModPacket, # U2B_FILTER_MOD
+	FilterCreatePacket, # U2B_FILTER_CREATE
+	FilterDeletePacket, # U2B_FILTER_DELETE
+	FilterFlagPacket, # U2B_FILTER_FLAG
+	FilterModPacket, # U2B_FILTER_MOD
 ]
 
 
@@ -216,11 +271,3 @@ class SerialStream:
 		# Write packet data to serial
 		if data is not None:
 			self.serial.write(data)
-
-
-if __name__ == '__main__':
-	serstr = SerialStream()
-
-	# Just read packets indefinitely
-	while True:
-		serstr.read_packet()

@@ -12,14 +12,14 @@
 	<div class="panel-body">
 		{{#each parameters}}
 			<div class="form-group">
-				<label for="{{this.fieldName}}">{{this.name}}</label>
+				<label for="{{this.slug}}">{{this.name}}</label>
 
-				{{#ifEq this.type "range"}}
-				<input type="range" class="form-control" name="{{this.fieldName}}" min="{{this.min}}" max="{{this.max}}" step="{{this.step}}" value="{{this.value}}">
+				{{#ifEq this.t "range"}}
+				<input type="range" class="form-control" name="{{this.slug}}" min="{{this.min}}" max="{{this.max}}" step="{{this.step}}" value="{{this.value}}">
 				{{/ifEq}}
-				{{#ifEq this.type "choice"}}
-				<select class="form-control" name="{{this.fieldName}}">
-					{{#each this.choices}}
+				{{#ifEq this.t "choice"}}
+				<select class="form-control" name="{{this.slug}}">
+					{{#each this.c}}
 						<option value="{{@index}}">{{this}}</option>
 					{{/each}}
 				</select>

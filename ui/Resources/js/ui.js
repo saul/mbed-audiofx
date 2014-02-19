@@ -125,7 +125,13 @@ $(document).on('click', '.filter .close', function() {
 
 	// Is this the last filter in the stage?
 	if($filter.siblings('.filter').length === 0) {
-		$filter.parents('.filter-row').remove();
+		var $stage = $filter.parents('.filter-row');
+
+		// Don't delete the last stage
+		if($stage.is(':last-child'))
+			return;
+
+		$stage.remove();
 		reindexStages();
 		return;
 	}

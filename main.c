@@ -24,6 +24,14 @@
 #include "packets.h"
 
 
+// Populate filter chain with a test delay filter
+//#define FILTER_TEST
+
+// Populate filter chain with multiple parallel delay filters
+// Note: FILTER_TEST must be defined
+//#define MULTI_BRANCH_TEST
+
+
 ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 
@@ -151,6 +159,7 @@ void main(void)
 	//-----------------------------------------------------
 	g_pChainRoot = stage_alloc();
 
+#ifdef FILTER_TEST
 	// Stage 1
 	//-------------------------------------------
 	ChainStageHeader_t *pStage1 = g_pChainRoot;
@@ -158,25 +167,25 @@ void main(void)
 	// Stage 1, Branch 1
 	// -----------------
 	FilterDelayData_t *pDelayData;
-	StageBranch_t *pBranch1 = branch_alloc(FILTER_DELAY, STAGEFLAG_ENABLED, 0.75, (void**)&pDelayData);
+	StageBranch_t *pBranch1 = branch_alloc(FILTER_DELAY, BRANCHFLAG_ENABLED, 0.75, (void**)&pDelayData);
 
 	pDelayData->nDelay = 2500; // ~0.25 secs
 
 	pStage1->nBranches++;
 	pStage1->pFirst = pBranch1;
 
-#define MULTI_BRANCH_TEST
 #ifdef MULTI_BRANCH_TEST
 	// Stage 1, Branch 2
 	// -----------------
 	FilterDelayData_t *pDelayData2;
-	StageBranch_t *pBranch2 = branch_alloc(FILTER_DELAY, STAGEFLAG_ENABLED, 0.35, (void**)&pDelayData2);
+	StageBranch_t *pBranch2 = branch_alloc(FILTER_DELAY, BRANCHFLAG_ENABLED, 0.35, (void**)&pDelayData2);
 
 	pDelayData2->nDelay = 7500; // ~0.75 secs
 
 	pStage1->nBranches++;
 	pBranch1->pNext = pBranch2;
-#endif
+#endif // MULTI_BRANCH_TEST
+#endif // FILTER_TEST
 
 	// Debug chain
 	//-------------------------------------------

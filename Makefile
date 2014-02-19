@@ -105,6 +105,4 @@ install:
 	@cp $(EXECNAME).bin /media/MBED
 	@echo -e "$(LINE_PREFIX)Synchronising$(CLR_RESET)..."
 	@sync
-	@echo -e "$(LINE_PREFIX)Sending B2U_RESET packet to board..."
-	@./reset_board.sh
-	@echo -e "$(LINE_PREFIX)$(CLR_GREEN)Installed!$(CLR_RESET)"
+	@echo -e "$(LINE_PREFIX)$(CLR_GREEN)Installed! Reset board$(CLR_RESET)"

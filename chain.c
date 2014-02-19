@@ -63,12 +63,12 @@ uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 	// Is this a simple one stage branch?
 	if(pStageHdr->nBranches == 1)
 	{
-		if(!(pBranch->flags & STAGEFLAG_ENABLED))
+		if(!(pBranch->flags & BRANCHFLAG_ENABLED))
 			return 0;
 
-		// If we are using STAGEFLAG_FULL_MIX, skip the floating point
+		// If we are using BRANCHFLAG_FULL_MIX, skip the floating point
 		// multiplication to save some clock cycles
-		if(pBranch->flags & STAGEFLAG_FULL_MIX)
+		if(pBranch->flags & BRANCHFLAG_FULL_MIX)
 			return pBranch->pFilter->pfnApply(iSample, pBranch->pPrivate);
 
 		return pBranch->pFilter->pfnApply(iSample, pBranch->pPrivate) * pBranch->flMixPerc;
@@ -81,7 +81,7 @@ uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 
 		while(pBranch)
 		{
-			if(!(pBranch->flags & STAGEFLAG_ENABLED))
+			if(!(pBranch->flags & BRANCHFLAG_ENABLED))
 			{
 				pBranch = pBranch->pNext;
 				continue;
@@ -131,6 +131,32 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
 
 
 /*
+ * stage_get_branch
+ *
+ * @returns branch of index `nBranch` of stage `pStageHdr`
+ */
+StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBranch)
+{
+	uint8_t i = 0;
+	StageBranch_t *pBranch = pStageHdr->pFirst;
+
+	while(pBranch && i < nBranch)
+	{
+		pBranch = pBranch->pNext;
+		i++;
+	}
+
+	if(i != nBranch)
+	{
+		dbg_warning("unable to get branch %u of stage\r\n", nBranch);
+		return NULL;
+	}
+
+	return pBranch;
+}
+
+
+/*
  * branch_alloc
  *
  * Allocates a stage branch.
@@ -140,7 +166,6 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
  StageBranch_t *branch_alloc(Filter_e iFilterType, uint8_t flags, float flMixPerc, void **ppPrivate)
 {
 	dbg_assert(iFilterType < NUM_FILTERS, "invalid filter type");
-	dbg_assert(ppPrivate, "ppPrivate is NULL");
 
 	// Allocate branch
 	StageBranch_t *pBranch = (StageBranch_t *)malloc(sizeof(StageBranch_t));
@@ -153,9 +178,11 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
 	pBranch->pNext = NULL;
 
 	// Allocate private data
-	*ppPrivate = malloc(pBranch->pFilter->nPrivateDataSize);
+	pBranch->pPrivate = malloc(pBranch->pFilter->nPrivateDataSize);
 	dbg_assert(pBranch->pPrivate, "unable to allocate private data for filter %s", pBranch->pFilter->pszName);
-	pBranch->pPrivate = *ppPrivate;
+
+	if(ppPrivate)
+		*ppPrivate = pBranch->pPrivate;
 
 	return pBranch;
 }
@@ -219,4 +246,30 @@ void chain_debug(const ChainStageHeader_t *pRoot)
 		stage_debug(pStageHdr);
 		pStageHdr = pStageHdr->pNext;
 	}
+}
+
+
+/*
+ * chain_get_stage
+ *
+ * @returns stage of index `nStage` of chain `pRoot`
+ */
+ChainStageHeader_t *chain_get_stage(const ChainStageHeader_t *pRoot, uint8_t nStage)
+{
+	uint8_t i = 0;
+	ChainStageHeader_t *pStageHdr = pRoot;
+
+	while(pStageHdr && i < nStage)
+	{
+		pStageHdr = pStageHdr->pNext;
+		i++;
+	}
+
+	if(i != nStage)
+	{
+		dbg_warning("unable to get stage %u of chain\r\n", nStage);
+		return NULL;
+	}
+
+	return pStageHdr;
 }

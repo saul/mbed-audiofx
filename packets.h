@@ -32,7 +32,18 @@ typedef struct
 #pragma pack(pop)
 
 
-typedef void (*PacketHandler_t)(const PacketHeader_t *pHdr, const uint8_t *pPayload);
+typedef void (*PacketCallback_t)(const PacketHeader_t *pHdr, const uint8_t *pPayload);
+
+#define PACKET_SIZE_COMPARATOR_BIT (1<<7) // comparator bit set: size should be >=, not set: size should be exact
+#define PACKET_SIZE_EXACT(size) (size & ~PACKET_SIZE_COMPARATOR_BIT)
+#define PACKET_SIZE_MIN(size) (size | PACKET_SIZE_COMPARATOR_BIT)
+
+typedef struct
+{
+	PacketCallback_t pfnCallback;
+	bool bLocksChain;
+	uint8_t nPacketSize;
+} PacketHandler_t;
 
 extern const char *g_ppszPacketTypes[];
 
@@ -44,9 +55,50 @@ void packet_filter_list_send(void);
 
 void packet_loop(void);
 void packet_reset_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
+
+#pragma pack(push, 1)
+typedef struct
+{
+	uint8_t nStage;
+	uint8_t iFilterType;
+	uint8_t flags;
+	float flMixPerc;
+} FilterCreatePacket_t;
+#pragma pack(pop)
+
 void packet_filter_create_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
+
+#pragma pack(push, 1)
+typedef struct
+{
+	uint8_t nStage;
+	uint8_t nBranch;
+} FilterDeletePacket_t;
+#pragma pack(pop)
+
 void packet_filter_delete_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
+
+#pragma pack(push, 1)
+typedef struct
+{
+	uint8_t nStage;
+	uint8_t nBranch;
+	uint8_t iBit;
+	bool bEnable;
+} FilterFlagPacket_t;
+#pragma pack(pop)
+
 void packet_filter_flag_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
+
+#pragma pack(push, 1)
+typedef struct
+{
+	uint8_t nStage;
+	uint8_t nBranch;
+	uint8_t iOffset;
+} FilterMod_t;
+#pragma pack(pop)
+
 void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
 
 #endif

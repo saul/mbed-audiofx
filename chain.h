@@ -12,23 +12,23 @@
 
 
 /*
- * StageFlag_e
+ * BranchFlag_e
  *
- * These flags can be OR'd together and set as ChainStage_t::flags to define
+ * These flags can be OR'd together and set as StageBranch_t::flags to define
  * specific behaviour for a chain stage.
  */
 typedef enum
 {
-	STAGEFLAG_NONE = 0,
-	STAGEFLAG_ENABLED = (1<<0),
-	STAGEFLAG_FULL_MIX = (1<<1),	///< ignore flMixPerc, implied 1.0 -- only valid on single branch stages
+	BRANCHFLAG_NONE = 0,
+	BRANCHFLAG_ENABLED = (1<<0),
+	BRANCHFLAG_FULL_MIX = (1<<1),	///< ignore flMixPerc, implied 1.0 -- only valid on single branch stages
 	//STAGEFLAG_UNUSED2 = (1<<2),
 	//STAGEFLAG_UNUSED3 = (1<<3),
 	//STAGEFLAG_UNUSED4 = (1<<4),
 	//STAGEFLAG_UNUSED5 = (1<<5),
 	//STAGEFLAG_UNUSED6 = (1<<6),
 	//STAGEFLAG_UNUSED7 = (1<<7),
-} StageFlag_e;
+} BranchFlag_e;
 
 
 /*
@@ -65,23 +65,15 @@ typedef struct ChainStageHeader_t
 #pragma pack(pop)
 
 
-/*
- * FilterChain_t
- *
- * Defines the root node of a filter chain linked-list.
- */
-#pragma pack(push, 1)
-typedef struct
-{
-	ChainStageHeader_t *pFirst;
-} FilterChain_t;
-#pragma pack(pop)
+extern ChainStageHeader_t *g_pChainRoot;
+extern volatile bool g_bChainLock;
 
 
 ChainStageHeader_t *stage_alloc();
 void stage_free(ChainStageHeader_t *pStageHdr);
 uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample);
 void stage_debug(const ChainStageHeader_t *pStageHdr);
+StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBranch);
 
 
 StageBranch_t *branch_alloc(Filter_e iFilterType, uint8_t flags, float flMixPerc, void **ppPrivate);
@@ -91,5 +83,6 @@ void branch_free(StageBranch_t *pBranch);
 uint16_t chain_apply(const ChainStageHeader_t *pRoot, uint16_t iSample);
 void chain_debug(const ChainStageHeader_t *pRoot);
 StageBranch_t *chain_get_branch(const ChainStageHeader_t *pRoot, uint8_t nStage, uint8_t nBranch);
+ChainStageHeader_t *chain_get_stage(const ChainStageHeader_t *pRoot, uint8_t nStage);
 
 #endif
