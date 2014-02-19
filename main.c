@@ -27,6 +27,8 @@
 ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 
+volatile bool g_bVibratoActive
+
 
 static uint16_t get_median_sample(void)
 {
@@ -39,8 +41,8 @@ static uint16_t get_median_sample(void)
 	if(iSamples[0] > iSamples[1])
 	{
 		if(iSamples[1] > iSamples[2])
-			return iSamples[1]
-;
+			return iSamples[1];
+
 		if(iSamples[0] > iSamples[2])
 			return iSamples[2];
 
@@ -90,6 +92,11 @@ static void time_tick(void *pUserData)
 
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
+
+	if (g_bVibratoActive)
+		g_fVibratoSampleCursor = get_vibrato_pointer();
+	else
+		g_fVibratoSampleCursor = (float) g_iSampleCursor;
 }
 
 

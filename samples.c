@@ -8,6 +8,7 @@
 
 /*volatile*/ SamplePair_t g_pSampleBuffer[BUFFER_SAMPLES / 2];
 volatile uint16_t g_iSampleCursor = 0;
+volatile uint16_t g_fVibratoSampleCursor = 0;
 
 SampleAverage_t sampleAverage;
 
@@ -23,6 +24,9 @@ uint32_t sample_get(int16_t index)
 
 	dbg_assert(index < BUFFER_SAMPLES, "invalid sample index");
 
+	if (g_bVibratoActive)
+		return sample_get_interpolated(index);
+
 	if(index & 1)
 		return g_pSampleBuffer[(index-1)/2].b << 20;
 
@@ -32,7 +36,7 @@ uint32_t sample_get(int16_t index)
 
 void sample_set(int16_t index, uint16_t value)
 {
-	// return sample from past
+	// set sample from past
 	if(index < 0)
 	{
 		dbg_assert(index > -BUFFER_SAMPLES, "invalid sample index");
@@ -48,9 +52,19 @@ void sample_set(int16_t index, uint16_t value)
 		g_pSampleBuffer[index/2].a = value;
 }
 
+
 uint32_t sample_get_interpolated(float index)
 {
 	// return interpolated sample from past
+
+	if(g_bVibratoActive)
+	{
+		if (index < 0)
+			index = (g_fVibratoSampleCursor - g_iSampleCursor) + index;
+		else
+			index = (g_iSampleCursor - g_fVibratoSampleCursor) + index;
+	}
+
 	int16_t i;
 	if(index < 0)
 		i = (int)(index - 1);

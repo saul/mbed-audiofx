@@ -30,16 +30,12 @@ uint32_t filter_flange_apply(uint32_t input, void *pPrivate)
 				return output + pData->flangedMix * sample_get(-pData->nDelay*2);
 			else
 				return output + pData->flangedMix * sample_get(0);
-			break;
 		case 1:
 			return output +	pData->flangedMix * sample_get_interpolated(-get_sawtooth(pData->speed)*pData->nDelay*2);
-			break;
 		case 2:
 			return output + pData->flangedMix * sample_get_interpolated(-get_inverse_sawtooth(pData->speed)*pData->nDelay*2);
-			break;
 		case 3:
 			return output + pData->flangedMix * sample_get_interpolated(-get_triangle(pData->speed)*pData->nDelay*2);
-			break;
 		default:
 			return 0;
 	}
