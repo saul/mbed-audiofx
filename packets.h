@@ -2,10 +2,12 @@
 #define _PACKETS_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 // !!! Ensure changes to this enum are reflected in sercom.py (PacketTypes
 // enum)
 // !!! Ensure changes to this enum are reflected in g_ppszPacketTypes
+// (packets.c)
 typedef enum
 {
 	A2A_PROBE = 0,		///< Board sends a probe packet on boot, waits for UI to respond with a probe
@@ -16,6 +18,8 @@ typedef enum
 	U2B_FILTER_DELETE,	///< UI is deleting a filter
 	U2B_FILTER_FLAG,	///< UI is changing a filter flag
 	U2B_FILTER_MOD,		///< UI is changing a filter parameter
+	U2B_FILTER_MIX,		///< UI is changing a filter mix percentage
+	U2B_VOLUME,			///< UI is changing system volume
 
 	// Must be last
 	PACKET_TYPE_MAX,
@@ -96,9 +100,29 @@ typedef struct
 	uint8_t nStage;
 	uint8_t nBranch;
 	uint8_t iOffset;
-} FilterMod_t;
+} FilterModPacket_t;
 #pragma pack(pop)
 
 void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
+
+#pragma pack(push, 1)
+typedef struct
+{
+	uint8_t nStage;
+	uint8_t nBranch;
+	float flMixPerc;
+} FilterMixPacket_t;
+#pragma pack(pop)
+
+void packet_filter_mix_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
+
+#pragma pack(push, 1)
+typedef struct
+{
+	float flVolume;
+} VolumePacket_t;
+#pragma pack(pop)
+
+void packet_volume_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
 
 #endif

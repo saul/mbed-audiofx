@@ -20,13 +20,8 @@
 ChainStageHeader_t *stage_alloc(void)
 {
 	// Allocate chain stage header
-	ChainStageHeader_t *pHdr = (ChainStageHeader_t *)malloc(sizeof(ChainStageHeader_t));
+	ChainStageHeader_t *pHdr = (ChainStageHeader_t *)calloc(1, sizeof(ChainStageHeader_t));
 	dbg_assert(pHdr, "unable to allocate chain stage");
-
-	// Initialise the header
-	pHdr->nBranches = 0;
-	pHdr->pFirst = NULL;
-	pHdr->pNext = NULL;
 
 	return pHdr;
 }
@@ -114,7 +109,11 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
 
 	while(pBranch)
 	{
-		dbg_printf("  - #%d: filter=%s, flags=%x, mixperc=%.3f, private=%p", ++i, pBranch->pFilter->pszName, pBranch->flags, pBranch->flMixPerc, (void *)pBranch->pPrivate);
+		const char *pszLinePrefix = ANSI_COLOR_RED;
+		if(pBranch->flags & BRANCHFLAG_ENABLED)
+			pszLinePrefix = ANSI_COLOR_GREEN;
+
+		dbg_printf("%s  - #%d: filter=%s" ANSI_COLOR_RESET ", flags=%x, mixperc=%.3f, private=%p", pszLinePrefix, ++i, pBranch->pFilter->pszName, pBranch->flags, pBranch->flMixPerc, (void *)pBranch->pPrivate);
 
 		if(pBranch->pFilter->pfnDebug)
 		{
@@ -168,17 +167,16 @@ StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBr
 	dbg_assert(iFilterType < NUM_FILTERS, "invalid filter type");
 
 	// Allocate branch
-	StageBranch_t *pBranch = (StageBranch_t *)malloc(sizeof(StageBranch_t));
+	StageBranch_t *pBranch = (StageBranch_t *)calloc(1, sizeof(StageBranch_t));
 	dbg_assert(pBranch, "unable to allocate branch");
 
 	// Initialise the branch
 	pBranch->pFilter = &g_pFilters[iFilterType];
 	pBranch->flags = flags;
 	pBranch->flMixPerc = flMixPerc;
-	pBranch->pNext = NULL;
 
 	// Allocate private data
-	pBranch->pPrivate = malloc(pBranch->pFilter->nPrivateDataSize);
+	pBranch->pPrivate = calloc(1, pBranch->pFilter->nPrivateDataSize);
 	dbg_assert(pBranch->pPrivate, "unable to allocate private data for filter %s", pBranch->pFilter->pszName);
 
 	if(ppPrivate)
@@ -219,7 +217,9 @@ uint16_t chain_apply(const ChainStageHeader_t *pRoot, uint16_t iSample)
 
 	while(pStageHdr)
 	{
-		iIntermediate += stage_apply(pStageHdr, iIntermediate);
+		if(pStageHdr->nBranches > 0)
+			iIntermediate += stage_apply(pStageHdr, iIntermediate);
+
 		pStageHdr = pStageHdr->pNext;
 	}
 
@@ -246,6 +246,8 @@ void chain_debug(const ChainStageHeader_t *pRoot)
 		stage_debug(pStageHdr);
 		pStageHdr = pStageHdr->pNext;
 	}
+
+	dbg_printn("\r\n", -1);
 }
 
 
@@ -257,7 +259,7 @@ void chain_debug(const ChainStageHeader_t *pRoot)
 ChainStageHeader_t *chain_get_stage(const ChainStageHeader_t *pRoot, uint8_t nStage)
 {
 	uint8_t i = 0;
-	ChainStageHeader_t *pStageHdr = pRoot;
+	const ChainStageHeader_t *pStageHdr = pRoot;
 
 	while(pStageHdr && i < nStage)
 	{
@@ -271,5 +273,5 @@ ChainStageHeader_t *chain_get_stage(const ChainStageHeader_t *pRoot, uint8_t nSt
 		return NULL;
 	}
 
-	return pStageHdr;
+	return (ChainStageHeader_t *)pStageHdr;
 }

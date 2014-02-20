@@ -9,84 +9,69 @@ $(function() {
 		$('#console-text').html('');
 	});
 
-	// Show initial stage
-	appendFilterStage();
+	onBoardReset();
 });
 
 
-function appendFilterStage(completed) {
+function onBoardReset() {
+	// Clear all stages and hide container
+	$('#filter-container').hide().children().remove();
+
+	// Clear popover content
+	creationPopoverContent = '(waiting...)';
+
+	// Show initial stage
+	appendStage();
+}
+
+
+(function($) {
+	var idCounter = new Date().getTime();
+
+	$.fn.uniqueId = function() {
+		if(this.length > 1)
+			throw new Error('cannot get unique ID of more than 1 element');
+
+		var node = this.get(0);
+		return node.id ? node.id : (node.id = 'uuid-' + (idCounter++));
+	};
+})(jQuery);
+
+
+function appendStage(completed) {
 	renderTemplateRemote('filter_stage.html', function(template) {
-		var index = $('#filter-container').children('.filter-row').length;
-
-		$('#filter-container').append(template({
-			index: index,
-		}));
-
-		reindexStages();
+		$('#filter-container').append(template({}));
 
 		if(typeof completed !== 'undefined')
-			completed(index);
+			completed();
+
+		$('.stage-row:last-child .filter-create button').popover({
+			html: true,
+			placement: 'bottom',
+			content: getCreationPopoverContent,
+			container: '#' + $('.stage-row:last-child').uniqueId(),
+		});
 	});
 }
 
 
-function appendFilterToStage(stageIdx, filter) {
-	// TODO: send stage creation to board
-	// TODO: send filter creation to board
+function appendFilterToStage(stageIdx, filterIdx) {
+	packet = FilterCreatePacket(serialStream);
+	packet.send(stageIdx, filterIdx, 0, 1.0);
+
+	var filter = filters[filterIdx];
 
 	renderTemplateRemote('filter.html', function(template) {
-		$('.filter-row[data-index=' + stageIdx + '] .filter-create').before(template({
-			name: filter,
-			parameters: [
-				{
-					name: 'Mix perc',
-					fieldName: 'mix-perc',
-					type: 'range',
-					min: '0',
-					max: '1',
-					step: '0.01',
-					value: '1',
-				},
-				{
-					name: 'Delay',
-					fieldName: 'delay',
-					type: 'range',
-					min: '0',
-					max: '10000',
-					step: '1',
-					value: '100',
-				},
-				{
-					name: 'Speed',
-					fieldName: 'speed',
-					type: 'range',
-					min: '0',
-					max: '1',
-					step: '0.01',
-					value: '1',
-				},
-				{
-					name: 'Wave type',
-					fieldName: 'wave-type',
-					type: 'choice',
-					choices: ['Sine', 'Sawtooth', 'Triangle'],
-				},
-			]
+		$('.stage-row:nth-child(' + (stageIdx + 1) + ') .filter-create').before(template({
+			index: filterIdx,
+			filter: filter,
 		}));
-	});
-}
 
-
-function reindexStages() {
-	$('#filter-container .filter-row').each(function(index) {
-		$(this).attr('data-index', index);
-
-		$('.filter-row[data-index=' + index + '] .filter-create button').popover('destroy').popover({
-			html: true,
-			placement: 'left',
-			content: getCreationPopoverContent,
-			container: '.filter-row[data-index=' + index + ']',
-		});
+		// Trigger "change" event for all parameter widgets so that the filter data
+		// syncs up on the board
+		setTimeout(function() {
+			$('.stage-row:nth-child(' + (stageIdx + 1) + ') > :nth-last-child(2) [data-param-name] :input').change();
+		}, 100);
 	});
 }
 
@@ -101,6 +86,7 @@ function getCreationPopoverContent() {
 $(document).on('change', '.filter input[name="filter-enabled"]', function() {
 	var $this = $(this);
 	var $filter = $this.parents('.filter');
+	var $stage = $this.parents('.stage-row');
 
 	if($this.prop('checked')) {
 		$filter.removeClass('panel-danger').addClass('panel-success');
@@ -108,31 +94,33 @@ $(document).on('change', '.filter input[name="filter-enabled"]', function() {
 		$filter.removeClass('panel-success').addClass('panel-danger');
 	}
 
-	// TODO: send filter enable/disable
+	packet = FilterFlagPacket(serialStream);
+	packet.send($stage.index(), $filter.index(), 0, $this.prop('checked'));
 });
 
 
 // Filter delete
 // ============================================================================
 $(document).on('click', '.filter .close', function() {
-	var $this = $(this);
-	var $filter = $this.parents('.filter');
-
 	if(!confirm('Delete this filter?'))
 		return;
 
-	// TODO: send filter deletion
+	var $this = $(this);
+	var $filter = $this.parents('.filter');
+	var $stage = $this.parents('.stage-row');
+
+	packet = FilterDeletePacket(serialStream);
+	packet.send($stage.index(), $filter.index());
 
 	// Is this the last filter in the stage?
 	if($filter.siblings('.filter').length === 0) {
-		var $stage = $filter.parents('.filter-row');
+		var $stage = $filter.parents('.stage-row');
 
 		// Don't delete the last stage
 		if($stage.is(':last-child'))
 			return;
 
 		$stage.remove();
-		reindexStages();
 		return;
 	}
 
@@ -144,23 +132,48 @@ $(document).on('click', '.filter .close', function() {
 // ============================================================================
 $(document).on('change', 'select[name=filter-create]', function() {
 	var $this = $(this);
-	var filterName = $this.val();
+	var filterIdx = $this.val();
 
-	var $row = $this.parents('.filter-row');
-	var index = $row.data('index');
-	console.log('Creating filter for: ' + index);
+	var $stage = $this.parents('.stage-row');
 
 	// Close popover
-	var $button = $row.find('.filter-create button');
+	var $button = $stage.find('.filter-create button');
 	$button.popover('hide');
 
-	if(filterName === '-')
+	if(filterIdx === '-')
 		return;
 
+	var filter = filters[filterIdx];
+
+	console.log('Creating filter "' + filter.name + '" for stage ' + $stage.index());
+
 	// If there are no filters in this stage, create another row with a "+"
-	if($row.find('.filter').length === 0) {
-		appendFilterStage();
+	if($stage.find('.filter').length === 0) {
+		appendStage();
 	}
 
-	appendFilterToStage(index, filterName);
+	appendFilterToStage($stage.index(), filterIdx);
 });
+
+
+// Filter parameter input change
+// ============================================================================
+$(document).on('change', '.form-group[data-param-name]', $.debounce(250, function(e) {
+	var $this = $(e.target);
+	var $stage = $this.parents('.stage-row');
+	var $filter = $this.parents('.filter');
+	var $widget = $this.parent();
+	var paramName = $widget.data('param-name');
+	var filter = filters[$filter.data('filter-index')];
+
+	if(paramName === 'mix')
+	{
+		packet = FilterMixPacket(serialStream);
+		packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
+	} else {
+		var param = filter.params[paramName];
+
+		packet = FilterModPacket(serialStream);
+		packet.send($stage.index(), $filter.index(), param['o'], param['f'], $this.val());
+	}
+}));

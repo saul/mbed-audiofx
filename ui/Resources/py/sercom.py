@@ -6,11 +6,12 @@ import glob
 import os
 import sys
 import pprint
-from slugify import slugify
+import re
+import unicodedata
 from ordereddict import OrderedDict
 
 
-__all__ = ['ProbePacket', 'ResetPacket', 'PrintPacket', 'FilterListPacket', 'SerialStream', 'PacketTypes', 'PACKET_MAP']
+__all__ = ['ProbePacket', 'ResetPacket', 'PrintPacket', 'FilterListPacket', 'FilterCreatePacket', 'FilterDeletePacket', 'FilterFlagPacket', 'FilterModPacket', 'FilterMixPacket', 'SerialStream', 'PacketTypes', 'PACKET_MAP']
 
 # little-endian "MBED"
 PACKET_IDENT = ord('D') << 24 | ord('E') << 16 | ord('B') << 8 | ord('M')
@@ -57,6 +58,13 @@ def get_packet_for_type(type_):
 	return clss[0]
 
 
+def slugify(s):
+	slug = unicodedata.normalize('NFKD', s)
+	slug = slug.encode('ascii', 'ignore').lower()
+	slug = re.sub(r'[^a-z0-9]+', '-', slug).strip('-')
+	return re.sub(r'[-]+', '-', slug)
+
+
 class PacketTypes(object):
 	A2A_PROBE = 0
 	U2B_RESET = 1
@@ -66,6 +74,8 @@ class PacketTypes(object):
 	U2B_FILTER_DELETE = 5
 	U2B_FILTER_FLAG = 6
 	U2B_FILTER_MOD = 7
+	U2B_FILTER_MIX = 8
+	U2B_VOLUME = 9
 
 
 class Packet(object):
@@ -75,7 +85,7 @@ class Packet(object):
 	def send(self, *args, **kwargs):
 		"""Send this packet down the serial stream."""
 		data = self.construct(*args, **kwargs)
-		assert data is None or isinstance(data, bytes)
+		assert data is None or isinstance(data, str)
 		self.stream.send_packet(self.type_, data)
 
 	def construct(self):
@@ -134,28 +144,31 @@ class FilterListPacket(Packet):
 
 			for param in param_format.split('|'):
 				attrs = param.split(';')
-				name = attrs[0]
+				param_name = attrs[0]
 
-				params[name] = {}
-				params[name]['slug'] = slugify(name)
+				params[param_name] = {}
+				params[param_name]['name'] = param_name
+				params[param_name]['slug'] = slugify(param_name)
 
 				for kv in attrs[1:]:
 					key, value = kv.split('=', 1)
 
-					if key not in params[name]:
-						params[name][key] = value
+					if key not in params[param_name]:
+						params[param_name][key] = value
 						continue
 
-					if not isinstance(params[name][key], list):
-						params[name][key] = [params[name][key]]
+					if not isinstance(params[param_name][key], list):
+						params[param_name][key] = [params[param_name][key]]
 
-					params[name][key].append(value)
+					params[param_name][key].append(value)
 
 			print 'Filter: %s, %s -> %s' % (name, param_format, pprint.pformat(params))
 			self.filters.append({
+				'index': i,
 				'name': name,
 				'slug': slugify(name),
 				'params': params,
+				'paramKeys': list(params.iterkeys()),
 			})
 
 
@@ -163,28 +176,38 @@ class FilterCreatePacket(Packet):
 	type_ = PacketTypes.U2B_FILTER_CREATE
 
 	def construct(self, stage, filter_type, flags, mix_perc):
-		return struct.pack('<BBBf', stage, filter_type, flags, mix_perc)
+		return struct.pack('<BBBf', int(stage), int(filter_type), int(flags), mix_perc)
 
 
 class FilterDeletePacket(Packet):
 	type_ = PacketTypes.U2B_FILTER_DELETE
 
 	def construct(self, stage, branch):
-		return struct.pack('<BB', stage, branch)
+		return struct.pack('<BB', int(stage), int(branch))
 
 
 class FilterFlagPacket(Packet):
-	type_ = PacketTypes.U2B_FILTER_DELETE
+	type_ = PacketTypes.U2B_FILTER_FLAG
 
 	def construct(self, stage, branch, bit, enable):
-		return struct.pack('<BBBB', stage, branch, bit, enable)
+		return struct.pack('<BBBB', int(stage), int(branch), int(bit), int(enable))
 
 
 class FilterModPacket(Packet):
 	type_ = PacketTypes.U2B_FILTER_MOD
 
 	def construct(self, stage, branch, offset, format, val):
-		return struct.pack('<BBBB' + format, stage, branch, offset, val)
+		if format not in ('f', 'd'):
+			val = int(val)
+
+		return struct.pack('<BBB' + format, int(stage), int(branch), int(offset), val)
+
+
+class FilterMixPacket(Packet):
+	type_ = PacketTypes.U2B_FILTER_MIX
+
+	def construct(self, stage, branch, mix_perc):
+		return struct.pack('<BBf', int(stage), int(branch), mix_perc)
 
 
 PACKET_MAP = [
@@ -196,6 +219,7 @@ PACKET_MAP = [
 	FilterDeletePacket, # U2B_FILTER_DELETE
 	FilterFlagPacket, # U2B_FILTER_FLAG
 	FilterModPacket, # U2B_FILTER_MOD
+	FilterMixPacket, # U2B_FILTER_MIX
 ]
 
 

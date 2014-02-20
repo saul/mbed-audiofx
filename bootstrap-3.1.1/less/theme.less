@@ -252,7 +252,7 @@
 // UI styling
 // --------------------------------------------------
 
-@filter-row-height: 120px;
+@stage-row-height: 120px;
 
 html {
   overflow-y: scroll;
@@ -262,9 +262,9 @@ body {
   padding: 15px;
 }
 
-.filter-row {
+.stage-row {
   text-align: center;
-  height: @filter-row-height + 30px;
+  height: @stage-row-height + 30px;
   background-color: #f5f5f5;
   vertical-align: top;
   white-space: nowrap;
@@ -279,13 +279,13 @@ body {
   display: inline-block;
   width: 200px;
   text-align: left;
-  height: @filter-row-height;
+  height: @stage-row-height;
   margin: 0 10px;
 
   label { -webkit-user-select: none; }
 
   .panel-body {
-    height: (@filter-row-height - 45px);
+    height: (@stage-row-height - 45px);
     overflow-y: scroll;
   }
 }
@@ -293,8 +293,8 @@ body {
 .filter-create {
   display: inline-block;
   vertical-align: top;
-  height: @filter-row-height;
-  padding: ((@filter-row-height - 50px) / 2) 0; // button ~50px tall
+  height: @stage-row-height;
+  padding: ((@stage-row-height - 50px) / 2) 0; // button ~50px tall
   //background-color: #f0f;
 }
 

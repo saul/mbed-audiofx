@@ -8,6 +8,7 @@
 #define _CHAIN_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "filters.h"
 
 
@@ -67,6 +68,7 @@ typedef struct ChainStageHeader_t
 
 extern ChainStageHeader_t *g_pChainRoot;
 extern volatile bool g_bChainLock;
+extern volatile float g_flChainVolume;
 
 
 ChainStageHeader_t *stage_alloc();

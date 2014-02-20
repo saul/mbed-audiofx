@@ -34,6 +34,7 @@
 
 ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
+volatile float g_flChainVolume = 1.0;
 
 
 static uint16_t get_median_sample(void)
@@ -94,7 +95,7 @@ static void time_tick(void *pUserData)
 	}
 
 	// Output to DAC
-	dac_set(iFiltered);
+	dac_set(iFiltered * g_flChainVolume);
 
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;

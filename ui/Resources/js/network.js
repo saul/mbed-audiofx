@@ -44,6 +44,13 @@ function pollReadThread() {
 }
 
 
+// A2A_PROBE
+// ============================================================================
+packetHandlers[PacketTypes.A2A_PROBE] = function(packet) {
+	onBoardReset();
+};
+
+
 // B2U_PRINT
 // ============================================================================
 packetHandlers[PacketTypes.B2U_PRINT] = function(packet) {
@@ -66,7 +73,7 @@ packetHandlers[PacketTypes.B2U_PRINT] = function(packet) {
 
 // B2U_FILTER_LIST
 // ============================================================================
-var creationPopoverContent = '(waiting...)';
+var creationPopoverContent;
 var filters = null;
 
 packetHandlers[PacketTypes.B2U_FILTER_LIST] = function(packet) {
@@ -76,4 +83,7 @@ packetHandlers[PacketTypes.B2U_FILTER_LIST] = function(packet) {
 	renderTemplateRemote('add_popover.html', function(template) {
 		creationPopoverContent = template({filters: filters});
 	});
+
+	// Show filter container
+	$('#filter-container').show();
 };

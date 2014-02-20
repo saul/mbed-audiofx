@@ -12,6 +12,8 @@
 #include "bytebuffer.h"
 #include "dbg.h"
 #include "ticktime.h"
+#include "packets.h"
+#include "chain.h"
 
 
 const char *g_ppszPacketTypes[] = {
@@ -23,6 +25,8 @@ const char *g_ppszPacketTypes[] = {
 	"U2B_FILTER_DELETE",
 	"U2B_FILTER_FLAG",
 	"U2B_FILTER_MOD",
+	"U2B_FILTER_MIX",
+	"U2B_VOLUME",
 };
 
 
@@ -35,6 +39,8 @@ PacketHandler_t g_pPacketHandlers[] = {
 	{packet_filter_delete_receive, true, PACKET_SIZE_EXACT(sizeof(FilterDeletePacket_t))}, // U2B_FILTER_DELETE
 	{packet_filter_flag_receive, true, PACKET_SIZE_EXACT(sizeof(FilterFlagPacket_t))}, // U2B_FILTER_FLAG
 	{packet_filter_mod_receive, true, PACKET_SIZE_MIN(sizeof(FilterModPacket_t))}, // U2B_FILTER_MOD
+	{packet_filter_mix_receive, true, PACKET_SIZE_EXACT(sizeof(FilterMixPacket_t))}, // U2B_FILTER_MIX
+	{packet_volume_receive, false, PACKET_SIZE_EXACT(sizeof(VolumePacket_t))}, // U2B_VOLUME
 };
 
 
@@ -104,25 +110,29 @@ void packet_loop(void)
 	if(!sercom_receive(&hdr, &pPayload))
 		return;
 
-	PacketHandler_t *pHandler = &g_pPacketHandlers[hdr.type];
+	const PacketHandler_t *pHandler = &g_pPacketHandlers[hdr.type];
 	if(!pHandler->pfnCallback)
 	{
-		dbg_warning("Received packet (%s) that has no handler!\r\n", g_ppszPacketTypes[hdr.type]);
+		dbg_warning("received packet (%s) that has no handler!\r\n", g_ppszPacketTypes[hdr.type]);
 		free(pPayload);
 		return;
 	}
 
 	// Check packet payload size
-	if(((pHandler->nPacketSize & PACKET_SIZE_COMPARATOR_BIT) && hdr.size < pHandler->nPacketSize))
+	uint8_t nPacketSize = pHandler->nPacketSize & ~PACKET_SIZE_COMPARATOR_BIT;
+
+	if((pHandler->nPacketSize & PACKET_SIZE_COMPARATOR_BIT) && hdr.size < nPacketSize)
 	{
-		dbg_warning("Received packet (%s) with invalid size: got %u bytes, expected at least %u bytes\r\n", g_ppszPacketTypes[hdr.type], hdr.size, pHandler->nPacketSize);
+		dbg_warning("received packet (%s) with invalid size: got %u bytes, expected at least %u bytes\r\n", g_ppszPacketTypes[hdr.type], hdr.size, nPacketSize);
 		return;
 	}
-	else if((!(pHandler->nPacketSize & PACKET_SIZE_COMPARATOR_BIT) && hdr.size != pHandler->nPacketSize))
+	else if(!(pHandler->nPacketSize & PACKET_SIZE_COMPARATOR_BIT) && hdr.size != nPacketSize)
 	{
-		dbg_warning("Received packet (%s) with invalid size: got %u, expected exactly %u bytes\r\n", g_ppszPacketTypes[hdr.type], hdr.size, pHandler->nPacketSize);
+		dbg_warning("received packet (%s) with invalid size: got %u, expected exactly %u bytes\r\n", g_ppszPacketTypes[hdr.type], hdr.size, nPacketSize);
 		return;
 	}
+
+	dbg_printf("Received packet %u(%s) with size %u bytes\r\n", hdr.type, g_ppszPacketTypes[hdr.type], hdr.size);
 
 	// Lock the chain if the callback requires it
 	if(pHandler->bLocksChain)
@@ -131,13 +141,13 @@ void packet_loop(void)
 		g_bChainLock = true;
 	}
 
-	(*pHandler)(&hdr, pPayload);
+	pHandler->pfnCallback(&hdr, pPayload);
 
 	// Unlock the chain
 	if(pHandler->bLocksChain)
 	{
 		g_bChainLock = false;
-		chain_debug();
+		chain_debug(g_pChainRoot);
 	}
 
 	free(pPayload);
@@ -162,8 +172,8 @@ void packet_filter_create_receive(const PacketHeader_t *pHdr, const uint8_t *pPa
 		return;
 
 	// Create the branch
-	dbg_printf("Creating %s filter...", pFilterCreate->iFilterType);
-	BranchStage_t *pBranch = branch_alloc(pFilterCreate->iFilterType, flags, flMixPerc, NULL);
+	dbg_printf("Creating %u(%s) filter...", pFilterCreate->iFilterType, g_pFilters[pFilterCreate->iFilterType].pszName);
+	StageBranch_t *pBranch = branch_alloc(pFilterCreate->iFilterType, pFilterCreate->flags, pFilterCreate->flMixPerc, NULL);
 	dbg_printf(" ok!\r\n");
 
 	// Add branch to stage
@@ -172,10 +182,10 @@ void packet_filter_create_receive(const PacketHeader_t *pHdr, const uint8_t *pPa
 	if(pStageHdr->pFirst)
 	{
 		// Grab the last branch in this stage
-		BranchStage_t *pLast = stage_get_branch(pStageHdr, pStageHdr->nBranches - 2);
+		StageBranch_t *pLast = stage_get_branch(pStageHdr, pStageHdr->nBranches - 2);
 
 		// Add new branch to end of stage
-		pCurrent->pNext = pBranch;
+		pLast->pNext = pBranch;
 	}
 	else
 	{
@@ -269,12 +279,12 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 	if(!pBranch)
 		return;
 
-	uint8_t *pSource = pPayload + sizeof(FilterModPacket_t);
+	const uint8_t *pSource = pPayload + sizeof(FilterModPacket_t);
 	uint8_t nToCopy = pHdr->size - sizeof(FilterModPacket_t);
-	uint8_t *pDest = ((uint8_t *)pFilter->pPrivate) + iOffset;
+	uint8_t *pDest = ((uint8_t *)pBranch->pPrivate) + pFilterMod->iOffset;
 
 	// Buffer overflow protection
-	if(iOffset + nToCopy > pBranch->pFilter->nPrivateDataSize)
+	if(pFilterMod->iOffset + nToCopy > pBranch->pFilter->nPrivateDataSize)
 	{
 		dbg_warning("blocked attempted arbitrary memory modification");
 		return;
@@ -283,3 +293,45 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 	// Copy new parameter value into memory
 	memcpy(pDest, pSource, nToCopy);
 }
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+void packet_filter_mix_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
+{
+	const FilterMixPacket_t *pFilterMix = (FilterMixPacket_t *)pPayload;
+
+	ChainStageHeader_t *pStageHdr = chain_get_stage(g_pChainRoot, pFilterMix->nStage);
+	if(!pStageHdr)
+		return;
+
+	StageBranch_t *pBranch = stage_get_branch(pStageHdr, pFilterMix->nBranch);
+	if(!pBranch)
+		return;
+
+	if(pFilterMix->flMixPerc < 0.0f || pFilterMix->flMixPerc > 2.0f)
+	{
+		dbg_warning("mix perc (%.2f) not in range [0..2]", pFilterMix->flMixPerc);
+		return;
+	}
+
+	pBranch->flMixPerc = pFilterMix->flMixPerc;
+}
+#pragma GCC diagnostic push
+
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+void packet_volume_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
+{
+	const VolumePacket_t *pVolume = (VolumePacket_t *)pPayload;
+
+	if(pVolume->flVolume < 0.0f || pVolume->flVolume > 2.0f)
+	{
+		dbg_warning("master volume (%.2f) not in range [0..2]", pVolume->flVolume);
+		return;
+	}
+
+	g_flChainVolume = pVolume->flVolume;
+}
+#pragma GCC diagnostic pop
