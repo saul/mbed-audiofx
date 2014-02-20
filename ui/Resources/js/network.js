@@ -30,7 +30,8 @@ function pollReadThread() {
 		// Start another read thread on next call
 		readingThread = null;
 
-		console.log('Received packet: ' + packet.type_);
+		if(packet.type_ != PacketTypes.B2U_PRINT)
+			console.log('Received packet: ' + packet.type_);
 
 		// Call the packet handler if one exists
 		if(packet.type_ in packetHandlers)

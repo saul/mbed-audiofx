@@ -48,6 +48,6 @@ void _dbg_warning(const char *file, int line, const char *func, const char *form
 	__attribute__ ((format (printf, 4, 5)));
 
 void dbg_printn(const char *buf, int length);
-void dbg_printf(const char *format, ...);
+void dbg_printf(const char *format, ...) __attribute__ ((format (printf, 1, 2)));
 
 #endif

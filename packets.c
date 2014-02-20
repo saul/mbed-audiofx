@@ -46,6 +46,10 @@ PacketHandler_t g_pPacketHandlers[] = {
 };
 
 
+static bool s_bDebugPacketReceipt = true;
+static bool s_bDebugChainAfterLock = false;
+
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
 void packet_static_assertions(void)
@@ -134,7 +138,8 @@ void packet_loop(void)
 		return;
 	}
 
-	dbg_printf("Received packet %u(%s) with size %u bytes\r\n", hdr.type, g_ppszPacketTypes[hdr.type], hdr.size);
+	if(s_bDebugPacketReceipt)
+		dbg_printf("Received packet %u(%s) with size %u bytes\r\n", hdr.type, g_ppszPacketTypes[hdr.type], hdr.size);
 
 	// Lock the chain if the callback requires it
 	if(pHandler->bLocksChain)
@@ -149,7 +154,9 @@ void packet_loop(void)
 	if(pHandler->bLocksChain)
 	{
 		g_bChainLock = false;
-		chain_debug(g_pChainRoot);
+
+		if(s_bDebugChainAfterLock)
+			chain_debug(g_pChainRoot);
 	}
 
 	free(pPayload);
@@ -339,17 +346,34 @@ void packet_volume_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 #pragma GCC diagnostic pop
 
 
+static size_t strnlen(register const char *s, size_t maxlen)
+{
+  register const char *e;
+  size_t n;
+
+  for (e = s, n = 0; *e && n < maxlen; e++, n++)
+    ;
+
+  return n;
+}
+
+
 void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 {
 	const CommandPacket_t *pCmd = (CommandPacket_t *)pPayload;
 
 	uint8_t nBytesLeft = pHdr->size - sizeof(CommandPacket_t);
+
+	if(!nBytesLeft)
+		return;
+
 	const char *pszArg = (const char *)(pCmd + 1);
-	const char **ppszArgs = malloc(sizeof(char *) * pCmd->nArgs);
+	const char **ppszArgs = calloc(pCmd->nArgs, sizeof(char *));
+	dbg_assert(ppszArgs, "unable to allocate memory for command");
 
-	dbg_printn(">>> ", 4);
+	dbg_printn("\r\n>>> ", 6);
 
-	for(int i = 0; i < pCmd->nArgs; ++i)
+	for(uint8_t i = 0; i < pCmd->nArgs; ++i)
 	{
 		size_t nLen = strnlen(pszArg, nBytesLeft);
 		nBytesLeft -= nLen;
@@ -360,7 +384,7 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 			goto cleanup;
 		}
 
-		dbg_printf("%s ");
+		dbg_printf("%s ", pszArg);
 
 		ppszArgs[i] = pszArg;
 		pszArg += (nLen + 1);
@@ -368,34 +392,52 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 
 	dbg_printn("\r\n", 2);
 
-	if(nBytesLeft != nArgs + 1)
+	if(nBytesLeft != pCmd->nArgs)
 	{
-		dbg_warning("unexpected %u remaining bytes to parse\r\n", nBytesLeft - nArgs - 1);
+		dbg_warning("%u unexpected bytes left after parse\r\n", nBytesLeft - pCmd->nArgs);
 		goto cleanup;
 	}
 
-	if(stricmp(ppszArgs[0], "chain_debug"))
+	if(!strcmp(ppszArgs[0], "chain_debug"))
 	{
 		chain_debug(g_pChainRoot);
 	}
-	else if(stricmp(ppszArgs[0], "filter_debug"))
+	else if(!strcmp(ppszArgs[0], "filter_debug"))
 	{
 		filter_debug();
 	}
-	else if(stricmp(ppszArgs[0], "stage_debug"))
+	else if(!strcmp(ppszArgs[0], "stage_debug"))
 	{
-		if(nArgs != 2)
+		if(pCmd->nArgs != 2)
 		{
 			dbg_warning("syntax: <stage>\r\n");
 			goto cleanup;
 		}
 
-		ChainStageHeader_t *pStageHdr = chain_get_stage(atoi(ppszArgs[1]));
+		ChainStageHeader_t *pStageHdr = chain_get_stage(g_pChainRoot, atoi(ppszArgs[1]));
 
 		if(pStageHdr)
 			stage_debug(pStageHdr);
 	}
-	else if(stricmp(ppszArgs[0], "ping"))
+	else if(!strcmp(ppszArgs[0], "bDebugPacketReceipt"))
+	{
+		if(pCmd->nArgs != 2)
+			dbg_printf("bDebugPacketReceipt = %s\r\n", s_bDebugPacketReceipt ? "true" : "false");
+		else
+			s_bDebugPacketReceipt = atoi(ppszArgs[1]);
+	}
+	else if(!strcmp(ppszArgs[0], "bDebugChainAfterLock"))
+	{
+		if(pCmd->nArgs != 2)
+			dbg_printf("bDebugChainAfterLock = %s\r\n", s_bDebugChainAfterLock ? "true" : "false");
+		else
+			s_bDebugChainAfterLock = atoi(ppszArgs[1]);
+	}
+	else if(!strcmp(ppszArgs[0], "tom"))
+	{
+		dbg_printf("                  _..._\r\n");dbg_printf("               .-'     '-.\r\n");dbg_printf("              /     _    _\\\r\n");dbg_printf("             /':.  (o)  /__)\r\n");dbg_printf("            /':. .,_    |  |\r\n");dbg_printf("           |': ; /  \\   /_/\r\n");dbg_printf("           /  ;  `\"`\"    }\r\n");dbg_printf("          ; ':.,         {\r\n");dbg_printf("         /      ;        }\r\n");dbg_printf("        ; '::.   ;\\/\\ /\\ {\r\n");dbg_printf("       |.      ':. ;``\"``\\\r\n");dbg_printf("      / '::'::'    /      ;\r\n");dbg_printf("     |':::' '::'  /       |\r\n");dbg_printf("     \\   '::' _.-`;       ;\r\n");dbg_printf("     /`-..--;` ;  |       |\r\n");dbg_printf("    ;  ;  ;  ;  ; |       |\r\n");dbg_printf("    ; ;  ;  ; ;  ;        /        ,--.........,\r\n");dbg_printf("    |; ;  ;  ;  ;/       ;       .'           -='.\r\n");dbg_printf("    | ;  ;  ; ; /       /       .\\               '\r\n");dbg_printf("    |  ;   ;  /`      .\\   _,==\"  \\             .'\r\n");dbg_printf("    \\;  ; ; .'. _  ,_'\\.\\~\"   //`. \\          .'\r\n");dbg_printf("    |  ;  .___~' \\ \\- | |    /,\\ `  \\      ..'\r\n");dbg_printf("  ~ ; ; ;/  ==\"'' |`| | |       ==\"''\\.==''\r\n");dbg_printf("  ~ /; ;/=\"\"      |`| |`|   ===\"`\r\n");dbg_printf("  ~..==`     \\\\   |`| / /==\"`\r\n");dbg_printf("   ~` ~      /,\\ / /= )\")\r\n");dbg_printf("  ~ ~~         _')\")\r\n");dbg_printf("  ~ ~   _,=~\";`\r\n");dbg_printf("  ~  =~\"|;  ;|\r\n");dbg_printf("   ~  ~ | ;  |\r\n");dbg_printf("~ ~     |;|\\ |\r\n");dbg_printf("        |/  \\|\r\n");
+	}
+	else if(!strcmp(ppszArgs[0], "ping"))
 	{
 		dbg_printf("Pong!\r\n");
 	}
