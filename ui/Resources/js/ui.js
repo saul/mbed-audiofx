@@ -9,7 +9,24 @@ $(function() {
 		$('#console-text').html('');
 	});
 
-	onBoardReset();
+	$('#command-prompt').keypress(function(event) {
+		var $this = $(this);
+
+		// We're only interested in the enter key
+		if(event.which != 13)
+			return;
+
+		// Send command packet
+		packet = CommandPacket(serialStream);
+		packet.send($this.val());
+
+		// Clear the prompt
+		$this.val('');
+	})
+
+	// Simulate a board reset
+	// UNDONE: not necessary, we do it on receipt of A2A_PROBE
+	//onBoardReset();
 });
 
 
@@ -148,9 +165,8 @@ $(document).on('change', 'select[name=filter-create]', function() {
 	console.log('Creating filter "' + filter.name + '" for stage ' + $stage.index());
 
 	// If there are no filters in this stage, create another row with a "+"
-	if($stage.find('.filter').length === 0) {
+	if($stage.find('.filter').length === 0)
 		appendStage();
-	}
 
 	appendFilterToStage($stage.index(), filterIdx);
 });
@@ -158,16 +174,15 @@ $(document).on('change', 'select[name=filter-create]', function() {
 
 // Filter parameter input change
 // ============================================================================
-$(document).on('change', '.form-group[data-param-name]', $.debounce(250, function(e) {
-	var $this = $(e.target);
+$(document).on('change', '.form-group[data-param-name]', $.debounce(250, function(event) {
+	var $this = $(event.target);
 	var $stage = $this.parents('.stage-row');
 	var $filter = $this.parents('.filter');
 	var $widget = $this.parent();
 	var paramName = $widget.data('param-name');
 	var filter = filters[$filter.data('filter-index')];
 
-	if(paramName === 'mix')
-	{
+	if(paramName === 'mix') {
 		packet = FilterMixPacket(serialStream);
 		packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
 	} else {

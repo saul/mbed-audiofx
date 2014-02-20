@@ -27,6 +27,7 @@ const char *g_ppszPacketTypes[] = {
 	"U2B_FILTER_MOD",
 	"U2B_FILTER_MIX",
 	"U2B_VOLUME",
+	"U2B_ARB_CMD",
 };
 
 
@@ -41,6 +42,7 @@ PacketHandler_t g_pPacketHandlers[] = {
 	{packet_filter_mod_receive, true, PACKET_SIZE_MIN(sizeof(FilterModPacket_t))}, // U2B_FILTER_MOD
 	{packet_filter_mix_receive, true, PACKET_SIZE_EXACT(sizeof(FilterMixPacket_t))}, // U2B_FILTER_MIX
 	{packet_volume_receive, false, PACKET_SIZE_EXACT(sizeof(VolumePacket_t))}, // U2B_VOLUME
+	{packet_cmd_receive, false, PACKET_SIZE_MIN(sizeof(CommandPacket_t))}, // U2B_ARB_CMD
 };
 
 
@@ -286,7 +288,7 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 	// Buffer overflow protection
 	if(pFilterMod->iOffset + nToCopy > pBranch->pFilter->nPrivateDataSize)
 	{
-		dbg_warning("blocked attempted arbitrary memory modification");
+		dbg_warning("blocked attempted arbitrary memory modification\r\n");
 		return;
 	}
 
@@ -311,7 +313,7 @@ void packet_filter_mix_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 
 	if(pFilterMix->flMixPerc < 0.0f || pFilterMix->flMixPerc > 2.0f)
 	{
-		dbg_warning("mix perc (%.2f) not in range [0..2]", pFilterMix->flMixPerc);
+		dbg_warning("mix perc (%.2f) not in range [0..2]\r\n", pFilterMix->flMixPerc);
 		return;
 	}
 
@@ -328,10 +330,78 @@ void packet_volume_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 
 	if(pVolume->flVolume < 0.0f || pVolume->flVolume > 2.0f)
 	{
-		dbg_warning("master volume (%.2f) not in range [0..2]", pVolume->flVolume);
+		dbg_warning("master volume (%.2f) not in range [0..2]\r\n", pVolume->flVolume);
 		return;
 	}
 
 	g_flChainVolume = pVolume->flVolume;
 }
 #pragma GCC diagnostic pop
+
+
+void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
+{
+	const CommandPacket_t *pCmd = (CommandPacket_t *)pPayload;
+
+	uint8_t nBytesLeft = pHdr->size - sizeof(CommandPacket_t);
+	const char *pszArg = (const char *)(pCmd + 1);
+	const char **ppszArgs = malloc(sizeof(char *) * pCmd->nArgs);
+
+	dbg_printn(">>> ", 4);
+
+	for(int i = 0; i < pCmd->nArgs; ++i)
+	{
+		size_t nLen = strnlen(pszArg, nBytesLeft);
+		nBytesLeft -= nLen;
+
+		if(nBytesLeft == 0)
+		{
+			dbg_warning("argument list missing NUL terminator\r\n");
+			goto cleanup;
+		}
+
+		dbg_printf("%s ");
+
+		ppszArgs[i] = pszArg;
+		pszArg += (nLen + 1);
+	}
+
+	dbg_printn("\r\n", 2);
+
+	if(nBytesLeft != nArgs + 1)
+	{
+		dbg_warning("unexpected %u remaining bytes to parse\r\n", nBytesLeft - nArgs - 1);
+		goto cleanup;
+	}
+
+	if(stricmp(ppszArgs[0], "chain_debug"))
+	{
+		chain_debug(g_pChainRoot);
+	}
+	else if(stricmp(ppszArgs[0], "filter_debug"))
+	{
+		filter_debug();
+	}
+	else if(stricmp(ppszArgs[0], "stage_debug"))
+	{
+		if(nArgs != 2)
+		{
+			dbg_warning("syntax: <stage>\r\n");
+			goto cleanup;
+		}
+
+		ChainStageHeader_t *pStageHdr = chain_get_stage(atoi(ppszArgs[1]));
+
+		if(pStageHdr)
+			stage_debug(pStageHdr);
+	}
+	else if(stricmp(ppszArgs[0], "ping"))
+	{
+		dbg_printf("Pong!\r\n");
+	}
+	else
+		dbg_warning("unknown command\r\n");
+
+cleanup:
+	free(ppszArgs);
+}

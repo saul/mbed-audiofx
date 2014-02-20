@@ -20,6 +20,7 @@ typedef enum
 	U2B_FILTER_MOD,		///< UI is changing a filter parameter
 	U2B_FILTER_MIX,		///< UI is changing a filter mix percentage
 	U2B_VOLUME,			///< UI is changing system volume
+	U2B_ARB_CMD,		///< UI is sending an arbitrary command to the board (e.g., chain_dump)
 
 	// Must be last
 	PACKET_TYPE_MAX,
@@ -124,5 +125,14 @@ typedef struct
 #pragma pack(pop)
 
 void packet_volume_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
+
+#pragma pack(push, 1)
+typedef struct
+{
+	uint8_t nArgs;
+} CommandPacket_t;
+#pragma pack(pop)
+
+void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);
 
 #endif

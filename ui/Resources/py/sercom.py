@@ -11,7 +11,7 @@ import unicodedata
 from ordereddict import OrderedDict
 
 
-__all__ = ['ProbePacket', 'ResetPacket', 'PrintPacket', 'FilterListPacket', 'FilterCreatePacket', 'FilterDeletePacket', 'FilterFlagPacket', 'FilterModPacket', 'FilterMixPacket', 'SerialStream', 'PacketTypes', 'PACKET_MAP']
+__all__ = ['ProbePacket', 'ResetPacket', 'PrintPacket', 'FilterListPacket', 'FilterCreatePacket', 'FilterDeletePacket', 'FilterFlagPacket', 'FilterModPacket', 'FilterMixPacket', 'CommandPacket', 'SerialStream', 'PacketTypes', 'PACKET_MAP']
 
 # little-endian "MBED"
 PACKET_IDENT = ord('D') << 24 | ord('E') << 16 | ord('B') << 8 | ord('M')
@@ -76,6 +76,7 @@ class PacketTypes(object):
 	U2B_FILTER_MOD = 7
 	U2B_FILTER_MIX = 8
 	U2B_VOLUME = 9
+	U2B_ARB_CMD = 10
 
 
 class Packet(object):
@@ -210,6 +211,15 @@ class FilterMixPacket(Packet):
 		return struct.pack('<BBf', int(stage), int(branch), mix_perc)
 
 
+class CommandPacket(Packet):
+	type_ = PacketTypes.U2B_ARB_CMD
+
+	def construct(self, args):
+		# Naive argument splitting
+		c_args = [a + '\x00' for a in args.split()]
+		return struct.pack('<B', len(c_args)) + ''.join(c_args)
+
+
 PACKET_MAP = [
 	ProbePacket, # B2U_PROBE
 	ResetPacket, # U2B_RESET
@@ -220,6 +230,7 @@ PACKET_MAP = [
 	FilterFlagPacket, # U2B_FILTER_FLAG
 	FilterModPacket, # U2B_FILTER_MOD
 	FilterMixPacket, # U2B_FILTER_MIX
+	CommandPacket, # U2B_ARB_CMD
 ]
 
 
