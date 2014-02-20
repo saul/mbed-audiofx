@@ -14,6 +14,7 @@
 #include "ticktime.h"
 #include "packets.h"
 #include "chain.h"
+#include "samples.h"
 
 
 const char *g_ppszPacketTypes[] = {
@@ -436,6 +437,23 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 	else if(!strcmp(ppszArgs[0], "tom"))
 	{
 		dbg_printf("                  _..._\r\n");dbg_printf("               .-'     '-.\r\n");dbg_printf("              /     _    _\\\r\n");dbg_printf("             /':.  (o)  /__)\r\n");dbg_printf("            /':. .,_    |  |\r\n");dbg_printf("           |': ; /  \\   /_/\r\n");dbg_printf("           /  ;  `\"`\"    }\r\n");dbg_printf("          ; ':.,         {\r\n");dbg_printf("         /      ;        }\r\n");dbg_printf("        ; '::.   ;\\/\\ /\\ {\r\n");dbg_printf("       |.      ':. ;``\"``\\\r\n");dbg_printf("      / '::'::'    /      ;\r\n");dbg_printf("     |':::' '::'  /       |\r\n");dbg_printf("     \\   '::' _.-`;       ;\r\n");dbg_printf("     /`-..--;` ;  |       |\r\n");dbg_printf("    ;  ;  ;  ;  ; |       |\r\n");dbg_printf("    ; ;  ;  ; ;  ;        /        ,--.........,\r\n");dbg_printf("    |; ;  ;  ;  ;/       ;       .'           -='.\r\n");dbg_printf("    | ;  ;  ; ; /       /       .\\               '\r\n");dbg_printf("    |  ;   ;  /`      .\\   _,==\"  \\             .'\r\n");dbg_printf("    \\;  ; ; .'. _  ,_'\\.\\~\"   //`. \\          .'\r\n");dbg_printf("    |  ;  .___~' \\ \\- | |    /,\\ `  \\      ..'\r\n");dbg_printf("  ~ ; ; ;/  ==\"'' |`| | |       ==\"''\\.==''\r\n");dbg_printf("  ~ /; ;/=\"\"      |`| |`|   ===\"`\r\n");dbg_printf("  ~..==`     \\\\   |`| / /==\"`\r\n");dbg_printf("   ~` ~      /,\\ / /= )\")\r\n");dbg_printf("  ~ ~~         _')\")\r\n");dbg_printf("  ~ ~   _,=~\";`\r\n");dbg_printf("  ~  =~\"|;  ;|\r\n");dbg_printf("   ~  ~ | ;  |\r\n");dbg_printf("~ ~     |;|\\ |\r\n");dbg_printf("        |/  \\|\r\n");
+	}
+	else if(!strcmp(ppszArgs[0], "volume"))
+	{
+		if(pCmd->nArgs != 2)
+			dbg_printf("volume = %.2f\r\n", g_flChainVolume);
+		else
+			g_flChainVolume = atof(ppszArgs[1]);
+	}
+	else if(!strcmp(ppszArgs[0], "average"))
+	{
+		if(pCmd->nArgs != 2)
+		{
+			dbg_warning("syntax: <samples>\r\n");
+			goto cleanup;
+		}
+
+		dbg_printf("average = %u\r\n", (unsigned int)sample_get_average(atoi(ppszArgs[1])));
 	}
 	else if(!strcmp(ppszArgs[0], "ping"))
 	{

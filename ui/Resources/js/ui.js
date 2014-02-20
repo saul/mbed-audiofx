@@ -25,8 +25,7 @@ $(function() {
 	})
 
 	// Simulate a board reset
-	// UNDONE: not necessary, we do it on receipt of A2A_PROBE
-	//onBoardReset();
+	onBoardReset();
 });
 
 

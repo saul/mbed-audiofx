@@ -35,6 +35,8 @@
 ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 volatile float g_flChainVolume = 1.0;
+static volatile unsigned long s_ulLastLongTick = 0;
+static volatile unsigned long s_ulLastClipTick = 0;
 
 
 static uint16_t get_median_sample(void)
@@ -48,8 +50,8 @@ static uint16_t get_median_sample(void)
 	if(iSamples[0] > iSamples[1])
 	{
 		if(iSamples[1] > iSamples[2])
-			return iSamples[1]
-;
+			return iSamples[1];
+
 		if(iSamples[0] > iSamples[2])
 			return iSamples[2];
 
@@ -68,18 +70,13 @@ static uint16_t get_median_sample(void)
 
 static void time_tick(void *pUserData)
 {
-	// UNDONE: this doesn't seem to affect anything
-#if 0
-	// Do we have a sample ready to read in?
-	if (!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_0, ADC_DATA_DONE) ||
-		!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_4, ADC_DATA_DONE) ||
-		!ADC_ChannelGetStatus(LPC_ADC, ADC_CHANNEL_5, ADC_DATA_DONE))
-		return;
-#endif
+	unsigned long ulStartTick = time_tickcount();
 
+	// Grab median sample from 3 ADC inputs (removes most of salt+pepper noise)
 	uint16_t iSample = get_median_sample();
 	sample_set(g_iSampleCursor, iSample);
 
+	// Scale sample down to 10-bit (DAC resolution)
 	uint16_t iFiltered = iSample >> 2;
 
 	// If the filter chain is locked for modification (e.g., by a packet
@@ -95,10 +92,41 @@ static void time_tick(void *pUserData)
 	}
 
 	// Output to DAC
-	dac_set(iFiltered * g_flChainVolume);
+	uint16_t iScaledOut = iFiltered * g_flChainVolume;
+	dac_set(iScaledOut);
 
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
+
+	unsigned long ulEndTick = time_tickcount();
+
+	// Clipped?
+	if(iScaledOut == DAC_MAX_VALUE)
+	{
+		s_ulLastClipTick = ulEndTick;
+		led_set(LED_CLIP, true);
+	}
+
+	// If we haven't clipped in 100 ticks, turn off the clip LED
+	else if(s_ulLastClipTick + 100 < ulEndTick)
+		led_set(LED_CLIP, false);
+
+	// Calculate how long this sample took
+	unsigned long ulElapsedTicks = ulEndTick - ulStartTick;
+
+	// If we took longer than a millisecond to process sample, error
+	if(ulElapsedTicks >= 1)
+	{
+		if(s_ulLastLongTick + 1000 < ulEndTick)
+			dbg_printf(ANSI_COLOR_RED "Chain too complex" ANSI_COLOR_RESET ": sample took %lu msec to process!\r\n", ulElapsedTicks);
+
+		s_ulLastLongTick = ulEndTick;
+		led_set(LED_SLOW, true);
+	}
+
+	// If we haven't had been slow in 100 ticks, turn off the slow LED
+	else if(s_ulLastLongTick + 100 < ulEndTick)
+		led_set(LED_SLOW, false);
 }
 
 

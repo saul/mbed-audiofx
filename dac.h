@@ -5,6 +5,6 @@
 
 void dac_init(void);
 void dac_bias(uint32_t bias);
-void dac_set(uint32_t val);
+void dac_set(uint16_t val);
 
 #endif

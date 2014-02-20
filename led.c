@@ -15,8 +15,8 @@ const unsigned long LED_MASKS[] = {1<<18, 1<<20, 1<<21, 1<<23};
 const unsigned long ALL_LEDS = (1<<18) | (1<<20) | (1<<21) | (1<<23);
 const int NUM_LEDS = 4;
 
-static int s_pbLedStates[] = {0, 0, 0, 0};
-static int s_bLEDSetup = 0;
+static bool s_pbLedStates[] = {false, false, false, false};
+static bool s_bLEDSetup = 0;
 
 
 void led_init(void)
@@ -44,7 +44,7 @@ void led_init(void)
 	PINSEL_ConfigPin(&PinCfg);
 
 	GPIO_SetDir(1, ALL_LEDS, 1);
-	s_bLEDSetup = 1;
+	s_bLEDSetup = true;
 
 	led_clear();
 }
@@ -56,12 +56,15 @@ int led_setup(void)
 }
 
 
-int led_set(int led, int bState)
+int led_set(int led, bool bState)
 {
 	dbg_assert(s_bLEDSetup, "LEDs not initialised");
 
 	if(led < 0 || led >= NUM_LEDS)
 		return -1;
+
+	if(s_pbLedStates[led] == bState)
+		return 0;
 
 	if(bState)
 		GPIO_SetValue(1, LED_MASKS[led]);

@@ -59,7 +59,7 @@ uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 	if(pStageHdr->nBranches == 1)
 	{
 		if(!(pBranch->flags & BRANCHFLAG_ENABLED))
-			return 0;
+			return iSample;
 
 		// If we are using BRANCHFLAG_FULL_MIX, skip the floating point
 		// multiplication to save some clock cycles
@@ -73,6 +73,7 @@ uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 	else
 	{
 		uint32_t iResult = 0;
+		bool bAnyEnabled = false;
 
 		while(pBranch)
 		{
@@ -82,10 +83,14 @@ uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 				continue;
 			}
 
+			bAnyEnabled = true;
 			iResult += pBranch->pFilter->pfnApply(iSample, pBranch->pPrivate) * pBranch->flMixPerc;
 
 			pBranch = pBranch->pNext;
 		}
+
+		if(!bAnyEnabled)
+			return iSample;
 
 		return iResult;
 	}
@@ -218,7 +223,7 @@ uint16_t chain_apply(const ChainStageHeader_t *pRoot, uint16_t iSample)
 	while(pStageHdr)
 	{
 		if(pStageHdr->nBranches > 0)
-			iIntermediate += stage_apply(pStageHdr, iIntermediate);
+			iIntermediate = stage_apply(pStageHdr, iIntermediate);
 
 		pStageHdr = pStageHdr->pNext;
 	}

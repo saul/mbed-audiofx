@@ -8,6 +8,10 @@
 uint32_t filter_delay_apply(uint32_t input, void *pPrivate)
 {
 	const FilterDelayData_t *pData = (const FilterDelayData_t *)pPrivate;
+
+	if(pData->nDelay == 0)
+		return sample_get(g_iSampleCursor);
+
 	return sample_get(-pData->nDelay);
 }
 
