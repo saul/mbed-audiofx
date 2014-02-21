@@ -59,16 +59,19 @@ void adc_config(uint8_t chan, bool bEnable)
 	ADC_ChannelCmd(ADC_DEV, chan, bEnable ? ENABLE : DISABLE);
 }
 
+
 void adc_interrupt_config(uint8_t chan, bool bEnable)
 {
 	dbg_assert(chan < ADC_NUM_CHANNELS, "invalid channel (%u, max=%u)", chan, ADC_NUM_CHANNELS-1);
 	ADC_IntConfig(ADC_DEV, ADC_ADINTEN0 + chan, bEnable);
 }
 
+
 void adc_start(uint8_t mode)
 {
 	ADC_StartCmd(ADC_DEV, mode);
 }
+
 
 uint16_t adc_read(uint8_t chan)
 {
@@ -83,11 +86,12 @@ uint16_t adc_read(uint8_t chan)
 	return val;
 }
 
+
 void adc_burst_config(bool bEnable)
 {
-	dbg_assert(bEnable <= 1, "invalid burst config (%u, expected boolean)", bEnable);
 	ADC_BurstCmd(ADC_DEV, bEnable);
 }
+
 
 FlagStatus adc_status(uint8_t chan)
 {
