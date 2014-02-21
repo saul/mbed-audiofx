@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <math.h>
 #include <string.h>
 
@@ -187,7 +188,7 @@ void main(void)
 	// Startup complete
 	// Assumes resolution is 1 tick/msec
 	uint32_t ulElapsedTicks = time_tickcount() - ulStartTick;
-	dbg_printf(ANSI_COLOR_GREEN "Startup took %d msec\r\n\n" ANSI_COLOR_RESET, ulElapsedTicks);
+	dbg_printf(ANSI_COLOR_GREEN "Startup took %lu msec\r\n\n" ANSI_COLOR_RESET, ulElapsedTicks);
 	led_blink(100, 5);
 
 	//-----------------------------------------------------

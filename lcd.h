@@ -1,6 +1,7 @@
 #ifndef _LCD_H_
 #define _LCD_H_
 
+#include <stdbool.h>
 #include "lpc_types.h"
 
 #define LCD_LINE_LEN 16

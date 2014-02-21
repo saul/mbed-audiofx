@@ -101,11 +101,11 @@ bool led_show_bin(uint8_t value)
 {
 	led_clear();
 
-	if(v >= (1 << NUM_LEDS))
+	if(value >= (1 << NUM_LEDS))
 		return false;
 
 	for(uint8_t i = 0; i < NUM_LEDS; ++i)
-		led_set(i, v & (1 << i));
+		led_set(i, value & (1 << i));
 
 	return true;
 }

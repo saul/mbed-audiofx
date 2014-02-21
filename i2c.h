@@ -1,6 +1,7 @@
 #ifndef _I2C_H_
 #define _I2C_H_
 
+#include <stdbool.h>
 #include "lpc_types.h"
 
 #define I2C_DEV LPC_I2C1

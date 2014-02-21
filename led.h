@@ -2,6 +2,7 @@
 #define _LED_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define LED_BLINK_INDEFINITE 0
 

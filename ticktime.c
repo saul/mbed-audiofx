@@ -3,6 +3,7 @@
 #	include "lpc17xx_systick.h"
 #pragma GCC diagnostic pop
 
+#include <stdbool.h>
 #include "dbg.h"
 
 static bool s_bTimeSetup = false;

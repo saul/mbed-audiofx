@@ -1,6 +1,8 @@
 #ifndef _TICKTIME_H_
 #define _TICKTIME_H_
 
+#include <stdbool.h>
+
 void time_init(uint32_t iResMsec);
 bool time_setup(void);
 float time_realtime(void);
