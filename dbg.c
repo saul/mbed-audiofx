@@ -40,7 +40,7 @@ void _dbg_error(const char *file, int line, const char *func, const char *format
 
 	// blink LEDs infinitely if LEDs are setup
 	if(led_setup())
-		led_blink(200, -1);
+		led_blink(200, LED_BLINK_INDEFINITE);
 
 	// halt program
 	else

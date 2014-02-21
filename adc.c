@@ -13,7 +13,7 @@ void adc_init(uint32_t rate)
 
 
 // MBED Pin mapping: http://www-users.cs.york.ac.uk/~pcc/MCP/MbedPins.html
-void adc_config(uint8_t chan, uint8_t bEnable)
+void adc_config(uint8_t chan, bool bEnable)
 {
 	dbg_assert(chan < ADC_NUM_CHANNELS, "invalid channel (%u, max=%u)", chan, ADC_NUM_CHANNELS-1);
 
@@ -59,7 +59,7 @@ void adc_config(uint8_t chan, uint8_t bEnable)
 	ADC_ChannelCmd(ADC_DEV, chan, bEnable ? ENABLE : DISABLE);
 }
 
-void adc_interrupt_config(uint8_t chan, uint8_t bEnable)
+void adc_interrupt_config(uint8_t chan, bool bEnable)
 {
 	dbg_assert(chan < ADC_NUM_CHANNELS, "invalid channel (%u, max=%u)", chan, ADC_NUM_CHANNELS-1);
 	ADC_IntConfig(ADC_DEV, ADC_ADINTEN0 + chan, bEnable);
@@ -83,7 +83,7 @@ uint16_t adc_read(uint8_t chan)
 	return val;
 }
 
-void adc_burst_config(uint8_t bEnable)
+void adc_burst_config(bool bEnable)
 {
 	dbg_assert(bEnable <= 1, "invalid burst config (%u, expected boolean)", bEnable);
 	ADC_BurstCmd(ADC_DEV, bEnable);
@@ -94,4 +94,3 @@ FlagStatus adc_status(uint8_t chan)
 	dbg_assert(chan < ADC_NUM_CHANNELS, "invalid channel (%u, max=%u)", chan, ADC_NUM_CHANNELS-1);
 	return ADC_ChannelGetStatus(ADC_DEV, chan, 1);
 }
-

@@ -13,10 +13,10 @@
 
 const unsigned long LED_MASKS[] = {1<<18, 1<<20, 1<<21, 1<<23};
 const unsigned long ALL_LEDS = (1<<18) | (1<<20) | (1<<21) | (1<<23);
-const int NUM_LEDS = 4;
+const uint8_t NUM_LEDS = 4;
 
 static bool s_pbLedStates[] = {false, false, false, false};
-static bool s_bLEDSetup = 0;
+static bool s_bLEDSetup = false;
 
 
 void led_init(void)
@@ -50,21 +50,19 @@ void led_init(void)
 }
 
 
-int led_setup(void)
+bool led_setup(void)
 {
 	return s_bLEDSetup;
 }
 
 
-int led_set(int led, bool bState)
+void led_set(uint8_t led, bool bState)
 {
 	dbg_assert(s_bLEDSetup, "LEDs not initialised");
-
-	if(led < 0 || led >= NUM_LEDS)
-		return -1;
+	dbg_assert(led < NUM_LEDS, "invalid LED index");
 
 	if(s_pbLedStates[led] == bState)
-		return 0;
+		return;
 
 	if(bState)
 		GPIO_SetValue(1, LED_MASKS[led]);
@@ -72,28 +70,20 @@ int led_set(int led, bool bState)
 		GPIO_ClearValue(1, LED_MASKS[led]);
 
 	s_pbLedStates[led] = bState;
-	return 0;
 }
 
 
-int led_flip(int led)
+void led_flip(uint8_t led)
 {
-	dbg_assert(s_bLEDSetup, "LEDs not initialised");
-
-	if(led < 0 || led >= NUM_LEDS)
-		return -1;
-
-	return led_set(led, !s_pbLedStates[led]);
+	dbg_assert(led < NUM_LEDS, "invalid LED index");
+	led_set(led, !s_pbLedStates[led]);
 }
 
 
-int led_get(int led)
+bool led_get(uint8_t led)
 {
 	dbg_assert(s_bLEDSetup, "LEDs not initialised");
-
-	if(led < 0 || led >= NUM_LEDS)
-		return -1;
-
+	dbg_assert(led < NUM_LEDS, "invalid LED index");
 	return s_pbLedStates[led];
 }
 
@@ -107,28 +97,26 @@ void led_clear(void)
 }
 
 
-int led_show_bin(int v)
+bool led_show_bin(uint8_t value)
 {
-	dbg_assert(s_bLEDSetup, "LEDs not initialised");
-
 	led_clear();
 
-	if(v < 0 || v >= (1 << NUM_LEDS))
-		return -1;
+	if(v >= (1 << NUM_LEDS))
+		return false;
 
-	for(int i = 0; i < NUM_LEDS; ++i)
+	for(uint8_t i = 0; i < NUM_LEDS; ++i)
 		led_set(i, v & (1 << i));
 
-	return 0;
+	return true;
 }
 
 
-void led_blink(int msec_interval, int count)
+void led_blink(uint32_t msec_interval, uint16_t count)
 {
 	dbg_assert(s_bLEDSetup, "LEDs not initialised");
 	dbg_assert(time_setup(), "time not initialised");
 
-	for(int i = 0; count == -1 || i < count; ++i)
+	for(uint16_t i = 0; !count || i < count; ++i)
 	{
 		GPIO_SetValue(1, ALL_LEDS);
 		time_sleep(msec_interval/2);
@@ -138,4 +126,3 @@ void led_blink(int msec_interval, int count)
 
 	led_clear();
 }
-

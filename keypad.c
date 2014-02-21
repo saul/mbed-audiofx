@@ -5,7 +5,7 @@
 
 typedef struct KeyState_t
 {
-	int bKeyDown;
+	bool bKeyDown;
 } KeyState_t;
 
 typedef struct KeypadState_t
@@ -27,11 +27,11 @@ void keypad_init(void)
 {
 	s_KeypadState.chLast = 0;
 
-	for(int row = 0; row < 4; ++row)
+	for(uint8_t row = 0; row < 4; ++row)
 	{
-		for(int col = 0; col < 4; ++col)
+		for(uint8_t col = 0; col < 4; ++col)
 		{
-			s_KeypadState.ppKeyState[row][col].bKeyDown = 0;
+			s_KeypadState.ppKeyState[row][col].bKeyDown = false;
 		}
 	}
 }
@@ -42,13 +42,13 @@ void keypad_init(void)
  *
  * @returns number of keys pressed
  */
-int keypad_keydown_count(void)
+ uint8_t keypad_keydown_count(void)
 {
-	int nKeysDown = 0;
+	uint8_t nKeysDown = 0;
 
-	for(int row = 0; row < 4; ++row)
+	for(uint8_t row = 0; row < 4; ++row)
 	{
-		for(int col = 0; col < 4; ++col)
+		for(uint8_t col = 0; col < 4; ++col)
 		{
 			if(s_KeypadState.ppKeyState[row][col].bKeyDown)
 				nKeysDown++;
@@ -67,7 +67,7 @@ int keypad_keydown_count(void)
 int keypad_is_keydown(char key)
 {
 	// Convert key -> row/col
-	int row, col;
+	uint8_t row, col;
 	for(row = 0; row < 4; ++row)
 	{
 		for(col = 0; col < 4; ++col)
@@ -96,9 +96,9 @@ int keypad_is_keydown(char key)
  */
 static char keypad_get_keydown(void)
 {
-	for(int row = 0; row < 4; ++row)
+	for(uint8_t row = 0; row < 4; ++row)
 	{
-		for(int col = 0; col < 4; ++col)
+		for(uint8_t col = 0; col < 4; ++col)
 		{
 			if(s_KeypadState.ppKeyState[row][col].bKeyDown)
 				return s_chKeyMap[row][col];
@@ -112,14 +112,14 @@ static char keypad_get_keydown(void)
 /*
  * keypad_transfer
  *
- * Transfer a byte to keypad via I2C. Asserts on transfer failure.
+ * Transfer a byte to keypad via I2C.
  *
  * @returns byte returned from device
  */
 static uint8_t keypad_transfer(uint8_t tx)
 {
 	uint8_t rx = 0;
-	dbg_assert(i2c_transfer(KEYPAD_ADDR, &tx, 1, &rx, 1) == SUCCESS, "keypad transfer failed");
+	i2c_transfer(KEYPAD_ADDR, &tx, 1, &rx, 1);
 	return rx;
 }
 
@@ -157,21 +157,21 @@ char keypad_getc(void)
  */
 char keypad_scan(void)
 {
-	int iKeysDown = keypad_keydown_count();
+	uint8_t iKeysDown = keypad_keydown_count();
 	char chKeyPressed = 0;
 
-	for(int col = 0; col < 4; ++col)
+	for(uint8_t col = 0; col < 4; ++col)
 	{
 		// Set bit of column we want to read in upper nibble, then invert
 		// (Column scanning is active low)
-		int tx = ~(1 << (4+col));
+		uint8_t tx = ~(1 << (4+col));
 
 		// Read inverted lower nibble of returned value
 		// (Keys down for this column are active low in the lower nibble)
-		int rx = (~keypad_transfer(tx)) & 0x0F;
+		uint8_t rx = (~keypad_transfer(tx)) & 0x0F;
 
 		// Test each row
-		for(int row = 0; row < 4; ++row)
+		for(uint8_t row = 0; row < 4; ++row)
 		{
 			// Key down
 			if(rx & (1 << row))
@@ -180,7 +180,7 @@ char keypad_scan(void)
 				if(s_KeypadState.ppKeyState[row][col].bKeyDown)
 					continue;
 
-				s_KeypadState.ppKeyState[row][col].bKeyDown = 1;
+				s_KeypadState.ppKeyState[row][col].bKeyDown = true;
 				iKeysDown++;
 
 				// If no other keys are down, return this key
@@ -195,7 +195,7 @@ char keypad_scan(void)
 				if(!s_KeypadState.ppKeyState[row][col].bKeyDown)
 					continue;
 
-				s_KeypadState.ppKeyState[row][col].bKeyDown = 0;
+				s_KeypadState.ppKeyState[row][col].bKeyDown = false;
 				iKeysDown--;
 
 				char chKeyDown = keypad_get_keydown();

@@ -5,8 +5,8 @@
 
 #include "dbg.h"
 
-static int s_bTimeSetup = 0;
-static volatile unsigned long s_ulTickCount;
+static bool s_bTimeSetup = false;
+static volatile uint32_t s_ulTickCount = 0;
 static float s_flSecsPerTick;
 
 
@@ -16,20 +16,19 @@ void SysTick_Handler(void)
 }
 
 
-void time_init(int iResMsec)
+void time_init(uint32_t iResMsec)
 {
 	s_flSecsPerTick = iResMsec / 1000.0;
-	s_ulTickCount = 0;
 
 	SYSTICK_InternalInit(iResMsec);
 	SYSTICK_Cmd(ENABLE);
 	SYSTICK_IntCmd(ENABLE);
 
-	s_bTimeSetup = 1;
+	s_bTimeSetup = true;
 }
 
 
-int time_setup(void)
+bool time_setup(void)
 {
 	return s_bTimeSetup;
 }
@@ -43,18 +42,18 @@ float time_realtime(void)
 }
 
 
-void time_sleep(int msec)
+void time_sleep(uint32_t msec)
 {
 	dbg_assert(s_bTimeSetup, "time not initialised");
 
-	unsigned long ulStartTicks = s_ulTickCount;
-	unsigned long ulSleepTicks = msec / (s_flSecsPerTick * 1000);
+	uint32_t ulStartTicks = s_ulTickCount;
+	uint32_t ulSleepTicks = msec / (s_flSecsPerTick * 1000);
 
 	while((s_ulTickCount - ulStartTicks) < ulSleepTicks);
 }
 
 
-unsigned long time_tickcount(void)
+uint32_t time_tickcount(void)
 {
 	dbg_assert(s_bTimeSetup, "time not initialised");
 	return s_ulTickCount;

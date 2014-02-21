@@ -15,8 +15,8 @@ void lcd_clear(void);
 void lcd_blank(void);
 void lcd_write(const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
 void lcd_writec(char c);
-void lcd_set_pos(int row, int col);
-void lcd_blink(int enable);
+void lcd_set_pos(uint8_t row, uint8_t col);
+void lcd_blink(bool enable);
 uint8_t ascii_to_lcd(char ch);
 
 #endif

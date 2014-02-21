@@ -35,8 +35,8 @@
 ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 volatile float g_flChainVolume = 1.0;
-static volatile unsigned long s_ulLastLongTick = 0;
-static volatile unsigned long s_ulLastClipTick = 0;
+static volatile uint32_t s_ulLastLongTick = 0;
+static volatile uint32_t s_ulLastClipTick = 0;
 
 
 static uint16_t get_median_sample(void)
@@ -70,7 +70,7 @@ static uint16_t get_median_sample(void)
 
 static void time_tick(void *pUserData)
 {
-	unsigned long ulStartTick = time_tickcount();
+	uint32_t ulStartTick = time_tickcount();
 
 	// Grab median sample from 3 ADC inputs (removes most of salt+pepper noise)
 	uint16_t iSample = get_median_sample();
@@ -98,7 +98,7 @@ static void time_tick(void *pUserData)
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
 
-	unsigned long ulEndTick = time_tickcount();
+	uint32_t ulEndTick = time_tickcount();
 
 	// Clipped?
 	if(iScaledOut == DAC_MAX_VALUE)
@@ -111,10 +111,10 @@ static void time_tick(void *pUserData)
 	else if(s_ulLastClipTick + 100 < ulEndTick)
 		led_set(LED_CLIP, false);
 
-	// Calculate how long this sample took
-	unsigned long ulElapsedTicks = ulEndTick - ulStartTick;
-
 	// If we took longer than a millisecond to process sample, error
+	// Assumes resolution is 1 tick/msec
+	uint32_t ulElapsedTicks = ulEndTick - ulStartTick;
+
 	if(ulElapsedTicks >= 1)
 	{
 		if(s_ulLastLongTick + 1000 < ulEndTick)
@@ -137,17 +137,18 @@ void main(void)
 	//-----------------------------------------------------
 	// Show all LEDs on init
 	led_init();
-	led_set(0, 1);
-	led_set(1, 1);
-	led_set(2, 1);
-	led_set(3, 1);
+	led_set(0, true);
+	led_set(1, true);
+	led_set(2, true);
+	led_set(3, true);
 
-	// Initialise serial console
+	// Initialise serial communication
+	// Waits for UI to start before continuing boot sequence
 	sercom_init();
 
 	// Initialise timer
-	time_init(1);
-	unsigned long t = time_tickcount();
+	time_init(1); // resolution: 1ms
+	uint32_t ulStartTick = time_tickcount();
 
 	// I2C init
 	//i2c_init();
@@ -158,11 +159,11 @@ void main(void)
 
 	// ADC init
 	adc_init(SAMPLE_RATE);
-	adc_config(0, ENABLE); // MBED pin 15
-	adc_config(4, ENABLE); // MBED pin 19
-	adc_config(5, ENABLE); // MBED pin 20
+	adc_config(0, true); // MBED pin 15
+	adc_config(4, true); // MBED pin 19
+	adc_config(5, true); // MBED pin 20
 	adc_start(ADC_START_CONTINUOUS);
-	adc_burst_config(ENABLE);
+	adc_burst_config(true);
 
 	// DAC init
 	dac_init();
@@ -170,55 +171,24 @@ void main(void)
 	// Check static assertions (does nothing at run-time)
 	packet_static_assertions();
 
-	// Startup complete
-	t = time_tickcount() - t;
-	dbg_printf(ANSI_COLOR_GREEN "Startup took %d msec\r\n\n" ANSI_COLOR_RESET, (int)(t * time_tickinterval() * 1000));
-	led_blink(100, 5);
-
 	// Clear sample buffer
-	for(int i = 0; i < BUFFER_SAMPLES; ++i)
+	for(uint16_t i = 0; i < BUFFER_SAMPLES; ++i)
 		sample_set(i, 0);
 
 	// Debug filters
 	filter_debug();
+
+	// Send filter list to UI (finalises boot sequence)
 	packet_filter_list_send();
 
-	//-----------------------------------------------------
-	// Generate a filter chain
-	//-----------------------------------------------------
+	// Generate an empty filter chain
 	g_pChainRoot = stage_alloc();
 
-#ifdef FILTER_TEST
-	// Stage 1
-	//-------------------------------------------
-	ChainStageHeader_t *pStage1 = g_pChainRoot;
-
-	// Stage 1, Branch 1
-	// -----------------
-	FilterDelayData_t *pDelayData;
-	StageBranch_t *pBranch1 = branch_alloc(FILTER_DELAY, BRANCHFLAG_ENABLED, 0.75, (void**)&pDelayData);
-
-	pDelayData->nDelay = 2500; // ~0.25 secs
-
-	pStage1->nBranches++;
-	pStage1->pFirst = pBranch1;
-
-#ifdef MULTI_BRANCH_TEST
-	// Stage 1, Branch 2
-	// -----------------
-	FilterDelayData_t *pDelayData2;
-	StageBranch_t *pBranch2 = branch_alloc(FILTER_DELAY, BRANCHFLAG_ENABLED, 0.35, (void**)&pDelayData2);
-
-	pDelayData2->nDelay = 7500; // ~0.75 secs
-
-	pStage1->nBranches++;
-	pBranch1->pNext = pBranch2;
-#endif // MULTI_BRANCH_TEST
-#endif // FILTER_TEST
-
-	// Debug chain
-	//-------------------------------------------
-	chain_debug(g_pChainRoot);
+	// Startup complete
+	// Assumes resolution is 1 tick/msec
+	uint32_t ulElapsedTicks = time_tickcount() - ulStartTick;
+	dbg_printf(ANSI_COLOR_GREEN "Startup took %d msec\r\n\n" ANSI_COLOR_RESET, ulElapsedTicks);
+	led_blink(100, 5);
 
 	//-----------------------------------------------------
 	// Start sampling interrupt microtimer
@@ -229,7 +199,5 @@ void main(void)
 	// Packet receive loop
 	//-----------------------------------------------------
 	while(1)
-	{
 		packet_loop();
-	}
 }

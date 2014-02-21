@@ -114,7 +114,7 @@ void lcd_write(const char *fmt, ...)
 	uint8_t buf[1 + LCD_LINE_LEN];
 	buf[0] = 0x40;
 
-	int nChars = strlen(text);
+	size_t nChars = strlen(text);
 
 	if(nChars > LCD_LINE_LEN)
 	{
@@ -122,7 +122,7 @@ void lcd_write(const char *fmt, ...)
 		nChars = LCD_LINE_LEN;
 	}
 
-	for(int i = 0; i < nChars; i++)
+	for(uint8_t i = 0; i < nChars; i++)
 		buf[i+1] = ascii_to_lcd(text[i]);
 
 	lcd_send(buf, 1 + nChars);
@@ -136,10 +136,10 @@ void lcd_writec(char c)
 }
 
 
-void lcd_set_pos(int row, int col)
+void lcd_set_pos(uint8_t row, uint8_t col)
 {
-	dbg_assert(row >= 0 && row <= 1, "invalid row");
-	dbg_assert(col >= 0 && col < 16, "invalid column");
+	dbg_assert(row <= 1, "invalid row");
+	dbg_assert(col < 16, "invalid column");
 
 	uint8_t buf[] = {
 		0x00,
@@ -150,9 +150,9 @@ void lcd_set_pos(int row, int col)
 }
 
 
-void lcd_blink(int enable)
+void lcd_blink(bool enable)
 {
-	uint8_t buf[] = {0x00, 0x0C | enable};
+	uint8_t buf[] = {0x00, 0x0C | (int)enable};
 	lcd_send(buf, sizeof(buf));
 }
 
@@ -168,4 +168,3 @@ uint8_t ascii_to_lcd(char ch)
 
 	return c;
 }
-

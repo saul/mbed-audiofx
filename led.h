@@ -3,13 +3,15 @@
 
 #include <stdbool.h>
 
+#define LED_BLINK_INDEFINITE 0
+
 void led_init(void);
-int led_setup(void);
-int led_set(int led, bool bState);
-int led_flip(int led);
-int led_get(int led);
+bool led_setup(void);
+void led_set(uint8_t led, bool bState);
+void led_flip(uint8_t led);
+bool led_get(uint8_t led);
 void led_clear(void);
-int led_show_bin(int v);
-void led_blink(int msec_interval, int count); // count = -1: infinite
+bool led_show_bin(uint8_t v);
+void led_blink(uint32_t msec_interval, uint16_t count); // count = 0: infinite
 
 #endif

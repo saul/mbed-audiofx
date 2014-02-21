@@ -10,7 +10,7 @@
 #include "dbg.h"
 
 
-static int s_bI2CDebug = 0;
+static bool s_bI2CDebug = 0;
 
 
 void i2c_init(void)
@@ -36,15 +36,15 @@ void i2c_init(void)
 }
 
 
-int i2c_debug(int dbg)
+bool i2c_debug(bool dbg)
 {
-	int bOldDebug = s_bI2CDebug;
+	bool bOldDebug = s_bI2CDebug;
 	s_bI2CDebug = dbg;
 	return bOldDebug;
 }
 
 
-uint32_t i2c_transfer(uint32_t iAddr, uint8_t *pTx, uint32_t nTxLen, uint8_t *pRx, uint32_t nRxLen)
+bool i2c_transfer(uint32_t iAddr, uint8_t *pTx, uint32_t nTxLen, uint8_t *pRx, uint32_t nRxLen)
 {
 	I2C_M_SETUP_Type i2cCfg;
 	i2cCfg.tx_data = pTx;
@@ -70,7 +70,7 @@ uint32_t i2c_transfer(uint32_t iAddr, uint8_t *pTx, uint32_t nTxLen, uint8_t *pR
 		}
 	}
 
-	uint32_t status = I2C_MasterTransferData(I2C_DEV, &i2cCfg, I2C_TRANSFER_POLLING);
+	Status status = I2C_MasterTransferData(I2C_DEV, &i2cCfg, I2C_TRANSFER_POLLING);
 
 	if(i2cCfg.tx_count != nTxLen)
 		dbg_warning("only transferred %lu of %lu bytes\r\n", i2cCfg.tx_count, nTxLen);
@@ -89,13 +89,13 @@ uint32_t i2c_transfer(uint32_t iAddr, uint8_t *pTx, uint32_t nTxLen, uint8_t *pR
 	}
 
 	if(status != SUCCESS)
-		dbg_warning("non-successful transfer status: %lu(%lx)\r\n", status, status);
+		dbg_warning("non-successful transfer\r\n");
 
-	return status;
+	return status == SUCCESS;
 }
 
 
-int i2c_probe_addr(uint32_t iAddr)
+bool i2c_probe_addr(uint32_t iAddr)
 {
 	uint8_t buf;
 
@@ -107,16 +107,16 @@ int i2c_probe_addr(uint32_t iAddr)
 	i2cCfg.sl_addr7bit = iAddr;
 	i2cCfg.retransmissions_max = 3;
 
-	return I2C_MasterTransferData(I2C_DEV, &i2cCfg, I2C_TRANSFER_POLLING) == SUCCESS ? 1 : 0;
+	return I2C_MasterTransferData(I2C_DEV, &i2cCfg, I2C_TRANSFER_POLLING) == SUCCESS;
 }
 
 
 void i2c_scan(void)
 {
 	dbg_printf("Scanning for I2C devices...\r\n");
-	int nDevices = 0;
+	uint8_t nDevices = 0;
 
-	for(int i = 0; i < (1<<7); ++i)
+	for(uint8_t i = 0; i < (1<<7); ++i)
 	{
 		if(!i2c_probe_addr(i))
 			continue;
@@ -125,5 +125,5 @@ void i2c_scan(void)
 		nDevices++;
 	}
 
-	dbg_printf("Found " ANSI_COLOR_GREEN "%d" ANSI_COLOR_RESET " I2C device(s)\r\n", nDevices);
+	dbg_printf("Found " ANSI_COLOR_GREEN "%u" ANSI_COLOR_RESET " I2C device(s)\r\n", nDevices);
 }
