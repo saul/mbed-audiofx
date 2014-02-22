@@ -9,6 +9,8 @@
 #include "filters.h"
 #include "filters/delay.h"
 #include "filters/dynamic.h"
+#include "filters/vibrato.h"
+#include "filters/tremolo.h"
 
 
 /*
@@ -25,6 +27,8 @@
 Filter_t g_pFilters[] = {
 	{"Delay", "Delay;f=H;o=0;t=range;min=0;max=9999;step=1;val=5000", filter_delay_apply, filter_delay_debug, sizeof(FilterDelayData_t)},
 	{"Noise gate", "Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50|Threshold;f=H;o=2;t=range;min=0;max=2048;step=1;val=200", filter_noisegate_apply, filter_noisegate_debug, sizeof(FilterNoiseGateData_t)},
+	{"Vibrato", "", filter_vibrato_apply, filter_vibrato_debug, sizeof(FilterVibratoData_t)},
+	{"Tremolo", "", filter_tremolo_apply, filter_tremolo_debug, sizeof(FilterTremoloData_t)},
 };
 
 const size_t NUM_FILTERS = sizeof(g_pFilters)/sizeof(g_pFilters[0]);

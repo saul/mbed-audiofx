@@ -5,6 +5,8 @@
 
 
 extern volatile uint16_t g_iSampleCursor;
+extern volatile uint16_t g_iVibratoSampleCursor;
+
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"

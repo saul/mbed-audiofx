@@ -23,11 +23,14 @@
 #include "filters/delay.h"
 #include "filters/dynamic.h"
 #include "packets.h"
+#include "vibrato.h"
 
 
 ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 volatile float g_flChainVolume = 1.0;
+
+volatile bool g_bVibratoActive = false;
 
 
 static uint16_t get_median_sample(void)
@@ -91,6 +94,9 @@ static void time_tick(void *pUserData)
 
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
+
+	if(g_bVibratoActive)
+		g_iVibratoSampleCursor = vibrato_get_cursor();
 
 	uint32_t ulEndTick = time_tickcount();
 
