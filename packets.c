@@ -453,7 +453,9 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 			goto cleanup;
 		}
 
-		dbg_printf("average = %u\r\n", (unsigned int)sample_get_average(atoi(ppszArgs[1])));
+		uint32_t iAverage = sample_get_average(atoi(ppszArgs[1]));
+		float flVolume = (iAverage * 100.0) / (((uint32_t)-1) >> 1);
+		dbg_printf("average = %.2f%%\r\n", flVolume);
 	}
 	else if(!strcmp(ppszArgs[0], "ping"))
 	{

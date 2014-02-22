@@ -25,19 +25,9 @@
 #include "packets.h"
 
 
-// Populate filter chain with a test delay filter
-//#define FILTER_TEST
-
-// Populate filter chain with multiple parallel delay filters
-// Note: FILTER_TEST must be defined
-//#define MULTI_BRANCH_TEST
-
-
 ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 volatile float g_flChainVolume = 1.0;
-static volatile uint32_t s_ulLastLongTick = 0;
-static volatile uint32_t s_ulLastClipTick = 0;
 
 
 static uint16_t get_median_sample(void)
@@ -71,6 +61,9 @@ static uint16_t get_median_sample(void)
 
 static void time_tick(void *pUserData)
 {
+	static uint32_t s_ulLastLongTick = 0;
+	static uint32_t s_ulLastClipTick = 0;
+
 	uint32_t ulStartTick = time_tickcount();
 
 	// Grab median sample from 3 ADC inputs (removes most of salt+pepper noise)
