@@ -11,6 +11,7 @@
 #include "dbg.h"
 #include "led.h"
 #include "packets.h"
+#include "microtimer.h"
 
 
 /*
@@ -38,13 +39,16 @@ void _dbg_error(const char *file, int line, const char *func, const char *format
 	dbg_printn(buf, -1);
 	dbg_printn(ANSI_COLOR_RESET "\r\n", -1);
 
+	// Disable all microtimers
+	for(uint8_t i = 0; i < UTIM_NUM_TIMERS; ++i)
+		microtimer_disable(i);
+
 	// blink LEDs infinitely if LEDs are setup
 	if(led_setup())
 		led_blink(200, LED_BLINK_INDEFINITE);
 
 	// halt program
-	else
-		while(1);
+	while(1);
 }
 
 
