@@ -190,4 +190,6 @@ $(document).on('change', '.form-group[data-param-name]', $.debounce(250, functio
 		packet = FilterModPacket(serialStream);
 		packet.send($stage.index(), $filter.index(), param['o'], param['f'], $this.val());
 	}
+
+	$this.siblings('label').children('.value').text($this.val());
 }));
