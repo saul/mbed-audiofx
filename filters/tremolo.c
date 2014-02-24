@@ -14,7 +14,7 @@ uint32_t filter_tremolo_apply(uint32_t input, void *pPrivate)
 	switch (pData->waveType)
 	{
 		case 0:
-			if(get_square(pData->speed))
+			if(get_square(pData->frequency))
 				return input;
 			else
 				return input * (1 - pData->depth);

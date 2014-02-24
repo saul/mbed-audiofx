@@ -54,6 +54,9 @@ OBJ=sercom.o \
 	filters/delay.o \
 	filters/flange.o \
 	filters/dynamic.o \
+	filters/vibrato.o \
+	filters/tremolo.o \
+	filters/fir.o \
 	waves.o \
 	samples.o \
 	main.o

@@ -22,15 +22,14 @@
 #include "filters.h"
 #include "filters/delay.h"
 #include "filters/dynamic.h"
+#include "filters/vibrato.h"
 #include "packets.h"
-#include "vibrato.h"
 
 
 ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
+volatile bool g_bPassThru = false;
 volatile float g_flChainVolume = 1.0;
-
-volatile bool g_bVibratoActive = false;
 
 
 static uint16_t get_median_sample(void)
@@ -79,14 +78,17 @@ static void time_tick(void *pUserData)
 	// If the filter chain is locked for modification (e.g., by a packet
 	// handler), don't try to apply the chain. It may be in an intermediate
 	// state/cause crashes/sound funky. Just passthru.
-	if(!g_bChainLock)
+	if(!g_bChainLock && !g_bPassThru)
 	{
+		led_set(LED_PASS_THRU, false);
 		sample_clear_average();
 
 		// If we have a filter chain, apply all filters to the sample
 		if(g_pChainRoot)
 			iFiltered = chain_apply(g_pChainRoot, iSample);
 	}
+	else
+		led_set(LED_PASS_THRU, true);
 
 	// Output to DAC
 	uint16_t iScaledOut = iFiltered * g_flChainVolume;
@@ -95,8 +97,10 @@ static void time_tick(void *pUserData)
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
 
+#ifdef VIBRATO_TO_FIX
 	if(g_bVibratoActive)
 		g_iVibratoSampleCursor = vibrato_get_cursor();
+#endif
 
 	uint32_t ulEndTick = time_tickcount();
 

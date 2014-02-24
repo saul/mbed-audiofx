@@ -1,17 +1,29 @@
 #include <stdint.h>
+#include <stdbool.h>
 #include <math.h>
 
 #include "config.h"
 #include "dbg.h"
 #include "samples.h"
+#include "filters/vibrato.h"
 
 
 /*volatile*/ SamplePair_t g_pSampleBuffer[BUFFER_SAMPLES / 2];
 volatile uint16_t g_iSampleCursor = 0;
 volatile uint16_t g_iVibratoSampleCursor = 0;
+static SampleAverage_t s_SampleAverage;
 
 
-SampleAverage_t sampleAverage;
+static uint32_t sample_get_raw(int16_t index, bool bAffectedByVibrato)
+{
+	if(g_bVibratoActive && bAffectedByVibrato)
+		return sample_get_interpolated(index);
+
+	if(index & 1)
+		return g_pSampleBuffer[(index-1)/2].b << 20;
+
+	return g_pSampleBuffer[index/2].a << 20;
+}
 
 
 uint32_t sample_get(int16_t index)
@@ -26,18 +38,6 @@ uint32_t sample_get(int16_t index)
 	dbg_assert(index < BUFFER_SAMPLES, "invalid sample index");
 
 	return sample_get_raw(index, true);
-}
-
-
-uint32_t sample_get_raw(int16_t index, bool bAffectedByVibrato)
-{
-	if(g_bVibratoActive && bAffectedByVibrato)
-		return sample_get_interpolated(index);
-
-	if(index & 1)
-		return g_pSampleBuffer[(index-1)/2].b << 20;
-
-	return g_pSampleBuffer[index/2].a << 20;
 }
 
 
@@ -93,8 +93,8 @@ uint32_t sample_get_average(uint16_t nSamples)
 
 	// Enable reuse of calculations by storing the first average calculated each sample
 	// and returning it ifthe parameters match.
-	if(sampleAverage.nSamples == nSamples)
-		return sampleAverage.average;
+	if(s_SampleAverage.nSamples == nSamples)
+		return s_SampleAverage.average;
 
 	int32_t sum = 0;
 	for(uint16_t i = 0; i < nSamples; ++i)
@@ -105,10 +105,10 @@ uint32_t sample_get_average(uint16_t nSamples)
 	}
 
 	sum = ((int)sqrt(sum / nSamples)) << 20;
-	if(sampleAverage.nSamples == 0)
+	if(s_SampleAverage.nSamples == 0)
 	{
-		sampleAverage.nSamples = nSamples;
-		sampleAverage.average = sum;
+		s_SampleAverage.nSamples = nSamples;
+		s_SampleAverage.average = sum;
 	}
 	return sum;
 }
@@ -116,5 +116,5 @@ uint32_t sample_get_average(uint16_t nSamples)
 
 void sample_clear_average()
 {
-	sampleAverage.nSamples = 0;
+	s_SampleAverage.nSamples = 0;
 }

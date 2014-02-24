@@ -4,6 +4,9 @@
 #include "waves.h"
 
 
+volatile bool g_bVibratoActive = false;
+
+
 float vibrato_get_cursor(void *pPrivate)
 {
 	const FilterVibratoData_t *pData = (const FilterVibratoData_t *)pPrivate;
