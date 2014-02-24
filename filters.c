@@ -11,6 +11,10 @@
 #include "filters/dynamic.h"
 #include "filters/vibrato.h"
 #include "filters/tremolo.h"
+#include "filters/fir.h"
+
+
+#define PARAM_SEP "|"
 
 
 /*
@@ -25,10 +29,47 @@
  * - t: widget type (range or choice)
  */
 Filter_t g_pFilters[] = {
-	{"Delay", "Delay;f=H;o=0;t=range;min=0;max=9999;step=1;val=5000", filter_delay_apply, filter_delay_debug, sizeof(FilterDelayData_t)},
-	{"Noise gate", "Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50|Threshold;f=H;o=2;t=range;min=0;max=2048;step=1;val=200", filter_noisegate_apply, filter_noisegate_debug, sizeof(FilterNoiseGateData_t)},
-	{"Vibrato", "", filter_vibrato_apply, filter_vibrato_debug, sizeof(FilterVibratoData_t)},
-	{"Tremolo", "", filter_tremolo_apply, filter_tremolo_debug, sizeof(FilterTremoloData_t)},
+	{
+		"Delay",
+		"Delay;f=H;o=0;t=range;min=0;max=9999;step=1;val=5000",
+		filter_delay_apply, filter_delay_debug, NULL,
+		sizeof(FilterDelayData_t), 0
+	},
+
+	{
+		"Noise gate",
+		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
+		"Threshold;f=H;o=2;t=range;min=0;max=2048;step=1;val=200",
+		filter_noisegate_apply, filter_noisegate_debug, NULL,
+		sizeof(FilterNoiseGateData_t), 0
+	},
+
+	/*
+	{
+		"Vibrato",
+		"", // TODO: fill in!
+		filter_vibrato_apply, filter_vibrato_debug, NULL,
+		sizeof(FilterVibratoData_t), 0
+	},
+	*/
+
+	/*
+	{
+		"Tremolo",
+		"", // TODO: fill in!
+		filter_tremolo_apply, NULL, NULL, // TODO: add debug function
+		sizeof(FilterTremoloData_t), 0
+	},
+	*/
+
+	{
+		"Band-pass",
+		"Co-efficients;f=B;o=0;t=range;min=1;max=50;step=1;val=25" PARAM_SEP
+		"Lower frequency;f=H;o=1;t=range;min=20;max=20000;step=1;val=20" PARAM_SEP
+		"Upper frequency;f=H;o=3;t=range;min=20;max=20000;step=1;val=20000",
+		filter_fir_apply, filter_bandpass_debug, filter_bandpass_mod,
+		sizeof(FilterBandPassData_t), offsetof(FilterFIRBaseData_t, nCoefficients)
+	},
 };
 
 const size_t NUM_FILTERS = sizeof(g_pFilters)/sizeof(g_pFilters[0]);

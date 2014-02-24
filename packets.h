@@ -32,14 +32,14 @@ typedef struct
 {
 	uint32_t ident;
 	uint8_t type;
-	uint8_t size;
+	uint16_t size;
 } PacketHeader_t;
 #pragma pack(pop)
 
 
 typedef void (*PacketCallback_t)(const PacketHeader_t *pHdr, const uint8_t *pPayload);
 
-#define PACKET_SIZE_COMPARATOR_BIT (1<<7) // comparator bit set: size should be >=, not set: size should be exact
+#define PACKET_SIZE_COMPARATOR_BIT (1<<15) // comparator bit set: size should be >=, not set: size should be exact
 #define PACKET_SIZE_EXACT(size) (size & ~PACKET_SIZE_COMPARATOR_BIT)
 #define PACKET_SIZE_MIN(size) (size | PACKET_SIZE_COMPARATOR_BIT)
 
@@ -47,7 +47,7 @@ typedef struct
 {
 	PacketCallback_t pfnCallback;
 	bool bLocksChain;
-	uint8_t nPacketSize;
+	uint16_t nPacketSize;
 } PacketHandler_t;
 
 extern const char *g_ppszPacketTypes[];

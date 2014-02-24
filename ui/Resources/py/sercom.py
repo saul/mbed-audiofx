@@ -163,6 +163,9 @@ class FilterListPacket(Packet):
 
 					params[param_name][key].append(value)
 
+				if 'o' not in params[param_name] or 'f' not in params[param_name]:
+					raise RuntimeError('parameter (%s) does not have required "o" or "f" KV pair' % param_name)
+
 			print 'Filter: %s, %s -> %s' % (name, param_format, pprint.pformat(params))
 			self.filters.append({
 				'index': i,
@@ -271,7 +274,7 @@ class SerialStream:
 			return
 
 		# Read packet data
-		size = struct.unpack('<B', self.serial.read(1))[0]
+		size = struct.unpack('<H', self.serial.read(2))[0]
 
 		if size == 0:
 			data = None
@@ -300,7 +303,7 @@ class SerialStream:
 		size = len(data) if data is not None else 0
 
 		# Write header
-		header = struct.pack('<LBB', PACKET_IDENT, type_, size)
+		header = struct.pack('<LBH', PACKET_IDENT, type_, size)
 		self.serial.write(header)
 
 		# Write packet data to serial

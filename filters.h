@@ -37,6 +37,15 @@ typedef void (*FilterDebug_t)(void *pPrivate);
 
 
 /*
+ * FilterMod_t
+ *
+ * Passes filter private data as `pPrivate`, this function is called when the
+ * parameter data has been modified.
+ */
+typedef void (*FilterMod_t)(void *pPrivate);
+
+
+/*
  * Filter_t
  *
  * Holds all information about a filter type (NOT a filter instance, see
@@ -49,7 +58,9 @@ typedef struct
 	const char *pszParamFormat;
 	SampleFilter_t pfnApply;
 	FilterDebug_t pfnDebug;
+	FilterMod_t pfnModCallback;
 	uint8_t nPrivateDataSize; ///< size of private data struct
+	uint8_t nNonPublicDataSize; ///< size of non-public data at start of private data struct
 } Filter_t;
 #pragma pack(pop)
 

@@ -126,7 +126,7 @@ void packet_loop(void)
 	}
 
 	// Check packet payload size
-	uint8_t nPacketSize = pHandler->nPacketSize & ~PACKET_SIZE_COMPARATOR_BIT;
+	uint16_t nPacketSize = pHandler->nPacketSize & ~PACKET_SIZE_COMPARATOR_BIT;
 
 	if((pHandler->nPacketSize & PACKET_SIZE_COMPARATOR_BIT) && hdr.size < nPacketSize)
 	{
@@ -290,8 +290,8 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 		return;
 
 	const uint8_t *pSource = pPayload + sizeof(FilterModPacket_t);
-	uint8_t nToCopy = pHdr->size - sizeof(FilterModPacket_t);
-	uint8_t *pDest = ((uint8_t *)pBranch->pPrivate) + pFilterMod->iOffset;
+	uint16_t nToCopy = pHdr->size - sizeof(FilterModPacket_t);
+	uint8_t *pDest = ((uint8_t *)pBranch->pPrivate) + pFilterMod->iOffset + pBranch->pFilter->nNonPublicDataSize;
 
 	// Buffer overflow protection
 	if(pFilterMod->iOffset + nToCopy > pBranch->pFilter->nPrivateDataSize)
@@ -302,6 +302,10 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 
 	// Copy new parameter value into memory
 	memcpy(pDest, pSource, nToCopy);
+
+	// Call modification callback
+	if(pBranch->pFilter->pfnModCallback)
+		pBranch->pFilter->pfnModCallback((void *)pBranch->pPrivate);
 }
 
 
@@ -363,7 +367,7 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 {
 	const CommandPacket_t *pCmd = (CommandPacket_t *)pPayload;
 
-	uint8_t nBytesLeft = pHdr->size - sizeof(CommandPacket_t);
+	uint16_t nBytesLeft = pHdr->size - sizeof(CommandPacket_t);
 
 	if(!nBytesLeft)
 		return;

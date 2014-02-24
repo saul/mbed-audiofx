@@ -126,7 +126,7 @@ void sercom_init(void)
  *
  * Send a packet header followed by the packet data (in `pBuf`).
  */
-void sercom_send(PacketType_e packet_type, const uint8_t *pBuf, uint8_t size)
+void sercom_send(PacketType_e packet_type, const uint8_t *pBuf, uint16_t size)
 {
 	dbg_assert(packet_type < PACKET_TYPE_MAX, "invalid packet type %d", packet_type);
 
