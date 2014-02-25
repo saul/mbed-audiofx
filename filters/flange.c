@@ -12,9 +12,9 @@
 // For this reason, there may need to be a change to the overall filter chain,
 // otherwise filters combined with a flange will be processing a 'newer' sample
 
-uint32_t filter_flange_apply(uint32_t input, void *pPrivate)
+uint32_t filter_flange_apply(uint32_t input, void *pUnknown)
 {
-	const FilterFlangeData_t *pData = (const FilterFlangeData_t *)pPrivate;
+	const FilterFlangeData_t *pData = (const FilterFlangeData_t *)pUnknown;
 
 	// TODO: move to filter_flange_validate. We shouldn't have assertions or
 	//       parameter checks in the filter apply code
@@ -42,8 +42,8 @@ uint32_t filter_flange_apply(uint32_t input, void *pPrivate)
 }
 
 
-void filter_flange_debug(void *pPrivate)
+void filter_flange_debug(void *pUnknown)
 {
-	const FilterFlangeData_t *pData = (const FilterFlangeData_t *)pPrivate;
+	const FilterFlangeData_t *pData = (const FilterFlangeData_t *)pUnknown;
 	dbg_printf("nDelay=%u, frequency=%u, waveType=%u, flangedMix=%f", pData->nDelay, pData->frequency, pData->waveType, pData->flangedMix);
 }

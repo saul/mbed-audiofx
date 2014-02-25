@@ -8,6 +8,6 @@ typedef struct
 	float depth;		///< Float f; 0 <= f <= 1 (0 = silenct, 1 = original signal)
 } FilterTremoloData_t;
 
-uint32_t filter_tremolo_apply(uint32_t input, void *pPrivate);
+uint32_t filter_tremolo_apply(uint32_t input, void *pUnknown);
 
 #endif

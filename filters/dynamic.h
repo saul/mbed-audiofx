@@ -8,7 +8,7 @@ typedef struct
 } FilterNoiseGateData_t;
 
 
-uint32_t filter_noisegate_apply(uint32_t input, void *pPrivate);
-void filter_noisegate_debug(void *pPrivate);
+uint32_t filter_noisegate_apply(uint32_t input, void *pUnknown);
+void filter_noisegate_debug(void *pUnknown);
 
 #endif

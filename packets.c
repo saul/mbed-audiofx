@@ -291,7 +291,7 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 
 	const uint8_t *pSource = pPayload + sizeof(FilterModPacket_t);
 	uint16_t nToCopy = pHdr->size - sizeof(FilterModPacket_t);
-	uint8_t *pDest = ((uint8_t *)pBranch->pPrivate) + pFilterMod->iOffset + pBranch->pFilter->nNonPublicDataSize;
+	uint8_t *pDest = ((uint8_t *)pBranch->pUnknown) + pFilterMod->iOffset + pBranch->pFilter->nNonPublicDataSize;
 
 	// Buffer overflow protection
 	if(pFilterMod->iOffset + nToCopy > pBranch->pFilter->nPrivateDataSize)
@@ -305,7 +305,7 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 
 	// Call modification callback
 	if(pBranch->pFilter->pfnModCallback)
-		pBranch->pFilter->pfnModCallback((void *)pBranch->pPrivate);
+		pBranch->pFilter->pfnModCallback((void *)pBranch->pUnknown);
 }
 
 

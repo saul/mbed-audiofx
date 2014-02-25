@@ -44,7 +44,7 @@ typedef struct StageBranch_t
 	const Filter_t *pFilter;		///< pointer to the filter type
 	uint8_t flags;					///< `StageFlag_e`s OR'd together
 	float flMixPerc;				///< value >0.0 which defines how the output of this filter is scaled
-	void *pPrivate;					///< effect data (parameters)
+	void *pUnknown;					///< effect data (parameters)
 	struct StageBranch_t *pNext;	///< next branch for this stage
 } StageBranch_t;
 #pragma pack(pop)
@@ -78,7 +78,7 @@ void stage_debug(const ChainStageHeader_t *pStageHdr);
 StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBranch);
 
 
-StageBranch_t *branch_alloc(Filter_e iFilterType, uint8_t flags, float flMixPerc, void **ppPrivate);
+StageBranch_t *branch_alloc(Filter_e iFilterType, uint8_t flags, float flMixPerc, void **ppUnknown);
 void branch_free(StageBranch_t *pBranch);
 
 

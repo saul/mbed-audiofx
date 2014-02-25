@@ -14,8 +14,8 @@ typedef struct
 extern volatile bool g_bVibratoActive;
 
 
-float vibrato_get_cursor(void *pPrivate);
-uint32_t filter_vibrato_apply(uint32_t input, void *pPrivate);
-void filter_vibrato_debug(void *pPrivate);
+float vibrato_get_cursor(void *pUnknown);
+uint32_t filter_vibrato_apply(uint32_t input, void *pUnknown);
+void filter_vibrato_debug(void *pUnknown);
 
 #endif

@@ -11,9 +11,9 @@
 #define FREQ_TO_PI_FRAC(hz) (2 * hz / ((float)SAMPLE_RATE))
 
 
-uint32_t filter_fir_apply(uint32_t input, void *pPrivate)
+uint32_t filter_fir_apply(uint32_t input, void *pUnknown)
 {
-	const FilterFIRBaseData_t *pData = (const FilterFIRBaseData_t *)pPrivate;
+	const FilterFIRBaseData_t *pData = (const FilterFIRBaseData_t *)pUnknown;
 
 	uint32_t output = 0;
 
@@ -27,16 +27,16 @@ uint32_t filter_fir_apply(uint32_t input, void *pPrivate)
 }
 
 
-void filter_bandpass_debug(void *pPrivate)
+void filter_bandpass_debug(void *pUnknown)
 {
-	const FilterBandPassData_t *pData = (const FilterBandPassData_t *)pPrivate;
+	const FilterBandPassData_t *pData = (const FilterBandPassData_t *)pUnknown;
 	dbg_printf("base.coeffs=%p, base.coeffs=%u, lower=%u, upper=%u", (void *)pData->base.pflCoefficients, pData->base.nCoefficients, pData->iLowerFreq, pData->iUpperFreq);
 }
 
 
-void filter_bandpass_mod(void *pPrivate)
+void filter_bandpass_mod(void *pUnknown)
 {
-	FilterBandPassData_t *pData = (FilterBandPassData_t *)pPrivate;
+	FilterBandPassData_t *pData = (FilterBandPassData_t *)pUnknown;
 
 	// Free current coefficients and allocate space for the new ones
 	free(pData->base.pflCoefficients);

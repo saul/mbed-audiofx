@@ -7,9 +7,9 @@
 #include "tremolo.h"
 
 
-uint32_t filter_tremolo_apply(uint32_t input, void *pPrivate)
+uint32_t filter_tremolo_apply(uint32_t input, void *pUnknown)
 {
-	const FilterTremoloData_t *pData = (const FilterTremoloData_t *)pPrivate;
+	const FilterTremoloData_t *pData = (const FilterTremoloData_t *)pUnknown;
 
 	switch (pData->waveType)
 	{

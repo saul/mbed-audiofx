@@ -20,8 +20,8 @@ typedef struct
 #pragma pack(pop)
 
 
-uint32_t filter_fir_apply(uint32_t input, void *pPrivate);
-void filter_bandpass_debug(void *pPrivate);
-void filter_bandpass_mod(void *pPrivate);
+uint32_t filter_fir_apply(uint32_t input, void *pUnknown);
+void filter_bandpass_debug(void *pUnknown);
+void filter_bandpass_mod(void *pUnknown);
 
 #endif

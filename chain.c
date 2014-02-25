@@ -64,9 +64,9 @@ uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 		// If we are using BRANCHFLAG_FULL_MIX, skip the floating point
 		// multiplication to save some clock cycles
 		if(pBranch->flags & BRANCHFLAG_FULL_MIX)
-			return pBranch->pFilter->pfnApply(iSample, pBranch->pPrivate);
+			return pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown);
 
-		return pBranch->pFilter->pfnApply(iSample, pBranch->pPrivate) * pBranch->flMixPerc;
+		return pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown) * pBranch->flMixPerc;
 	}
 
 	// Does this stage have multiple parallel branches that must be mixed?
@@ -84,7 +84,7 @@ uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
 			}
 
 			bAnyEnabled = true;
-			iResult += pBranch->pFilter->pfnApply(iSample, pBranch->pPrivate) * pBranch->flMixPerc;
+			iResult += pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown) * pBranch->flMixPerc;
 
 			pBranch = pBranch->pNext;
 		}
@@ -118,12 +118,12 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
 		if(pBranch->flags & BRANCHFLAG_ENABLED)
 			pszLinePrefix = ANSI_COLOR_GREEN;
 
-		dbg_printf("%s  - #%d: filter=%s" ANSI_COLOR_RESET ", flags=%x, mixperc=%.3f, private=%p", pszLinePrefix, ++i, pBranch->pFilter->pszName, pBranch->flags, pBranch->flMixPerc, (void *)pBranch->pPrivate);
+		dbg_printf("%s  - #%d: filter=%s" ANSI_COLOR_RESET ", flags=%x, mixperc=%.3f, private=%p", pszLinePrefix, ++i, pBranch->pFilter->pszName, pBranch->flags, pBranch->flMixPerc, (void *)pBranch->pUnknown);
 
 		if(pBranch->pFilter->pfnDebug)
 		{
 			dbg_printn(" -> ", -1);
-			pBranch->pFilter->pfnDebug(pBranch->pPrivate);
+			pBranch->pFilter->pfnDebug(pBranch->pUnknown);
 		}
 
 		dbg_printn("\r\n", -1);
@@ -167,7 +167,7 @@ StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBr
  *
  * @returns pointer to the header for this chain stage
  */
- StageBranch_t *branch_alloc(Filter_e iFilterType, uint8_t flags, float flMixPerc, void **ppPrivate)
+ StageBranch_t *branch_alloc(Filter_e iFilterType, uint8_t flags, float flMixPerc, void **ppUnknown)
 {
 	dbg_assert(iFilterType < NUM_FILTERS, "invalid filter type");
 
@@ -181,11 +181,11 @@ StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBr
 	pBranch->flMixPerc = flMixPerc;
 
 	// Allocate private data
-	pBranch->pPrivate = calloc(1, pBranch->pFilter->nPrivateDataSize);
-	dbg_assert(pBranch->pPrivate, "unable to allocate private data for filter %s", pBranch->pFilter->pszName);
+	pBranch->pUnknown = calloc(1, pBranch->pFilter->nPrivateDataSize);
+	dbg_assert(pBranch->pUnknown, "unable to allocate private data for filter %s", pBranch->pFilter->pszName);
 
-	if(ppPrivate)
-		*ppPrivate = pBranch->pPrivate;
+	if(ppUnknown)
+		*ppUnknown = pBranch->pUnknown;
 
 	return pBranch;
 }
@@ -199,7 +199,7 @@ StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBr
 void branch_free(StageBranch_t *pBranch)
 {
 	dbg_assert(pBranch, "cannot free NULL branch");
-	free(pBranch->pPrivate);
+	free(pBranch->pUnknown);
 	free(pBranch);
 }
 

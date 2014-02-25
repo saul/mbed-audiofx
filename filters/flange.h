@@ -10,7 +10,7 @@ typedef struct
 } FilterFlangeData_t;
 
 
-uint32_t filter_flange_apply(uint32_t input, void *pPrivate);
-void filter_flange_debug(void *pPrivate);
+uint32_t filter_flange_apply(uint32_t input, void *pUnknown);
+void filter_flange_debug(void *pUnknown);
 
 #endif

@@ -20,29 +20,29 @@ typedef enum
 /*
  * SampleFilter_t
  *
- * Receives a 32-bit sample value (`input`) and filter private data `pPrivate`.
- * `pPrivate` should be cast to the struct that holds the parameters for this
+ * Receives a 32-bit sample value (`input`) and filter private data `pUnknown`.
+ * `pUnknown` should be cast to the struct that holds the parameters for this
  * filter.
  */
-typedef uint32_t (*SampleFilter_t)(uint32_t input, void *pPrivate);
+typedef uint32_t (*SampleFilter_t)(uint32_t input, void *pUnknown);
 
 
 /*
  * FilterDebug_t
  *
- * Passes filter private data as `pPrivate`, this function should print the
+ * Passes filter private data as `pUnknown`, this function should print the
  * parameter data.
  */
-typedef void (*FilterDebug_t)(void *pPrivate);
+typedef void (*FilterDebug_t)(void *pUnknown);
 
 
 /*
  * FilterMod_t
  *
- * Passes filter private data as `pPrivate`, this function is called when the
+ * Passes filter private data as `pUnknown`, this function is called when the
  * parameter data has been modified.
  */
-typedef void (*FilterMod_t)(void *pPrivate);
+typedef void (*FilterMod_t)(void *pUnknown);
 
 
 /*
