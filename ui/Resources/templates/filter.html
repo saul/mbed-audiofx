@@ -27,7 +27,7 @@
 				{{#ifEq this.t "choice"}}
 				<select class="form-control" name="{{this.slug}}">
 					{{#each this.c}}
-						<option value="{{@index}}">{{this}}</option>
+						<option value="{{@index}}" {{#ifEq ../this.val @index}}selected="selected"{{/ifEq}}>{{this}}</option>
 					{{/each}}
 				</select>
 				{{/ifEq}}

@@ -30,6 +30,7 @@ ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 volatile bool g_bPassThru = false;
 volatile float g_flChainVolume = 1.0;
+volatile uint32_t g_ulLastLongTick = 0;
 
 
 static uint16_t get_median_sample(void)
@@ -63,7 +64,6 @@ static uint16_t get_median_sample(void)
 
 static void time_tick(void *pUserData)
 {
-	static uint32_t s_ulLastLongTick = 0;
 	static uint32_t s_ulLastClipTick = 0;
 
 	uint32_t ulStartTick = time_tickcount();
@@ -121,15 +121,15 @@ static void time_tick(void *pUserData)
 
 	if(ulElapsedTicks >= 1)
 	{
-		if(s_ulLastLongTick + 1000 < ulEndTick)
+		if(g_ulLastLongTick + 1000 < ulEndTick)
 			dbg_printf(ANSI_COLOR_RED "Chain too complex" ANSI_COLOR_RESET ": sample took %lu msec to process!\r\n", ulElapsedTicks);
 
-		s_ulLastLongTick = ulEndTick;
+		g_ulLastLongTick = ulEndTick;
 		led_set(LED_SLOW, true);
 	}
 
 	// If we haven't had been slow in 100 ticks, turn off the slow LED
-	else if(s_ulLastLongTick + 100 < ulEndTick)
+	else if(g_ulLastLongTick + 100 < ulEndTick)
 		led_set(LED_SLOW, false);
 }
 

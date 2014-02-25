@@ -118,7 +118,7 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
 		if(pBranch->flags & BRANCHFLAG_ENABLED)
 			pszLinePrefix = ANSI_COLOR_GREEN;
 
-		dbg_printf("%s  - #%d: filter=%s" ANSI_COLOR_RESET ", flags=%x, mixperc=%.3f, private=%p", pszLinePrefix, ++i, pBranch->pFilter->pszName, pBranch->flags, pBranch->flMixPerc, (void *)pBranch->pUnknown);
+		dbg_printf("%s  - #%d: filter=%s" ANSI_COLOR_RESET ", flags=%x, mixperc=%.3f, data=%p", pszLinePrefix, ++i, pBranch->pFilter->pszName, pBranch->flags, pBranch->flMixPerc, (void *)pBranch->pUnknown);
 
 		if(pBranch->pFilter->pfnDebug)
 		{
@@ -180,9 +180,9 @@ StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBr
 	pBranch->flags = flags;
 	pBranch->flMixPerc = flMixPerc;
 
-	// Allocate private data
-	pBranch->pUnknown = calloc(1, pBranch->pFilter->nPrivateDataSize);
-	dbg_assert(pBranch->pUnknown, "unable to allocate private data for filter %s", pBranch->pFilter->pszName);
+	// Allocate filter data
+	pBranch->pUnknown = calloc(1, pBranch->pFilter->nFilterDataSize);
+	dbg_assert(pBranch->pUnknown, "unable to allocate data for filter %s", pBranch->pFilter->pszName);
 
 	if(ppUnknown)
 		*ppUnknown = pBranch->pUnknown;
@@ -194,7 +194,7 @@ StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBr
 /*
  * branch_free
  *
- * Deallocates a branch and its private data.
+ * Deallocates a branch and its data.
  */
 void branch_free(StageBranch_t *pBranch)
 {

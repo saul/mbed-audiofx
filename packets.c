@@ -205,6 +205,12 @@ void packet_filter_create_receive(const PacketHeader_t *pHdr, const uint8_t *pPa
 		// Create a new empty stage
 		pStageHdr->pNext = stage_alloc();
 	}
+
+	// Call creation callback
+	if(pBranch->pFilter->pfnCreateCallback)
+		pBranch->pFilter->pfnCreateCallback((void *)pBranch->pUnknown);
+	else
+		dbg_warning("filter has no creation callback, UI/board data may be out of sync!\r\n");
 }
 
 
@@ -294,7 +300,7 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 	uint8_t *pDest = ((uint8_t *)pBranch->pUnknown) + pFilterMod->iOffset + pBranch->pFilter->nNonPublicDataSize;
 
 	// Buffer overflow protection
-	if(pFilterMod->iOffset + nToCopy > pBranch->pFilter->nPrivateDataSize)
+	if(pFilterMod->iOffset + nToCopy > pBranch->pFilter->nFilterDataSize)
 	{
 		dbg_warning("blocked attempted arbitrary memory modification\r\n");
 		return;
@@ -306,6 +312,11 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 	// Call modification callback
 	if(pBranch->pFilter->pfnModCallback)
 		pBranch->pFilter->pfnModCallback((void *)pBranch->pUnknown);
+
+	// Reset last slow tick. This makes sure we reissue the "slow tick" warning
+	// if the chain is still too complex.
+	extern uint32_t g_ulLastLongTick;
+	g_ulLastLongTick = 0;
 }
 
 

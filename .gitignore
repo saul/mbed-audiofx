@@ -17,8 +17,6 @@ bin/*
 
 # UI ignores (HTML, CSS, JS, etc.)
 bootstrap-*/dist
-bootstrap*.css
-*.map
 *.min.*
 ui/dist
 

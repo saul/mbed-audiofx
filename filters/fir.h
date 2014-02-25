@@ -14,8 +14,8 @@ typedef struct
 typedef struct
 {
 	FilterFIRBaseData_t base;
-	uint16_t iLowerFreq;
-	uint16_t iUpperFreq;
+	uint16_t iCentreFreq;
+	uint16_t iWidth;
 } FilterBandPassData_t;
 #pragma pack(pop)
 
@@ -23,5 +23,6 @@ typedef struct
 uint32_t filter_fir_apply(uint32_t input, void *pUnknown);
 void filter_bandpass_debug(void *pUnknown);
 void filter_bandpass_mod(void *pUnknown);
+void filter_bandpass_create(void *pUnknown);
 
 #endif

@@ -20,3 +20,11 @@ void filter_noisegate_debug(void *pUnknown)
 	const FilterNoiseGateData_t *pData = (const FilterNoiseGateData_t *)pUnknown;
 	dbg_printf("sensitivity=%u, threshold=%u", pData->sensitivity, pData->threshold);
 }
+
+
+void filter_noisegate_create(void *pUnknown)
+{
+	FilterNoiseGateData_t *pData = (FilterNoiseGateData_t *)pUnknown;
+	pData->sensitivity = 50;
+	pData->threshold = 200;
+}

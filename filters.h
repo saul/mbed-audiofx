@@ -5,6 +5,8 @@
 #ifndef _FILTERS_H_
 #define _FILTERS_H_
 
+#define PARAM_SEP "|"
+
 /*
  * Enumeration of available filters.
  *
@@ -18,31 +20,22 @@ typedef enum
 
 
 /*
- * SampleFilter_t
+ * FilterApply_t
  *
- * Receives a 32-bit sample value (`input`) and filter private data `pUnknown`.
+ * Receives a 32-bit sample value (`input`) and filter data `pUnknown`.
  * `pUnknown` should be cast to the struct that holds the parameters for this
  * filter.
  */
-typedef uint32_t (*SampleFilter_t)(uint32_t input, void *pUnknown);
+typedef uint32_t (*FilterApply_t)(uint32_t input, void *pUnknown);
 
 
 /*
- * FilterDebug_t
+ * FilterCallback_t
  *
- * Passes filter private data as `pUnknown`, this function should print the
- * parameter data.
+ * Passes filter data as `pUnknown`. Used for parameter debugging,
+ * creation callback and filter data mod callback.
  */
-typedef void (*FilterDebug_t)(void *pUnknown);
-
-
-/*
- * FilterMod_t
- *
- * Passes filter private data as `pUnknown`, this function is called when the
- * parameter data has been modified.
- */
-typedef void (*FilterMod_t)(void *pUnknown);
+typedef void (*FilterCallback_t)(void *pUnknown);
 
 
 /*
@@ -56,11 +49,12 @@ typedef struct
 {
 	const char *pszName;
 	const char *pszParamFormat;
-	SampleFilter_t pfnApply;
-	FilterDebug_t pfnDebug;
-	FilterMod_t pfnModCallback;
-	uint8_t nPrivateDataSize; ///< size of private data struct
-	uint8_t nNonPublicDataSize; ///< size of non-public data at start of private data struct
+	FilterApply_t pfnApply;
+	FilterCallback_t pfnDebug;
+	FilterCallback_t pfnCreateCallback;
+	FilterCallback_t pfnModCallback;
+	uint8_t nFilterDataSize; ///< size of filter data struct
+	uint8_t nNonPublicDataSize; ///< size of non-public data at start of filter data struct
 } Filter_t;
 #pragma pack(pop)
 

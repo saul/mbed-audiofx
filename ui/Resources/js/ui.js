@@ -82,12 +82,6 @@ function appendFilterToStage(stageIdx, filterIdx) {
 			index: filterIdx,
 			filter: filter,
 		}));
-
-		// Trigger "change" event for all parameter widgets so that the filter data
-		// syncs up on the board
-		setTimeout(function() {
-			$('.stage-row:nth-child(' + (stageIdx + 1) + ') > :nth-last-child(2) [data-param-name] :input').change();
-		}, 100);
 	});
 }
 

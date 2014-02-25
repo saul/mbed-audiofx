@@ -21,3 +21,10 @@ void filter_delay_debug(void *pUnknown)
 	const FilterDelayData_t *pData = (const FilterDelayData_t *)pUnknown;
 	dbg_printf("delay=%u", pData->nDelay);
 }
+
+
+void filter_delay_create(void *pUnknown)
+{
+	FilterDelayData_t *pData = (FilterDelayData_t *)pUnknown;
+	pData->nDelay = 5000;
+}
