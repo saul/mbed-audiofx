@@ -6,30 +6,30 @@
 #include "config.h"
 
 
-uint8_t get_square(uint8_t speed)
+uint8_t get_square(uint8_t frequency)
 {
-	if(g_iSampleCursor % (BUFFER_SAMPLES / speed) > (BUFFER_SAMPLES / 2 / speed))
+	if(g_iWaveCursor % (BUFFER_SAMPLES / frequency) > (BUFFER_SAMPLES / 2 / frequency))
 		return 1;
 	else
 		return 0;
 }
 
 
-float get_sawtooth(uint8_t speed)
+float get_sawtooth(uint8_t frequency)
 {
-	return fmod((float) g_iSampleCursor / BUFFER_SAMPLES * speed, 1);
+	return fmod((float) g_iWaveCursor / BUFFER_SAMPLES * frequency, 1);
 }
 
 
-float get_inverse_sawtooth(uint8_t speed)
+float get_inverse_sawtooth(uint8_t frequency)
 {
-	return 1 - get_sawtooth(speed);
+	return 1 - get_sawtooth(frequency);
 }
 
 
-float get_triangle(uint8_t speed)
+float get_triangle(uint8_t frequency)
 {
-	float calculation = fmod((float) g_iSampleCursor / BUFFER_SAMPLES * 2 * speed, 2);
+	float calculation = fmod((float) g_iWaveCursor / BUFFER_SAMPLES * 2 * frequency, 2);
 
 	if(calculation > 1)
 		return 1 - (calculation - 1);

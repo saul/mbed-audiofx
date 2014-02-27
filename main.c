@@ -96,6 +96,7 @@ static void time_tick(void *pUserData)
 
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
+	g_iWaveCursor = (g_iWaveCursor + 1) % (BUFFER_SAMPLES * 4);
 
 #ifdef VIBRATO_TO_FIX
 	if(g_bVibratoActive)
