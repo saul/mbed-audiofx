@@ -12,7 +12,7 @@
 #include "filters/vibrato.h"
 #include "filters/tremolo.h"
 #include "filters/fir.h"
-
+#include "filters/distortion.h"
 
 /*
  * g_pFilters
@@ -36,9 +36,16 @@ Filter_t g_pFilters[] = {
 	{
 		"Noise gate",
 		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
-		"Threshold;f=H;o=2;t=range;min=0;max=2048;step=1;val=200",
+		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200",
 		filter_noisegate_apply, filter_noisegate_debug, filter_noisegate_create, NULL,
 		sizeof(FilterNoiseGateData_t), 0
+	},
+
+	{
+		"Bitcrusher",
+		"Bit loss;f=B;o=0;t=range;min=0;max=10;step=1;val=1",
+		filter_bitcrusher_apply, filter_bitcrusher_debug, filter_bitcrusher_create, NULL,
+		sizeof(FilterBitcrusherData_t), 0
 	},
 
 	/*
