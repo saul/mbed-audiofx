@@ -77,6 +77,9 @@ class PacketTypes(object):
 	U2B_FILTER_MIX = 8
 	U2B_VOLUME = 9
 	U2B_ARB_CMD = 10
+	# Tom individual
+	B2U_ANALOG_CONTROL = 11
+	# End Tom individual
 
 
 class Packet(object):

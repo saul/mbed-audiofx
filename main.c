@@ -32,6 +32,10 @@ volatile bool g_bPassThru = false;
 volatile float g_flChainVolume = 1.0;
 volatile uint32_t g_ulLastLongTick = 0;
 
+/* Tom individual */
+volatile uint32_t g_iAnalogAverage = 0;
+/* End Tom individual */
+
 
 static uint16_t get_median_sample(void)
 {
@@ -132,6 +136,16 @@ static void time_tick(void *pUserData)
 	// If we haven't had been slow in 100 ticks, turn off the slow LED
 	else if(g_ulLastLongTick + 100 < ulEndTick)
 		led_set(LED_SLOW, false);
+
+
+	/* Tom individual */
+	g_iAnalogAverage += ADC_ChannelGetData(ADC_CHANNEL_1);
+	if(g_iSampleCursor % 50 == 0)
+	{
+		packet_analog_control_send(g_iAnalogAverage / 50);
+		g_iAnalogAverage = 0;
+	}
+	/* End Tom individual */
 }
 
 
@@ -167,6 +181,9 @@ void main(void)
 	adc_config(0, true); // MBED pin 15
 	adc_config(4, true); // MBED pin 19
 	adc_config(5, true); // MBED pin 20
+	/* Tom individual */
+	adc_config(1, true); // MBED pin 16
+	/* End Tom individual */
 	adc_start(ADC_START_CONTINUOUS);
 	adc_burst_config(true);
 

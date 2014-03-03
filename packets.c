@@ -29,6 +29,9 @@ const char *g_ppszPacketTypes[] = {
 	"U2B_FILTER_MIX",
 	"U2B_VOLUME",
 	"U2B_ARB_CMD",
+	/* Tom individual */
+	"B2U_ANALOG_CONTROL",
+	/* End Tom individual */
 };
 
 
@@ -90,6 +93,13 @@ void packet_print_send(const char *pszLine, size_t size)
 {
 	sercom_send(B2U_PRINT, (const uint8_t *)pszLine, size);
 }
+
+/* Tom individual */
+void packet_analog_control_send(uint32_t analog_value)
+{
+	sercom_send(B2U_ANALOG_CONTROL, (const uint8_t *)&analog_value, sizeof(analog_value));
+}
+/* End Tom individual */
 
 
 void packet_filter_list_send(void)

@@ -88,3 +88,11 @@ packetHandlers[PacketTypes.B2U_FILTER_LIST] = function(packet) {
 	// Show filter container
 	$('#filter-container').show();
 };
+
+/* Tom individual
+
+packetHandlers[PacketTypes.B2U_ANALOG_CONTROL] = function(packet) {
+	var msg = packet.msg;
+	updateAnalogControls(msg);
+}
+End Tom individual */
