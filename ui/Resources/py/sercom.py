@@ -128,6 +128,14 @@ class PrintPacket(Packet):
 		self.msg = ''.join(chars).decode('ascii')
 		print self.msg,
 
+# Tom individual
+class AnalogControlPacket(Packet):
+	type_ = PacketTypes.B2U_ANALOG_CONTROL
+
+	def receive(self, data):
+		self.value = struct.unpack('<D', data)
+# End Tom individual
+
 
 class FilterListPacket(Packet):
 	type_ = PacketTypes.B2U_FILTER_LIST
@@ -237,6 +245,9 @@ PACKET_MAP = [
 	FilterModPacket, # U2B_FILTER_MOD
 	FilterMixPacket, # U2B_FILTER_MIX
 	CommandPacket, # U2B_ARB_CMD
+	# Tom individual
+	AnalogControlPacket,
+	# End Tom individual
 ]
 
 

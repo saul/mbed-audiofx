@@ -47,6 +47,7 @@ PacketHandler_t g_pPacketHandlers[] = {
 	{packet_filter_mix_receive, true, PACKET_SIZE_EXACT(sizeof(FilterMixPacket_t))}, // U2B_FILTER_MIX
 	{packet_volume_receive, false, PACKET_SIZE_EXACT(sizeof(VolumePacket_t))}, // U2B_VOLUME
 	{packet_cmd_receive, false, PACKET_SIZE_MIN(sizeof(CommandPacket_t))}, // U2B_ARB_CMD
+	{NULL, false, 0}, // B2U_ANALOG_CONTROL
 };
 
 

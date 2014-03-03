@@ -178,7 +178,7 @@ $(document).on('change', '.form-group[data-param-name]', $.debounce(250, functio
 	if(paramName === 'mix') {
 		packet = FilterMixPacket(serialStream);
 		packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
-	} else {
+	} else if(! $this.hasClass('checkbox')) {
 		var param = filter.params[paramName];
 
 		packet = FilterModPacket(serialStream);
@@ -202,4 +202,3 @@ function updateAnalogControls(new_value) {
 	});
 }
 /* End Tom individual */
-
