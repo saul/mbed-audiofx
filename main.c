@@ -33,7 +33,7 @@ volatile float g_flChainVolume = 1.0;
 volatile uint32_t g_ulLastLongTick = 0;
 
 /* Tom individual */
-volatile uint32_t g_iAnalogAverage = 0;
+volatile uint32_t iAnalogAverage = 0;
 /* End Tom individual */
 
 
@@ -82,7 +82,9 @@ static void time_tick(void *pUserData)
 	// If the filter chain is locked for modification (e.g., by a packet
 	// handler), don't try to apply the chain. It may be in an intermediate
 	// state/cause crashes/sound funky. Just passthru.
-	if(!g_bChainLock && !g_bPassThru)
+	// Also allows manual passthru from the board. By pressing and holding '*'
+	// key, passthru will be enabled
+	if(!g_bChainLock && !g_bPassThru && !keypad_is_keydown('*'))
 	{
 		led_set(LED_PASS_THRU, false);
 		sample_clear_average();
@@ -170,7 +172,7 @@ void main(void)
 	uint32_t ulStartTick = time_tickcount();
 
 	// I2C init
-	//i2c_init();
+	i2c_init();
 	//i2c_scan();
 
 	// LCD init
