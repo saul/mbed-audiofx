@@ -34,6 +34,8 @@ volatile uint32_t g_ulLastLongTick = 0;
 
 #ifdef INDIVIDUAL_BUILD_TOM
 volatile uint32_t iAnalogAverage = 0;
+volatile bool bDoSendAverage = false;
+volatile uint8_t iNumMeasurements = 0;
 #endif // INDIVIDUAL_BUILD_TOM
 
 
@@ -136,15 +138,6 @@ static void time_tick(void *pUserData)
 	// If we haven't had been slow in 100 ticks, turn off the slow LED
 	else if(g_ulLastLongTick + 100 < ulEndTick)
 		led_set(LED_SLOW, false);
-
-#ifdef INDIVIDUAL_BUILD_TOM
-	g_iAnalogAverage += ADC_ChannelGetData(ADC_CHANNEL_1);
-	if(g_iSampleCursor % 50 == 0)
-	{
-		packet_analog_control_send(g_iAnalogAverage / 50);
-		g_iAnalogAverage = 0;
-	}
-#endif // INDIVIDUAL_BUILD_TOM
 }
 
 
@@ -220,5 +213,20 @@ void main(void)
 	// Packet receive loop
 	//-----------------------------------------------------
 	while(1)
+	{
 		packet_loop();
+#ifdef INDIVIDUAL_BUILD_TOM
+		if(iNumMeasurements == 500)
+		{
+			packet_analog_control_send(iAnalogAverage/iNumMeasurements);
+			iAnalogAverage = 0;
+			iNumMeasurements = 0;
+		}
+		else
+		{
+			iAnalogAverage += ADC_ChannelGetData(ADC_CHANNEL_1);
+			iNumMeasurements++;
+		}
+#endif
+	}
 }
