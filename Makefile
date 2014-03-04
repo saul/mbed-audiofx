@@ -29,6 +29,16 @@ CFLAGS=$(SHAREDFLAGS) -mtune=cortex-m3 -O3 -std=c99 -fno-hosted \
 	-D__thumb2__=1 -D__RAM_MODE__=0 $(CMSISINCLUDES) \
 	-I. -I../common
 
+TOM=$(strip $(TOM))
+ifdef TOM
+	CFLAGS += -DINDIVIDUAL_BUILD_TOM
+endif
+
+SAUL=$(strip $(SAUL))
+ifdef SAUL
+	CFLAGS += -DINDIVIDUAL_BUILD_SAUL
+endif
+
 LDFLAGS=$(SHAREDFLAGS) $(CMSISFL) -static \
 	-Wl,--start-group -L$(THUMB2LIB) \
 	-lc -lg -lstdc++ -lsupc++ -lgcc -lm -Wl,--end-group \
