@@ -26,7 +26,7 @@
  * - o: offset into filter data struct
  * - t: widget type (range or choice)
  */
-#define WAVE_TYPE_KV ";f=B;t=choice;c=Square;c=Sawtooth;c=Inverse Sawtooth;c=Triangle;val=0"
+#define WAVE_TYPE_KV ";f=B;t=choice;c=Square;c=Sawtooth;c=Inverse Sawtooth;c=Triangle"
 
 Filter_t g_pFilters[] = {
 	{
@@ -104,7 +104,7 @@ Filter_t g_pFilters[] = {
 	},
 
 	{
-		"Moving Band-Pass",
+		"Oscillating BP",
 		"Frequency;f=f;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
 		"Wave Type;o=6" WAVE_TYPE_KV PARAM_SEP
 		"Width;f=H;o=0;t=range;min=20;max=5000;step=2;val=500" PARAM_SEP
