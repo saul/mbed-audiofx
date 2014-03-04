@@ -80,6 +80,17 @@ var filters = null;
 packetHandlers[PacketTypes.B2U_FILTER_LIST] = function(packet) {
 	filters = _.toArray(packet.filters);
 
+	for (var i = 0; i < filters.length; i++) {
+		for(var paramKey in filters[i].params) {
+			var param = filters[i].params[paramKey];
+
+			if(!('c' in param))
+				continue;
+
+			param.c = _.toArray(param.c);
+		}
+	};
+
 	// Re-render "create filter" popover content
 	renderTemplateRemote('add_popover.html', function(template) {
 		creationPopoverContent = template({filters: filters});
