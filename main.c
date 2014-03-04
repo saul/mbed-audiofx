@@ -35,7 +35,7 @@ volatile uint32_t g_ulLastLongTick = 0;
 #ifdef INDIVIDUAL_BUILD_TOM
 volatile uint32_t iAnalogAverage = 0;
 volatile bool bDoSendAverage = false;
-volatile uint8_t iNumMeasurements = 0;
+volatile uint16_t iNumMeasurements = 0;
 #endif // INDIVIDUAL_BUILD_TOM
 
 
@@ -224,7 +224,7 @@ void main(void)
 		}
 		else
 		{
-			iAnalogAverage += ADC_ChannelGetData(ADC_CHANNEL_1);
+			iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
 			iNumMeasurements++;
 		}
 #endif
