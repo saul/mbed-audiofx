@@ -12,6 +12,7 @@
 #include "filters/vibrato.h"
 #include "filters/tremolo.h"
 #include "filters/fir.h"
+#include "filters/oscillating_fir.h"
 #include "filters/distortion.h"
 
 /*
@@ -25,6 +26,8 @@
  * - o: offset into filter data struct
  * - t: widget type (range or choice)
  */
+#define WAVE_TYPE_KV ";f=B;t=choice;c=Square;c=Sawtooth;c=Inverse Sawtooth;c=Triangle;val=0"
+
 Filter_t g_pFilters[] = {
 	{
 		"Delay",
@@ -34,7 +37,7 @@ Filter_t g_pFilters[] = {
 	},
 
 	{
-		"Infinite Response Delay",
+		"Reverb",
 		"Delay;f=H;o=0;t=range;min=0;max=9999;step=1;val=5000",
 		filter_delay_feedback_apply, filter_delay_debug, filter_delay_create, NULL, // Using delay as they share data structure
 		sizeof(FilterDelayData_t), 0
@@ -77,7 +80,7 @@ Filter_t g_pFilters[] = {
 		"Vibrato",
 		"Delay;f=H;o=0;t=range;min=1;max=4999;step=1;val=10" PARAM_SEP
 		"Frequency;f=B;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
-		"Wave Type;f=B;o=3;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle", // Need format for t=choice
+		"Wave Type;o=3" WAVE_TYPE_KV,
 		filter_vibrato_apply, filter_vibrato_debug, filter_vibrato_create, NULL,
 		sizeof(FilterVibratoData_t), 0
 	},
@@ -85,7 +88,7 @@ Filter_t g_pFilters[] = {
 	{
 		"Tremolo",
 		"Frequency;f=B;o=0;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
-		"Wave Type;f=B;o=1;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle" PARAM_SEP // Need format for t=choice
+		"Wave Type;o=1" WAVE_TYPE_KV PARAM_SEP
 		"Depth;f=f;o=2;t=range;min=0;max=1;step=0.05;val=0.5",
 		filter_tremolo_apply, filter_tremolo_debug, filter_tremolo_create, NULL,
 		sizeof(FilterTremoloData_t), 0
@@ -101,17 +104,14 @@ Filter_t g_pFilters[] = {
 	},
 
 	{
-		/* Need to check all of this */
-		"Oscillating Band-Pass",
-		"Frequency;f=f;o=0;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
-		"Wave Type;f=B;o=4;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle" PARAM_SEP // Need format for t=choice
-		"Width;f=H;o=5;t=range;min=20;max=5000;step=2;val=500" PARAM_SEP
+		"Moving Band-Pass",
+		"Frequency;f=f;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
+		"Wave Type;o=6" WAVE_TYPE_KV PARAM_SEP
+		"Width;f=H;o=0;t=range;min=20;max=5000;step=2;val=500" PARAM_SEP
 		"Min Frequency;f=H;o=7;t=range;min=20;max=20000;step=1;val=50" PARAM_SEP
 		"Max Frequency;f=H;o=9;t=range;min=20;max=20000;step=1;val=1000",
-		filter_oscillating_bandpass_apply, filter_oscillating_bandpass_debug,
-		filter_oscillating_bandpass_create, filter_oscillating_bandpass_mod,
-		sizeof(FilterOscillatingBandPassData_t), 0
-		/* Need to check all of this */
+		filter_oscillating_bandpass_apply, filter_oscillating_bandpass_debug, filter_oscillating_bandpass_create, NULL,
+		sizeof(FilterOscillatingBandPassData_t), offsetof(FilterBandPassData_t, iWidth)
 	}
 };
 

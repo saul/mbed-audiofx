@@ -29,9 +29,9 @@ const char *g_ppszPacketTypes[] = {
 	"U2B_FILTER_MIX",
 	"U2B_VOLUME",
 	"U2B_ARB_CMD",
-	/* Tom individual */
+#ifdef INDIVIDUAL_BUILD_TOM
 	"B2U_ANALOG_CONTROL",
-	/* End Tom individual */
+#endif // INDIVIDUAL_BUILD_TOM
 };
 
 
@@ -47,7 +47,9 @@ PacketHandler_t g_pPacketHandlers[] = {
 	{packet_filter_mix_receive, true, PACKET_SIZE_EXACT(sizeof(FilterMixPacket_t))}, // U2B_FILTER_MIX
 	{packet_volume_receive, false, PACKET_SIZE_EXACT(sizeof(VolumePacket_t))}, // U2B_VOLUME
 	{packet_cmd_receive, false, PACKET_SIZE_MIN(sizeof(CommandPacket_t))}, // U2B_ARB_CMD
+#ifdef INDIVIDUAL_BUILD_TOM
 	{NULL, false, 0}, // B2U_ANALOG_CONTROL
+#endif // INDIVIDUAL_BUILD_TOM
 };
 
 
@@ -95,12 +97,13 @@ void packet_print_send(const char *pszLine, size_t size)
 	sercom_send(B2U_PRINT, (const uint8_t *)pszLine, size);
 }
 
-/* Tom individual */
+
+#ifdef INDIVIDUAL_BUILD_TOM
 void packet_analog_control_send(uint32_t analog_value)
 {
 	sercom_send(B2U_ANALOG_CONTROL, (const uint8_t *)&analog_value, sizeof(analog_value));
 }
-/* End Tom individual */
+#endif // INDIVIDUAL_BUILD_TOM
 
 
 void packet_filter_list_send(void)
