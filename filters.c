@@ -34,7 +34,14 @@ Filter_t g_pFilters[] = {
 	},
 
 	{
-		"Noise gate",
+		"Infinite Response Delay",
+		"Delay;f=H;o=0;t=range;min=0;max=9999;step=1;val=5000",
+		filter_delay_feedback_apply, filter_delay_debug, filter_delay_create, NULL, // Using delay as they share data structure
+		sizeof(FilterDelayData_t), 0
+	},
+
+	{
+		"Noise Gate",
 		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
 		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200",
 		filter_noisegate_apply, filter_noisegate_debug, filter_noisegate_create, NULL,
@@ -67,7 +74,7 @@ Filter_t g_pFilters[] = {
 	},
 
 	{
-		"Band-pass",
+		"Band-Pass",
 		"Co-efficients;f=B;o=0;t=range;min=1;max=50;step=1;val=25" PARAM_SEP
 		"Centre frequency;f=H;o=1;t=range;min=20;max=20000;step=1;val=5000" PARAM_SEP
 		"Width;f=H;o=3;t=range;min=20;max=5000;step=2;val=500",
@@ -77,7 +84,7 @@ Filter_t g_pFilters[] = {
 
 	{
 		/* Need to check all of this */
-		"Oscillating Band-pass",
+		"Oscillating Band-Pass",
 		"Frequency;f=f;o=0;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
 		"Wave Type;f=B;o=4;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle" PARAM_SEP // Need format for t=choice
 		"Width;f=H;o=5;t=range;min=20;max=5000;step=2;val=500" PARAM_SEP
