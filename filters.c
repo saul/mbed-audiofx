@@ -45,7 +45,7 @@ Filter_t g_pFilters[] = {
 
 	{
 		"Noise Gate",
-		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
+		"Sensitivity;f=H;o=0;t=range;min=1;max=50;step=1;val=25" PARAM_SEP
 		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200",
 		filter_noisegate_apply, filter_noisegate_debug, filter_noisegate_create, NULL,
 		sizeof(FilterNoiseGateData_t), 0
@@ -53,7 +53,7 @@ Filter_t g_pFilters[] = {
 
 	{
 		"Compressor",
-		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
+		"Sensitivity;f=H;o=0;t=range;min=1;max=50;step=1;val=25" PARAM_SEP
 		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200" PARAM_SEP
 		"Scalar;f=f;o=4;t=range;min=0;max=1;step=0.05;val=0.8",
 		filter_compressor_apply, filter_compressor_debug, filter_compressor_create, NULL,
@@ -62,7 +62,7 @@ Filter_t g_pFilters[] = {
 
 	{
 		"Expander",
-		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
+		"Sensitivity;f=H;o=0;t=range;min=1;max=50;step=1;val=25" PARAM_SEP
 		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200" PARAM_SEP
 		"Scalar;f=f;o=4;t=range;min=1;max=2;step=0.05;val=1.5",
 		filter_expander_apply, filter_compressor_debug, filter_expander_create, NULL,
@@ -97,7 +97,7 @@ Filter_t g_pFilters[] = {
 	{
 		"Band-Pass",
 		"Co-efficients;f=B;o=0;t=range;min=1;max=50;step=1;val=25" PARAM_SEP
-		"Centre frequency;f=H;o=1;t=range;min=20;max=20000;step=1;val=5000" PARAM_SEP
+		"Centre frequency;f=H;o=1;t=range;min=20;max=2500;step=1;val=1000" PARAM_SEP
 		"Width;f=H;o=3;t=range;min=20;max=5000;step=2;val=500",
 		filter_fir_apply, filter_bandpass_debug, filter_bandpass_create, filter_bandpass_mod,
 		sizeof(FilterBandPassData_t), offsetof(FilterFIRBaseData_t, nCoefficients)
@@ -108,8 +108,8 @@ Filter_t g_pFilters[] = {
 		"Frequency;f=f;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
 		"Wave Type;o=6" WAVE_TYPE_KV PARAM_SEP
 		"Width;f=H;o=0;t=range;min=20;max=5000;step=2;val=500" PARAM_SEP
-		"Min Frequency;f=H;o=7;t=range;min=20;max=20000;step=1;val=50" PARAM_SEP
-		"Max Frequency;f=H;o=9;t=range;min=20;max=20000;step=1;val=1000",
+		"Min Frequency;f=H;o=7;t=range;min=20;max=2500;step=1;val=50" PARAM_SEP
+		"Max Frequency;f=H;o=9;t=range;min=20;max=2500;step=1;val=1000",
 		filter_oscillating_bandpass_apply, filter_oscillating_bandpass_debug, filter_oscillating_bandpass_create, NULL,
 		sizeof(FilterOscillatingBandPassData_t), offsetof(FilterBandPassData_t, iWidth)
 	}

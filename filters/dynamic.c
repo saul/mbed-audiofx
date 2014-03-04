@@ -32,7 +32,7 @@ void filter_noisegate_debug(void *pUnknown)
 void filter_noisegate_create(void *pUnknown)
 {
 	FilterNoiseGateData_t *pData = (FilterNoiseGateData_t *)pUnknown;
-	pData->sensitivity = 50;
+	pData->sensitivity = 25;
 	pData->threshold = 200;
 }
 
@@ -67,7 +67,7 @@ void filter_compressor_debug(void *pUnknown)
 void filter_compressor_create(void *pUnknown)
 {
 	FilterCompressorData_t *pData = (FilterCompressorData_t *)pUnknown;
-	pData->sensitivity = 50;
+	pData->sensitivity = 25;
 	pData->threshold = 200;
 	pData->scalar = 0.8;
 }
@@ -96,7 +96,7 @@ uint32_t filter_expander_apply(uint32_t input, void *pUnknown)
 void filter_expander_create(void *pUnknown)
 {
 	FilterCompressorData_t *pData = (FilterCompressorData_t *)pUnknown;
-	pData->sensitivity = 50;
+	pData->sensitivity = 25;
 	pData->threshold = 200;
 	pData->scalar = 1.5;
 }

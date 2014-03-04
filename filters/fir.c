@@ -77,7 +77,7 @@ void filter_bandpass_create(void *pUnknown)
 {
 	FilterBandPassData_t *pData = (FilterBandPassData_t *)pUnknown;
 	pData->base.nCoefficients = 25;
-	pData->iCentreFreq = 5000;
+	pData->iCentreFreq = 1000;
 	pData->iWidth = 500;
 
 	// Generate coefficients
