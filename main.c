@@ -32,6 +32,12 @@ volatile bool g_bPassThru = false;
 volatile float g_flChainVolume = 1.0;
 volatile uint32_t g_ulLastLongTick = 0;
 
+#ifdef INDIVIDUAL_BUILD_TOM
+volatile uint32_t iAnalogAverage = 0;
+volatile bool bDoSendAverage = false;
+volatile uint16_t iNumMeasurements = 0;
+#endif // INDIVIDUAL_BUILD_TOM
+
 
 static uint16_t get_median_sample(void)
 {
@@ -96,6 +102,7 @@ static void time_tick(void *pUserData)
 
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
+	g_iWaveCursor = (g_iWaveCursor + 1) % (BUFFER_SAMPLES * 4);
 
 #ifdef VIBRATO_TO_FIX
 	if(g_bVibratoActive)
@@ -155,7 +162,7 @@ void main(void)
 	uint32_t ulStartTick = time_tickcount();
 
 	// I2C init
-	//i2c_init();
+	i2c_init();
 	//i2c_scan();
 
 	// LCD init
@@ -166,6 +173,9 @@ void main(void)
 	adc_config(0, true); // MBED pin 15
 	adc_config(4, true); // MBED pin 19
 	adc_config(5, true); // MBED pin 20
+#ifdef INDIVIDUAL_BUILD_TOM
+	adc_config(1, true); // MBED pin 16
+#endif // INDIVIDUAL_BUILD_TOM
 	adc_start(ADC_START_CONTINUOUS);
 	adc_burst_config(true);
 
@@ -203,5 +213,20 @@ void main(void)
 	// Packet receive loop
 	//-----------------------------------------------------
 	while(1)
+	{
 		packet_loop();
+#ifdef INDIVIDUAL_BUILD_TOM
+		if(iNumMeasurements == 500)
+		{
+			packet_analog_control_send(iAnalogAverage/iNumMeasurements);
+			iAnalogAverage = 0;
+			iNumMeasurements = 0;
+		}
+		else
+		{
+			iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
+			iNumMeasurements++;
+		}
+#endif
+	}
 }

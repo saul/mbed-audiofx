@@ -12,7 +12,8 @@
 #include "filters/vibrato.h"
 #include "filters/tremolo.h"
 #include "filters/fir.h"
-
+#include "filters/oscillating_fir.h"
+#include "filters/distortion.h"
 
 /*
  * g_pFilters
@@ -25,6 +26,8 @@
  * - o: offset into filter data struct
  * - t: widget type (range or choice)
  */
+#define WAVE_TYPE_KV ";f=B;t=choice;c=Square;c=Sawtooth;c=Inverse Sawtooth;c=Triangle"
+
 Filter_t g_pFilters[] = {
 	{
 		"Delay",
@@ -34,39 +37,82 @@ Filter_t g_pFilters[] = {
 	},
 
 	{
-		"Noise gate",
+		"Reverb",
+		"Delay;f=H;o=0;t=range;min=0;max=9999;step=1;val=5000",
+		filter_delay_feedback_apply, filter_delay_debug, filter_delay_create, NULL, // Using delay as they share data structure
+		sizeof(FilterDelayData_t), 0
+	},
+
+	{
+		"Noise Gate",
 		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
-		"Threshold;f=H;o=2;t=range;min=0;max=2048;step=1;val=200",
+		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200",
 		filter_noisegate_apply, filter_noisegate_debug, filter_noisegate_create, NULL,
 		sizeof(FilterNoiseGateData_t), 0
 	},
 
-	/*
+	{
+		"Compressor",
+		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
+		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200" PARAM_SEP
+		"Scalar;f=f;o=4;t=range;min=0;max=1;step=0.05;val=0.8",
+		filter_compressor_apply, filter_compressor_debug, filter_compressor_create, NULL,
+		sizeof(FilterCompressorData_t), 0
+	},
+
+	{
+		"Expander",
+		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
+		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200" PARAM_SEP
+		"Scalar;f=f;o=4;t=range;min=1;max=2;step=0.05;val=1.5",
+		filter_expander_apply, filter_compressor_debug, filter_expander_create, NULL,
+		sizeof(FilterCompressorData_t), 0
+	},
+
+	{
+		"Bitcrusher",
+		"Bit loss;f=B;o=0;t=range;min=0;max=10;step=1;val=1",
+		filter_bitcrusher_apply, filter_bitcrusher_debug, filter_bitcrusher_create, NULL,
+		sizeof(FilterBitcrusherData_t), 0
+	},
+
 	{
 		"Vibrato",
-		"", // TODO: fill in!
-		filter_vibrato_apply, filter_vibrato_debug, NULL, // TODO: add creation callback function
+		"Delay;f=H;o=0;t=range;min=1;max=4999;step=1;val=10" PARAM_SEP
+		"Frequency;f=B;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
+		"Wave Type;o=3" WAVE_TYPE_KV,
+		filter_vibrato_apply, filter_vibrato_debug, filter_vibrato_create, NULL,
 		sizeof(FilterVibratoData_t), 0
 	},
-	*/
 
-	/*
 	{
 		"Tremolo",
-		"", // TODO: fill in!
-		filter_tremolo_apply, NULL, NULL, // TODO: add debug and creation callback functions
+		"Frequency;f=B;o=0;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
+		"Wave Type;o=1" WAVE_TYPE_KV PARAM_SEP
+		"Depth;f=f;o=2;t=range;min=0;max=1;step=0.05;val=0.5",
+		filter_tremolo_apply, filter_tremolo_debug, filter_tremolo_create, NULL,
 		sizeof(FilterTremoloData_t), 0
 	},
-	*/
 
 	{
-		"Band-pass",
+		"Band-Pass",
 		"Co-efficients;f=B;o=0;t=range;min=1;max=50;step=1;val=25" PARAM_SEP
 		"Centre frequency;f=H;o=1;t=range;min=20;max=20000;step=1;val=5000" PARAM_SEP
 		"Width;f=H;o=3;t=range;min=20;max=5000;step=2;val=500",
 		filter_fir_apply, filter_bandpass_debug, filter_bandpass_create, filter_bandpass_mod,
 		sizeof(FilterBandPassData_t), offsetof(FilterFIRBaseData_t, nCoefficients)
 	},
+
+	{
+		"Oscillating BP",
+		"Frequency;f=f;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
+		"Wave Type;o=6" WAVE_TYPE_KV PARAM_SEP
+		"Width;f=H;o=0;t=range;min=20;max=5000;step=2;val=500" PARAM_SEP
+		"Min Frequency;f=H;o=7;t=range;min=20;max=20000;step=1;val=50" PARAM_SEP
+		"Max Frequency;f=H;o=9;t=range;min=20;max=20000;step=1;val=1000",
+		filter_oscillating_bandpass_apply, filter_oscillating_bandpass_debug, filter_oscillating_bandpass_create, NULL,
+		sizeof(FilterOscillatingBandPassData_t), offsetof(FilterBandPassData_t, iWidth)
+	}
 };
 
 const size_t NUM_FILTERS = sizeof(g_pFilters)/sizeof(g_pFilters[0]);

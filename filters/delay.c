@@ -28,3 +28,12 @@ void filter_delay_create(void *pUnknown)
 	FilterDelayData_t *pData = (FilterDelayData_t *)pUnknown;
 	pData->nDelay = 5000;
 }
+
+
+uint32_t filter_delay_feedback_apply(uint32_t input, void *pUnknown)
+{
+	uint32_t result = filter_delay_apply(input, pUnknown);
+	sample_set(g_iSampleCursor, result);
+
+	return result;
+}

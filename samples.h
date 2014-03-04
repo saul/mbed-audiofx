@@ -5,6 +5,7 @@
 
 
 extern volatile uint16_t g_iSampleCursor;
+extern volatile uint16_t g_iWaveCursor;
 extern volatile uint16_t g_iVibratoSampleCursor;
 
 

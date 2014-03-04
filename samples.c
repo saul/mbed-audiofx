@@ -10,6 +10,7 @@
 
 /*volatile*/ SamplePair_t g_pSampleBuffer[BUFFER_SAMPLES / 2];
 volatile uint16_t g_iSampleCursor = 0;
+volatile uint16_t g_iWaveCursor = 0;
 volatile uint16_t g_iVibratoSampleCursor = 0;
 static SampleAverage_t s_SampleAverage;
 

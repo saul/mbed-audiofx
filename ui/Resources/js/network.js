@@ -99,3 +99,9 @@ packetHandlers[PacketTypes.B2U_FILTER_LIST] = function(packet) {
 	// Show filter container
 	$('#filter-container').show();
 };
+
+/* Tom individual */
+packetHandlers[PacketTypes.B2U_ANALOG_CONTROL] = function(packet) {
+	updateAnalogControls((packet.value/4096) *100);
+}
+/* End Tom individual */
