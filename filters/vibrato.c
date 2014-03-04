@@ -42,3 +42,12 @@ void filter_vibrato_debug(void *pUnknown)
 	const FilterVibratoData_t *pData = (const FilterVibratoData_t *)pUnknown;
 	dbg_printf("nDelay=%u, frequency=%u, waveType=%u", pData->nDelay, pData->frequency, pData->waveType);
 }
+
+
+void filter_vibrato_create(void *pUnknown)
+{
+	FilterVibratoData_t *pData = (FilterVibratoData_t *)pUnknown;
+	pData->nDelay = 10;
+	pData->frequency = 1;
+	pData->waveType = 0;
+}

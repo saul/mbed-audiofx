@@ -48,23 +48,23 @@ Filter_t g_pFilters[] = {
 		sizeof(FilterBitcrusherData_t), 0
 	},
 
-	/*
 	{
 		"Vibrato",
-		"", // TODO: fill in!
-		filter_vibrato_apply, filter_vibrato_debug, NULL, // TODO: add creation callback function
+		"Delay;f=H;o=0;t=range;min=1;max=4999;step=1;val=10" PARAM_SEP
+		"Frequency;f=B;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
+		"Wave Type;f=B;o=3;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle",
+		filter_vibrato_apply, filter_vibrato_debug, filter_vibrato_create, NULL,
 		sizeof(FilterVibratoData_t), 0
 	},
-	*/
 
-	/*
 	{
 		"Tremolo",
-		"", // TODO: fill in!
-		filter_tremolo_apply, NULL, NULL, // TODO: add debug and creation callback functions
+		"Frequency;f=B;o=0;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
+		"Wave Type;f=B;o=1;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle" PARAM_SEP
+		"Depth;f=f;o=2;t=range;min=0;max=1;step=0.05;val=0.5",
+		filter_tremolo_apply, filter_tremolo_debug, filter_tremolo_create, NULL,
 		sizeof(FilterTremoloData_t), 0
 	},
-	*/
 
 	{
 		"Band-pass",
