@@ -52,7 +52,7 @@ Filter_t g_pFilters[] = {
 		"Vibrato",
 		"Delay;f=H;o=0;t=range;min=1;max=4999;step=1;val=10" PARAM_SEP
 		"Frequency;f=B;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
-		"Wave Type;f=B;o=3;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle",
+		"Wave Type;f=B;o=3;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle", // Need format for t=choice
 		filter_vibrato_apply, filter_vibrato_debug, filter_vibrato_create, NULL,
 		sizeof(FilterVibratoData_t), 0
 	},
@@ -60,7 +60,7 @@ Filter_t g_pFilters[] = {
 	{
 		"Tremolo",
 		"Frequency;f=B;o=0;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
-		"Wave Type;f=B;o=1;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle" PARAM_SEP
+		"Wave Type;f=B;o=1;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle" PARAM_SEP // Need format for t=choice
 		"Depth;f=f;o=2;t=range;min=0;max=1;step=0.05;val=0.5",
 		filter_tremolo_apply, filter_tremolo_debug, filter_tremolo_create, NULL,
 		sizeof(FilterTremoloData_t), 0
@@ -74,6 +74,20 @@ Filter_t g_pFilters[] = {
 		filter_fir_apply, filter_bandpass_debug, filter_bandpass_create, filter_bandpass_mod,
 		sizeof(FilterBandPassData_t), offsetof(FilterFIRBaseData_t, nCoefficients)
 	},
+
+	{
+		/* Need to check all of this */
+		"Oscillating Band-pass",
+		"Frequency;f=f;o=0;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
+		"Wave Type;f=B;o=4;t=choice;Square;Sawtooth;Inverse Sawtooth;Triangle" PARAM_SEP // Need format for t=choice
+		"Width;f=H;o=5;t=range;min=20;max=5000;step=2;val=500" PARAM_SEP
+		"Min Frequency;f=H;o=7;t=range;min=20;max=20000;step=1;val=50" PARAM_SEP
+		"Max Frequency;f=H;o=9;t=range;min=20;max=20000;step=1;val=1000",
+		filter_oscillating_bandpass_apply, filter_oscillating_bandpass_debug,
+		filter_oscillating_bandpass_create, filter_oscillating_bandpass_mod,
+		sizeof(FilterOscillatingBandPassData_t), 0
+		/* Need to check all of this */
+	}
 };
 
 const size_t NUM_FILTERS = sizeof(g_pFilters)/sizeof(g_pFilters[0]);
