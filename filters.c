@@ -49,6 +49,24 @@ Filter_t g_pFilters[] = {
 	},
 
 	{
+		"Compressor",
+		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
+		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200" PARAM_SEP
+		"Scalar;f=f;o=4;t=range;min=0;max=1;step=0.05;val=0.8",
+		filter_compressor_apply, filter_compressor_debug, filter_compressor_create, NULL,
+		sizeof(FilterCompressorData_t), 0
+	},
+
+	{
+		"Expander",
+		"Sensitivity;f=H;o=0;t=range;min=1;max=9999;step=1;val=50" PARAM_SEP
+		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200" PARAM_SEP
+		"Scalar;f=f;o=4;t=range;min=1;max=2;step=0.05;val=1.5",
+		filter_expander_apply, filter_compressor_debug, filter_expander_create, NULL,
+		sizeof(FilterCompressorData_t), 0
+	},
+
+	{
 		"Bitcrusher",
 		"Bit loss;f=B;o=0;t=range;min=0;max=10;step=1;val=1",
 		filter_bitcrusher_apply, filter_bitcrusher_debug, filter_bitcrusher_create, NULL,
