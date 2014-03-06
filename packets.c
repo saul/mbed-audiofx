@@ -99,7 +99,7 @@ void packet_print_send(const char *pszLine, size_t size)
 
 
 #ifdef INDIVIDUAL_BUILD_TOM
-void packet_analog_control_send(uint32_t analog_value)
+void packet_analog_control_send(uint16_t analog_value)
 {
 	sercom_send(B2U_ANALOG_CONTROL, (const uint8_t *)&analog_value, sizeof(analog_value));
 }

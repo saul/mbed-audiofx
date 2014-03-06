@@ -36,6 +36,7 @@ volatile uint32_t g_ulLastLongTick = 0;
 volatile uint32_t iAnalogAverage = 0;
 volatile bool bDoSendAverage = false;
 volatile uint16_t iNumMeasurements = 0;
+volatile uint16_t iPreviousAverage = 0;
 #endif // INDIVIDUAL_BUILD_TOM
 
 
@@ -142,10 +143,20 @@ static void time_tick(void *pUserData)
 #ifdef INDIVIDUAL_BUILD_TOM
 		if(iNumMeasurements == SAMPLE_RATE/10)
 		{
-			// dbg_printf("%d", (int)(iAnalogAverage/iNumMeasurements));
-			packet_analog_control_send(iAnalogAverage/iNumMeasurements);
-			iAnalogAverage = 0;
-			iNumMeasurements = 0;
+			// dbg_printf("%d\n\r", (uint16_t)(iAnalogAverage/iNumMeasurements));
+			if(iPreviousAverage != 0)
+			{
+				uint16_t average = (uint16_t)(iAnalogAverage/iNumMeasurements);
+				if(average < 50)
+					average = 0;
+				if(average - iPreviousAverage > 50 || iPreviousAverage - average > 50)
+				{
+					packet_analog_control_send(average);
+					iPreviousAverage = average;
+				}
+				iAnalogAverage = 0;
+				iNumMeasurements = 0;
+			}
 		}
 		else
 		{

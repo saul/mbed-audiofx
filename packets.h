@@ -62,7 +62,7 @@ void packet_print_send(const char *pszLine, size_t size);
 void packet_filter_list_send(void);
 
 #ifdef INDIVIDUAL_BUILD_TOM
-void packet_analog_control_send(uint32_t analog_value);
+void packet_analog_control_send(uint16_t analog_value);
 #endif // INDIVIDUAL_BUILD_TOM
 
 void packet_loop(void);
