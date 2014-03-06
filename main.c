@@ -161,6 +161,9 @@ void main(void)
 	// LCD init
 	//lcd_init();
 
+	// SSP init
+	ssp_init();
+
 	// ADC init
 	adc_init(SAMPLE_RATE);
 	adc_config(0, true); // MBED pin 15
