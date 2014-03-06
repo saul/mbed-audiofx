@@ -138,6 +138,21 @@ static void time_tick(void *pUserData)
 	// If we haven't had been slow in 100 ticks, turn off the slow LED
 	else if(g_ulLastLongTick + 100 < ulEndTick)
 		led_set(LED_SLOW, false);
+
+#ifdef INDIVIDUAL_BUILD_TOM
+		if(iNumMeasurements == SAMPLE_RATE/10)
+		{
+			// dbg_printf("%d", (int)(iAnalogAverage/iNumMeasurements));
+			packet_analog_control_send(iAnalogAverage/iNumMeasurements);
+			iAnalogAverage = 0;
+			iNumMeasurements = 0;
+		}
+		else
+		{
+			iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
+			iNumMeasurements++;
+		}
+#endif
 }
 
 
@@ -215,18 +230,5 @@ void main(void)
 	while(1)
 	{
 		packet_loop();
-#ifdef INDIVIDUAL_BUILD_TOM
-		if(iNumMeasurements == 500)
-		{
-			packet_analog_control_send(iAnalogAverage/iNumMeasurements);
-			iAnalogAverage = 0;
-			iNumMeasurements = 0;
-		}
-		else
-		{
-			iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
-			iNumMeasurements++;
-		}
-#endif
 	}
 }
