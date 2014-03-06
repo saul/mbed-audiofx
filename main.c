@@ -24,6 +24,9 @@
 #include "filters/dynamic.h"
 #include "filters/vibrato.h"
 #include "packets.h"
+#ifdef INDIVIDUAL_BUILD_SAUL
+#	include "ssp.h"
+#endif
 
 
 ChainStageHeader_t *g_pChainRoot = NULL;
@@ -190,6 +193,11 @@ void main(void)
 
 	// LCD init
 	//lcd_init();
+
+#ifdef INDIVIDUAL_BUILD_SAUL
+	// SSP init
+	ssp_init();
+#endif
 
 	// ADC init
 	adc_init(SAMPLE_RATE);
