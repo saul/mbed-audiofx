@@ -21,6 +21,9 @@ typedef enum
 	U2B_FILTER_MIX,		///< UI is changing a filter mix percentage
 	U2B_VOLUME,			///< UI is changing system volume
 	U2B_ARB_CMD,		///< UI is sending an arbitrary command to the board (e.g., chain_dump)
+#ifdef INDIVIDUAL_BUILD_TOM
+	B2U_ANALOG_CONTROL, ///< Board sends analog control value
+#endif // INDIVIDUAL_BUILD_TOM
 
 	// Must be last
 	PACKET_TYPE_MAX,
@@ -57,6 +60,10 @@ void packet_probe_send(void);
 void packet_reset_wait(void);
 void packet_print_send(const char *pszLine, size_t size);
 void packet_filter_list_send(void);
+
+#ifdef INDIVIDUAL_BUILD_TOM
+void packet_analog_control_send(uint16_t analog_value);
+#endif // INDIVIDUAL_BUILD_TOM
 
 void packet_loop(void);
 void packet_reset_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);

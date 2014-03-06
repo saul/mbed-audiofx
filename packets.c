@@ -29,6 +29,9 @@ const char *g_ppszPacketTypes[] = {
 	"U2B_FILTER_MIX",
 	"U2B_VOLUME",
 	"U2B_ARB_CMD",
+#ifdef INDIVIDUAL_BUILD_TOM
+	"B2U_ANALOG_CONTROL",
+#endif // INDIVIDUAL_BUILD_TOM
 };
 
 
@@ -44,6 +47,9 @@ PacketHandler_t g_pPacketHandlers[] = {
 	{packet_filter_mix_receive, true, PACKET_SIZE_EXACT(sizeof(FilterMixPacket_t))}, // U2B_FILTER_MIX
 	{packet_volume_receive, false, PACKET_SIZE_EXACT(sizeof(VolumePacket_t))}, // U2B_VOLUME
 	{packet_cmd_receive, false, PACKET_SIZE_MIN(sizeof(CommandPacket_t))}, // U2B_ARB_CMD
+#ifdef INDIVIDUAL_BUILD_TOM
+	{NULL, false, 0}, // B2U_ANALOG_CONTROL
+#endif // INDIVIDUAL_BUILD_TOM
 };
 
 
@@ -90,6 +96,14 @@ void packet_print_send(const char *pszLine, size_t size)
 {
 	sercom_send(B2U_PRINT, (const uint8_t *)pszLine, size);
 }
+
+
+#ifdef INDIVIDUAL_BUILD_TOM
+void packet_analog_control_send(uint16_t analog_value)
+{
+	sercom_send(B2U_ANALOG_CONTROL, (const uint8_t *)&analog_value, sizeof(analog_value));
+}
+#endif // INDIVIDUAL_BUILD_TOM
 
 
 void packet_filter_list_send(void)
@@ -205,6 +219,12 @@ void packet_filter_create_receive(const PacketHeader_t *pHdr, const uint8_t *pPa
 		// Create a new empty stage
 		pStageHdr->pNext = stage_alloc();
 	}
+
+	// Call creation callback
+	if(pBranch->pFilter->pfnCreateCallback)
+		pBranch->pFilter->pfnCreateCallback((void *)pBranch->pUnknown);
+	else
+		dbg_warning("filter has no creation callback, UI/board data may be out of sync!\r\n");
 }
 
 
@@ -291,10 +311,10 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 
 	const uint8_t *pSource = pPayload + sizeof(FilterModPacket_t);
 	uint16_t nToCopy = pHdr->size - sizeof(FilterModPacket_t);
-	uint8_t *pDest = ((uint8_t *)pBranch->pPrivate) + pFilterMod->iOffset + pBranch->pFilter->nNonPublicDataSize;
+	uint8_t *pDest = ((uint8_t *)pBranch->pUnknown) + pFilterMod->iOffset + pBranch->pFilter->nNonPublicDataSize;
 
 	// Buffer overflow protection
-	if(pFilterMod->iOffset + nToCopy > pBranch->pFilter->nPrivateDataSize)
+	if(pFilterMod->iOffset + nToCopy > pBranch->pFilter->nFilterDataSize)
 	{
 		dbg_warning("blocked attempted arbitrary memory modification\r\n");
 		return;
@@ -305,7 +325,12 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 
 	// Call modification callback
 	if(pBranch->pFilter->pfnModCallback)
-		pBranch->pFilter->pfnModCallback((void *)pBranch->pPrivate);
+		pBranch->pFilter->pfnModCallback((void *)pBranch->pUnknown);
+
+	// Reset last slow tick. This makes sure we reissue the "slow tick" warning
+	// if the chain is still too complex.
+	extern uint32_t g_ulLastLongTick;
+	g_ulLastLongTick = 0;
 }
 
 

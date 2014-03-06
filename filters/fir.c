@@ -11,9 +11,9 @@
 #define FREQ_TO_PI_FRAC(hz) (2 * hz / ((float)SAMPLE_RATE))
 
 
-uint32_t filter_fir_apply(uint32_t input, void *pPrivate)
+uint32_t filter_fir_apply(uint32_t input, void *pUnknown)
 {
-	const FilterFIRBaseData_t *pData = (const FilterFIRBaseData_t *)pPrivate;
+	const FilterFIRBaseData_t *pData = (const FilterFIRBaseData_t *)pUnknown;
 
 	uint32_t output = 0;
 
@@ -27,27 +27,35 @@ uint32_t filter_fir_apply(uint32_t input, void *pPrivate)
 }
 
 
-void filter_bandpass_debug(void *pPrivate)
+void filter_bandpass_debug(void *pUnknown)
 {
-	const FilterBandPassData_t *pData = (const FilterBandPassData_t *)pPrivate;
-	dbg_printf("base.coeffs=%p, base.coeffs=%u, lower=%u, upper=%u", (void *)pData->base.pflCoefficients, pData->base.nCoefficients, pData->iLowerFreq, pData->iUpperFreq);
+	const FilterBandPassData_t *pData = (const FilterBandPassData_t *)pUnknown;
+	dbg_printf("base.coeffs=%p, base.coeffs=%u, centre=%u, width=%u", (void *)pData->base.pflCoefficients, pData->base.nCoefficients, pData->iCentreFreq, pData->iWidth);
 }
 
 
-void filter_bandpass_mod(void *pPrivate)
+void filter_bandpass_mod(void *pUnknown)
 {
-	FilterBandPassData_t *pData = (FilterBandPassData_t *)pPrivate;
+	FilterBandPassData_t *pData = (FilterBandPassData_t *)pUnknown;
+
+	dbg_assert(pData->base.nCoefficients > 0, "coefficient number must be > 0");
 
 	// Free current coefficients and allocate space for the new ones
 	free(pData->base.pflCoefficients);
 	pData->base.pflCoefficients = malloc(sizeof(float) * pData->base.nCoefficients);
 	dbg_assert(pData->base.pflCoefficients, "unable to allocate memory for %d FIR coefficients", pData->base.nCoefficients);
 
-	float d1 = (pData->base.nCoefficients - 1) / 2.0f;
-	float fc1 = FREQ_TO_PI_FRAC(pData->iLowerFreq);
-	float fc2 = FREQ_TO_PI_FRAC(pData->iUpperFreq);
+	int32_t iLowerFreq = fmaxf(pData->iCentreFreq - (pData->iWidth / 2), 0);
+	int32_t iUpperFreq = fminf(pData->iCentreFreq + (pData->iWidth / 2), 20000);
 
-	dbg_printf("filter_bandpass_mod: coeffs=%d, lowcut=%.3f, uppercut=%.3f\r\n", pData->base.nCoefficients, fc1, fc2);
+	float d1 = (pData->base.nCoefficients - 1) / 2.0f;
+	float fc1 = FREQ_TO_PI_FRAC(iLowerFreq);
+	float fc2 = FREQ_TO_PI_FRAC(iUpperFreq);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
+	//dbg_printf("filter_bandpass_mod: coeffs=%d, lowcut=%.3f, uppercut=%.3f\r\n", pData->base.nCoefficients, fc1, fc2);
+#pragma GCC diagnostic pop
 
 	// Calculate new coefficients
 	for(uint8_t i = 0; i < pData->base.nCoefficients; ++i)
@@ -60,10 +68,18 @@ void filter_bandpass_mod(void *pPrivate)
 		else
 			flCoeff = (sinf(fc2 * d2) - sinf(fc1 * d2)) / (PI_F * d2);
 
-		//dbg_printf("\t#%d: %f\r\n", i, flCoeff);
-
 		pData->base.pflCoefficients[i] = flCoeff;
 	}
+}
 
-	//dbg_printf("\r\n");
+
+void filter_bandpass_create(void *pUnknown)
+{
+	FilterBandPassData_t *pData = (FilterBandPassData_t *)pUnknown;
+	pData->base.nCoefficients = 25;
+	pData->iCentreFreq = 1000;
+	pData->iWidth = 500;
+
+	// Generate coefficients
+	filter_bandpass_mod(pUnknown);
 }

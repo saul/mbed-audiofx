@@ -22,12 +22,19 @@
 				</label>
 
 				{{#ifEq this.t "range"}}
+				<!-- Tom individual -->
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="{{this.slug}}-ac" class="checkbox ac-checkbox"> Analog Control
+					</label>
+				</div>
+				<!-- End Tom individual -->
 				<input type="range" class="form-control" name="{{this.slug}}" min="{{this.min}}" max="{{this.max}}" step="{{this.step}}" value="{{this.val}}">
 				{{/ifEq}}
 				{{#ifEq this.t "choice"}}
 				<select class="form-control" name="{{this.slug}}">
 					{{#each this.c}}
-						<option value="{{@index}}">{{this}}</option>
+						<option value="{{@index}}" {{#unless @index}}selected="selected"{{/unless}}>{{this}}</option>
 					{{/each}}
 				</select>
 				{{/ifEq}}

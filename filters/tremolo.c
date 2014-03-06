@@ -7,9 +7,9 @@
 #include "tremolo.h"
 
 
-uint32_t filter_tremolo_apply(uint32_t input, void *pPrivate)
+uint32_t filter_tremolo_apply(uint32_t input, void *pUnknown)
 {
-	const FilterTremoloData_t *pData = (const FilterTremoloData_t *)pPrivate;
+	const FilterTremoloData_t *pData = (const FilterTremoloData_t *)pUnknown;
 
 	switch (pData->waveType)
 	{
@@ -27,4 +27,20 @@ uint32_t filter_tremolo_apply(uint32_t input, void *pPrivate)
 		default:
 			return input;
 	}
+}
+
+
+void filter_tremolo_debug(void *pUnknown)
+{
+	const FilterTremoloData_t *pData = (const FilterTremoloData_t *)pUnknown;
+	dbg_printf("frequency=%u, waveType=%u, depth=%f", pData->frequency, pData->waveType, pData->depth);
+}
+
+
+void filter_tremolo_create(void *pUnknown)
+{
+	FilterTremoloData_t *pData = (FilterTremoloData_t *)pUnknown;
+	pData->frequency = 1;
+	pData->waveType = 0;
+	pData->depth = 0.5;
 }

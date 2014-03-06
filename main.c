@@ -30,6 +30,14 @@ ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 volatile bool g_bPassThru = false;
 volatile float g_flChainVolume = 1.0;
+volatile uint32_t g_ulLastLongTick = 0;
+
+#ifdef INDIVIDUAL_BUILD_TOM
+volatile uint32_t iAnalogAverage = 0;
+volatile bool bDoSendAverage = false;
+volatile uint16_t iNumMeasurements = 0;
+volatile uint16_t iPreviousAverage = 0;
+#endif // INDIVIDUAL_BUILD_TOM
 
 
 static uint16_t get_median_sample(void)
@@ -63,7 +71,6 @@ static uint16_t get_median_sample(void)
 
 static void time_tick(void *pUserData)
 {
-	static uint32_t s_ulLastLongTick = 0;
 	static uint32_t s_ulLastClipTick = 0;
 
 	uint32_t ulStartTick = time_tickcount();
@@ -96,6 +103,7 @@ static void time_tick(void *pUserData)
 
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
+	g_iWaveCursor = (g_iWaveCursor + 1) % (BUFFER_SAMPLES * 4);
 
 #ifdef VIBRATO_TO_FIX
 	if(g_bVibratoActive)
@@ -121,16 +129,41 @@ static void time_tick(void *pUserData)
 
 	if(ulElapsedTicks >= 1)
 	{
-		if(s_ulLastLongTick + 1000 < ulEndTick)
+		if(g_ulLastLongTick + 1000 < ulEndTick)
 			dbg_printf(ANSI_COLOR_RED "Chain too complex" ANSI_COLOR_RESET ": sample took %lu msec to process!\r\n", ulElapsedTicks);
 
-		s_ulLastLongTick = ulEndTick;
+		g_ulLastLongTick = ulEndTick;
 		led_set(LED_SLOW, true);
 	}
 
 	// If we haven't had been slow in 100 ticks, turn off the slow LED
-	else if(s_ulLastLongTick + 100 < ulEndTick)
+	else if(g_ulLastLongTick + 100 < ulEndTick)
 		led_set(LED_SLOW, false);
+
+#ifdef INDIVIDUAL_BUILD_TOM
+		if(iNumMeasurements == SAMPLE_RATE/10)
+		{
+			// dbg_printf("%d\n\r", (uint16_t)(iAnalogAverage/iNumMeasurements));
+			if(iPreviousAverage != 0)
+			{
+				uint16_t average = (uint16_t)(iAnalogAverage/iNumMeasurements);
+				if(average < 50)
+					average = 0;
+				if(average - iPreviousAverage > 50 || iPreviousAverage - average > 50)
+				{
+					packet_analog_control_send(average);
+					iPreviousAverage = average;
+				}
+				iAnalogAverage = 0;
+				iNumMeasurements = 0;
+			}
+		}
+		else
+		{
+			iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
+			iNumMeasurements++;
+		}
+#endif
 }
 
 
@@ -155,7 +188,7 @@ void main(void)
 	uint32_t ulStartTick = time_tickcount();
 
 	// I2C init
-	//i2c_init();
+	i2c_init();
 	//i2c_scan();
 
 	// LCD init
@@ -169,6 +202,9 @@ void main(void)
 	adc_config(0, true); // MBED pin 15
 	adc_config(4, true); // MBED pin 19
 	adc_config(5, true); // MBED pin 20
+#ifdef INDIVIDUAL_BUILD_TOM
+	adc_config(1, true); // MBED pin 16
+#endif // INDIVIDUAL_BUILD_TOM
 	adc_start(ADC_START_CONTINUOUS);
 	adc_burst_config(true);
 
@@ -206,5 +242,7 @@ void main(void)
 	// Packet receive loop
 	//-----------------------------------------------------
 	while(1)
+	{
 		packet_loop();
+	}
 }

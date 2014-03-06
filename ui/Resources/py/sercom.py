@@ -77,6 +77,9 @@ class PacketTypes(object):
 	U2B_FILTER_MIX = 8
 	U2B_VOLUME = 9
 	U2B_ARB_CMD = 10
+	# Tom individual
+	B2U_ANALOG_CONTROL = 11
+	# End Tom individual
 
 
 class Packet(object):
@@ -122,8 +125,20 @@ class PrintPacket(Packet):
 
 	def receive(self, data):
 		chars = struct.unpack('<%dc' % len(data), data)
-		self.msg = ''.join(chars).decode('ascii')
-		print self.msg,
+		try:
+			self.msg = ''.join(chars).decode('ascii')
+		except:
+			self.msg = "Corrupted Print Package"
+		finally:
+			print self.msg,
+
+# Tom individual
+class AnalogControlPacket(Packet):
+	type_ = PacketTypes.B2U_ANALOG_CONTROL
+
+	def receive(self, data):
+		self.value = struct.unpack('<H', data)[0]
+# End Tom individual
 
 
 class FilterListPacket(Packet):
@@ -234,6 +249,9 @@ PACKET_MAP = [
 	FilterModPacket, # U2B_FILTER_MOD
 	FilterMixPacket, # U2B_FILTER_MIX
 	CommandPacket, # U2B_ARB_CMD
+	# Tom individual
+	AnalogControlPacket,
+	# End Tom individual
 ]
 
 

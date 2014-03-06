@@ -5,5 +5,6 @@
 
 char keypad_getc(void);
 char keypad_scan(void);
+int keypad_is_keydown(char key);
 
 #endif

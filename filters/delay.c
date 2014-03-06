@@ -5,9 +5,9 @@
 #include "delay.h"
 
 
-uint32_t filter_delay_apply(uint32_t input, void *pPrivate)
+uint32_t filter_delay_apply(uint32_t input, void *pUnknown)
 {
-	const FilterDelayData_t *pData = (const FilterDelayData_t *)pPrivate;
+	const FilterDelayData_t *pData = (const FilterDelayData_t *)pUnknown;
 
 	if(pData->nDelay == 0)
 		return sample_get(g_iSampleCursor);
@@ -16,8 +16,24 @@ uint32_t filter_delay_apply(uint32_t input, void *pPrivate)
 }
 
 
-void filter_delay_debug(void *pPrivate)
+void filter_delay_debug(void *pUnknown)
 {
-	const FilterDelayData_t *pData = (const FilterDelayData_t *)pPrivate;
+	const FilterDelayData_t *pData = (const FilterDelayData_t *)pUnknown;
 	dbg_printf("delay=%u", pData->nDelay);
+}
+
+
+void filter_delay_create(void *pUnknown)
+{
+	FilterDelayData_t *pData = (FilterDelayData_t *)pUnknown;
+	pData->nDelay = 5000;
+}
+
+
+uint32_t filter_delay_feedback_apply(uint32_t input, void *pUnknown)
+{
+	uint32_t result = filter_delay_apply(input, pUnknown);
+	sample_set(g_iSampleCursor, result);
+
+	return result;
 }
