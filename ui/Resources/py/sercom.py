@@ -134,6 +134,7 @@ class AnalogControlPacket(Packet):
 
 	def receive(self, data):
 		self.value = struct.unpack('<D', data)
+		print self.value,
 # End Tom individual
 
 
