@@ -168,6 +168,10 @@ $(document).on('change', 'select[name=filter-create]', function() {
 // Filter parameter input change
 // ============================================================================
 $(document).on('change', '.form-group[data-param-name]', $.debounce(250, function(event) {
+	updateFromEvent(event.target);
+}));
+
+function updateFromEvent(target) {
 	var $this = $(event.target);
 	var $stage = $this.parents('.stage-row');
 	var $filter = $this.parents('.filter');
@@ -186,17 +190,21 @@ $(document).on('change', '.form-group[data-param-name]', $.debounce(250, functio
 	}
 
 	$this.siblings('label').children('.value').text($this.val());
-}));
+}
 
 
 /* Tom individual */
 function updateAnalogControls(new_value) {
-	$('[name$=-ac]:checked').each(function(entry) {
-		var control_element = $('[name="'+entry.attr('name').replace('-ac', '')+'"]');
+	new_value = new_value / 100;
+	$('.ac-checkbox:checked').each(function(entry) {
+		var element = $('.ac-checkbox:checked')[entry];
+		var name = element.name;
+		var control_element = $('[name="'+(name.replace('-ac', ''))+'"]');
 		var min = control_element.attr('min');
 		var max = control_element.attr('max');
 		new_value = min + (max-min)*new_value;
 		control_element.val(new_value);
+		setTimeout(function(){updateFromEvent(control_element)}, 3);
 	});
 }
 /* End Tom individual */

@@ -125,16 +125,19 @@ class PrintPacket(Packet):
 
 	def receive(self, data):
 		chars = struct.unpack('<%dc' % len(data), data)
-		self.msg = ''.join(chars).decode('ascii')
-		print self.msg,
+		try:
+			self.msg = ''.join(chars).decode('ascii')
+		except:
+			self.msg = "Corrupted Print Package"
+		finally:
+			print self.msg,
 
 # Tom individual
 class AnalogControlPacket(Packet):
 	type_ = PacketTypes.B2U_ANALOG_CONTROL
 
 	def receive(self, data):
-		self.value = struct.unpack('<D', data)
-		print self.value,
+		self.value = struct.unpack('<H', data)[0]
 # End Tom individual
 
 
