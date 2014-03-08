@@ -71,6 +71,13 @@ OBJ=sercom.o \
 	samples.o \
 	main.o
 
+ifneq ($(strip $(SAUL)),)
+	OBJ += fatfs/ff.o \
+		ssp.o \
+		sd.o \
+		sdio.o
+endif
+
 # Colours
 CLR_RESET=\033[m
 CLR_RED=\033[31m
@@ -108,7 +115,7 @@ $(EXECNAME).elf: $(OBJ)
 
 # clean out source tree
 clean:
-	@rm -f *~ *.o
+	@rm -f *~ *.o fatfs/*.o filters/*.o
 	@rm -rf bin/
 	@echo -e "$(LINE_PREFIX)$(CLR_GREEN)Cleaned source tree$(CLR_RESET)"
 

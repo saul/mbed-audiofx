@@ -26,6 +26,7 @@
 #include "packets.h"
 #ifdef INDIVIDUAL_BUILD_SAUL
 #	include "ssp.h"
+#	include "sd.h"
 #endif
 
 
@@ -218,6 +219,11 @@ void main(void)
 
 	// Check static assertions (does nothing at run-time)
 	packet_static_assertions();
+
+#ifdef INDIVIDUAL_BUILD_SAUL
+	sd_test();
+	return;
+#endif
 
 	// Clear sample buffer
 	for(uint16_t i = 0; i < BUFFER_SAMPLES; ++i)
