@@ -40,7 +40,7 @@ volatile uint32_t g_ulLastLongTick = 0;
 volatile uint32_t iAnalogAverage = 0;
 volatile bool bDoSendAverage = false;
 volatile uint16_t iNumMeasurements = 0;
-volatile uint16_t iPreviousAverage = 0;
+volatile uint16_t iPreviousAverage = 1;
 #endif // INDIVIDUAL_BUILD_TOM
 
 
@@ -127,6 +127,28 @@ static void time_tick(void *pUserData)
 	else if(s_ulLastClipTick + 100 < ulEndTick)
 		led_set(LED_CLIP, false);
 
+#ifdef INDIVIDUAL_BUILD_TOM
+		if(iNumMeasurements == SAMPLE_RATE/5)
+		{
+			// dbg_printf("%d\n\r", (uint16_t)(iAnalogAverage/iNumMeasurements));
+			uint16_t average = (uint16_t)(iAnalogAverage/iNumMeasurements);
+			if(average < 100)
+				average = 0;
+			if(average - iPreviousAverage > 50 || iPreviousAverage - average > 50)
+			{
+				packet_analog_control_send(average);
+				iPreviousAverage = average;
+			}
+			iAnalogAverage = 0;
+			iNumMeasurements = 0;
+		}
+		else
+		{
+			iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
+			iNumMeasurements++;
+		}
+#endif
+
 	// If we took longer than a millisecond to process sample, error
 	// Assumes resolution is 1 tick/msec
 	uint32_t ulElapsedTicks = ulEndTick - ulStartTick;
@@ -143,31 +165,6 @@ static void time_tick(void *pUserData)
 	// If we haven't had been slow in 100 ticks, turn off the slow LED
 	else if(g_ulLastLongTick + 100 < ulEndTick)
 		led_set(LED_SLOW, false);
-
-#ifdef INDIVIDUAL_BUILD_TOM
-		if(iNumMeasurements == SAMPLE_RATE/10)
-		{
-			// dbg_printf("%d\n\r", (uint16_t)(iAnalogAverage/iNumMeasurements));
-			if(iPreviousAverage != 0)
-			{
-				uint16_t average = (uint16_t)(iAnalogAverage/iNumMeasurements);
-				if(average < 50)
-					average = 0;
-				if(average - iPreviousAverage > 50 || iPreviousAverage - average > 50)
-				{
-					packet_analog_control_send(average);
-					iPreviousAverage = average;
-				}
-				iAnalogAverage = 0;
-				iNumMeasurements = 0;
-			}
-		}
-		else
-		{
-			iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
-			iNumMeasurements++;
-		}
-#endif
 }
 
 

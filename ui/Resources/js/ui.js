@@ -172,29 +172,34 @@ $(document).on('change', '.form-group[data-param-name]', $.debounce(250, functio
 }));
 
 function updateFromEvent(target) {
-	var $this = $(event.target);
-	var $stage = $this.parents('.stage-row');
-	var $filter = $this.parents('.filter');
-	var $widget = $this.parent();
-	var paramName = $widget.data('param-name');
-	var filter = filters[$filter.data('filter-index')];
+	var $this = $(target);
+	if ($this.hasClass('ac-checkbox')) {
+		updateAnalogControls(ac_value);
+	} else {
+		var $stage = $this.parents('.stage-row');
+		var $filter = $this.parents('.filter');
+		var $widget = $this.parent();
+		var paramName = $widget.data('param-name');
+		var filter = filters[$filter.data('filter-index')];
 
-	if(paramName === 'mix') {
-		packet = FilterMixPacket(serialStream);
-		packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
-	} else if(! $this.hasClass('checkbox')) {
-		var param = filter.params[paramName];
+		if(paramName === 'mix') {
+			packet = FilterMixPacket(serialStream);
+			packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
+		} else if(! $this.hasClass('checkbox')) {
+			var param = filter.params[paramName];
 
-		packet = FilterModPacket(serialStream);
-		packet.send($stage.index(), $filter.index(), param['o'], param['f'], $this.val());
+			packet = FilterModPacket(serialStream);
+			packet.send($stage.index(), $filter.index(), param['o'], param['f'], $this.val());
+		}
+
+		$this.siblings('label').children('.value').text($this.val());
 	}
-
-	$this.siblings('label').children('.value').text($this.val());
 }
 
 
 /* Tom individual */
 function updateAnalogControls(new_value) {
+	ac_value = new_value;
 	new_value = new_value / 100;
 	$('.ac-checkbox:checked').each(function(entry) {
 		var element = $('.ac-checkbox:checked')[entry];
@@ -204,7 +209,8 @@ function updateAnalogControls(new_value) {
 		var max = control_element.attr('max');
 		new_value = min + (max-min)*new_value;
 		control_element.val(new_value);
-		setTimeout(function(){updateFromEvent(control_element)}, 3);
+		var form_element = control_element.parent();
+		// setTimeout(function(){updateFromEvent(form_element)}, 3);
 	});
 }
 /* End Tom individual */
