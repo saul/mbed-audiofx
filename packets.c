@@ -466,10 +466,6 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 		else
 			s_bDebugChainAfterLock = atoi(ppszArgs[1]);
 	}
-	else if(!strcmp(ppszArgs[0], "tom"))
-	{
-		dbg_printf("                  _..._\r\n");dbg_printf("               .-'     '-.\r\n");dbg_printf("              /     _    _\\\r\n");dbg_printf("             /':.  (o)  /__)\r\n");dbg_printf("            /':. .,_    |  |\r\n");dbg_printf("           |': ; /  \\   /_/\r\n");dbg_printf("           /  ;  `\"`\"    }\r\n");dbg_printf("          ; ':.,         {\r\n");dbg_printf("         /      ;        }\r\n");dbg_printf("        ; '::.   ;\\/\\ /\\ {\r\n");dbg_printf("       |.      ':. ;``\"``\\\r\n");dbg_printf("      / '::'::'    /      ;\r\n");dbg_printf("     |':::' '::'  /       |\r\n");dbg_printf("     \\   '::' _.-`;       ;\r\n");dbg_printf("     /`-..--;` ;  |       |\r\n");dbg_printf("    ;  ;  ;  ;  ; |       |\r\n");dbg_printf("    ; ;  ;  ; ;  ;        /        ,--.........,\r\n");dbg_printf("    |; ;  ;  ;  ;/       ;       .'           -='.\r\n");dbg_printf("    | ;  ;  ; ; /       /       .\\               '\r\n");dbg_printf("    |  ;   ;  /`      .\\   _,==\"  \\             .'\r\n");dbg_printf("    \\;  ; ; .'. _  ,_'\\.\\~\"   //`. \\          .'\r\n");dbg_printf("    |  ;  .___~' \\ \\- | |    /,\\ `  \\      ..'\r\n");dbg_printf("  ~ ; ; ;/  ==\"'' |`| | |       ==\"''\\.==''\r\n");dbg_printf("  ~ /; ;/=\"\"      |`| |`|   ===\"`\r\n");dbg_printf("  ~..==`     \\\\   |`| / /==\"`\r\n");dbg_printf("   ~` ~      /,\\ / /= )\")\r\n");dbg_printf("  ~ ~~         _')\")\r\n");dbg_printf("  ~ ~   _,=~\";`\r\n");dbg_printf("  ~  =~\"|;  ;|\r\n");dbg_printf("   ~  ~ | ;  |\r\n");dbg_printf("~ ~     |;|\\ |\r\n");dbg_printf("        |/  \\|\r\n");
-	}
 	else if(!strcmp(ppszArgs[0], "volume"))
 	{
 		if(pCmd->nArgs != 2)
