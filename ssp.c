@@ -64,3 +64,9 @@ uint8_t ssp_readwrite(uint8_t byte)
 	while(SSP_GetStatus(SD_DEV, SSP_STAT_RXFIFO_NOTEMPTY) == RESET);
 	return SSP_ReceiveData(SD_DEV);
 }
+
+
+uint8_t ssp_read(void)
+{
+	return ssp_readwrite(0xFF);
+}

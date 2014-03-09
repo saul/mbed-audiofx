@@ -10,6 +10,9 @@
 #include "chain.h"
 
 
+ChainStageHeader_t *g_pChainRoot = NULL;
+
+
 /*
  * stage_alloc
  *
@@ -34,7 +37,17 @@ ChainStageHeader_t *stage_alloc(void)
  */
 void stage_free(ChainStageHeader_t *pStageHdr)
 {
-	dbg_assert(pStageHdr, "cannot free NULL header");
+	dbg_assert(pStageHdr, "cannot free NULL stage");
+
+	StageBranch_t *pBranch = pStageHdr->pFirst;
+
+	while(pBranch)
+	{
+		StageBranch_t *pNextBranch = pBranch->pNext;
+		branch_free(pBranch);
+		pBranch = pNextBranch;
+	}
+
 	free(pStageHdr);
 }
 
@@ -213,12 +226,12 @@ void branch_free(StageBranch_t *pBranch)
  *
  * @returns filtered 10-bit sample
  */
-uint16_t chain_apply(const ChainStageHeader_t *pRoot, uint16_t iSample)
+uint16_t chain_apply(uint16_t iSample)
 {
 	// Upscale 12-bit ADC sample to 32-bit
 	uint32_t iIntermediate = iSample << 20;
 
-	const ChainStageHeader_t *pStageHdr = pRoot;
+	const ChainStageHeader_t *pStageHdr = g_pChainRoot;
 
 	while(pStageHdr)
 	{
@@ -238,12 +251,12 @@ uint16_t chain_apply(const ChainStageHeader_t *pRoot, uint16_t iSample)
  *
  * Prints debug information for each stage in an entire chain.
  */
-void chain_debug(const ChainStageHeader_t *pRoot)
+void chain_debug(void)
 {
-	dbg_printf(" === chain_debug(%p) ===\r\n", (void *)pRoot);
+	dbg_printf(" === chain_debug(%p) ===\r\n", (void *)g_pChainRoot);
 
 	uint i = 0;
-	const ChainStageHeader_t *pStageHdr = pRoot;
+	const ChainStageHeader_t *pStageHdr = g_pChainRoot;
 
 	while(pStageHdr)
 	{
@@ -259,12 +272,12 @@ void chain_debug(const ChainStageHeader_t *pRoot)
 /*
  * chain_get_stage
  *
- * @returns stage of index `nStage` of chain `pRoot`
+ * @returns stage of index `nStage` of chain
  */
-ChainStageHeader_t *chain_get_stage(const ChainStageHeader_t *pRoot, uint8_t nStage)
+ChainStageHeader_t *chain_get_stage(uint8_t nStage)
 {
 	uint8_t i = 0;
-	const ChainStageHeader_t *pStageHdr = pRoot;
+	const ChainStageHeader_t *pStageHdr = g_pChainRoot;
 
 	while(pStageHdr && i < nStage)
 	{
@@ -279,4 +292,22 @@ ChainStageHeader_t *chain_get_stage(const ChainStageHeader_t *pRoot, uint8_t nSt
 	}
 
 	return (ChainStageHeader_t *)pStageHdr;
+}
+
+
+/*
+ * chain_free
+ *
+ * Deallocates entire chain
+ */
+void chain_free(void)
+{
+	ChainStageHeader_t *pStageHdr = g_pChainRoot;
+
+	while(pStageHdr)
+	{
+		ChainStageHeader_t *pNextStage = pStageHdr->pNext;
+		stage_free(pStageHdr);
+		pStageHdr = pNextStage;
+	}
 }

@@ -20,5 +20,6 @@ typedef struct
 
 void ssp_init(void);
 uint8_t ssp_readwrite(uint8_t byte);
+uint8_t ssp_read(void);
 
 #endif

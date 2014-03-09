@@ -7,6 +7,7 @@
 #include "ssp.h"
 #include "sd.h"
 #include "ticktime.h"
+#include "rtc.h"
 
 // How to use MMC/SDC: http://elm-chan.org/docs/mmc/mmc_e.html
 // FatFs: http://elm-chan.org/fsw/ff/00index_e.html
@@ -24,7 +25,9 @@ void sd_init(void)
 
 	uint8_t r1 = 0;
 
+	//-----------------------------------------------------
 	// Send CMD0
+	//-----------------------------------------------------
 	dbg_printf("\tsending software reset... ");
 	sd_cs(false);
 
@@ -39,7 +42,9 @@ void sd_init(void)
 
 	dbg_printf(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
 
+	//-----------------------------------------------------
 	// Send CMD8 with 0x000001AA
+	//-----------------------------------------------------
 	SDR7Response_t r7;
 
 	dbg_printf("\tidentifying card... ");
@@ -53,14 +58,16 @@ void sd_init(void)
 	uint16_t lower12 = r7.extra & ((1<<12) - 1);
 	if(lower12 != 0x1AA)
 	{
-		dbg_printf(ANSI_COLOR_RED "rejected (0x%016x)\r\n" ANSI_COLOR_RESET, lower12);
+		dbg_printf(ANSI_COLOR_RED "rejected (0x%x)\r\n" ANSI_COLOR_RESET, lower12);
 		return;
 	}
 
 	dbg_printf(ANSI_COLOR_GREEN "SDCv2\r\n" ANSI_COLOR_RESET);
 	g_fSDStatus |= SD_STATUS_SDV2;
 
+	//-----------------------------------------------------
 	// Send ACMD41 with HCS flag (bit 30)
+	//-----------------------------------------------------
 	dbg_printf("\tinitialising card... ");
 
 	do
@@ -71,7 +78,9 @@ void sd_init(void)
 
 	dbg_printf(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
 
+	//-----------------------------------------------------
 	// Send CMD58 to check CCS (when set, IO is in block address, fixed to 512)
+	//-----------------------------------------------------
 	SDR7Response_t r3;
 
 	dbg_printf("\tchecking card capacity info... ");
@@ -85,19 +94,20 @@ void sd_init(void)
 	else
 		dbg_printf("byte addressing\r\n");
 
+	//-----------------------------------------------------
 	// Send CMD16 to standardise block size
+	//-----------------------------------------------------
 	dbg_printf("\tsetting block size... ");
 	sd_command(SDCMD_SET_BLOCKLEN, SD_BLOCK_SIZE, SD_RESP_R1, &r1, SD_TIMEOUT_INDEFINITE);
 	if(r1 != 0)
 	{
-		dbg_printf(ANSI_COLOR_RED "failed (%x)\r\n" ANSI_COLOR_RESET, r1);
+		dbg_printf(ANSI_COLOR_RED "failed (0x%x)\r\n" ANSI_COLOR_RESET, r1);
 		return;
 	}
 
 	dbg_printf(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
 
 	// Card initialised!
-	dbg_printf(ANSI_COLOR_GREEN "\tSD card initialised!\r\n" ANSI_COLOR_RESET);
 	g_fSDStatus |= SD_STATUS_READY;
 }
 
@@ -171,7 +181,7 @@ bool sd_command(uint8_t index, uint32_t argument, SDResponseType_e respType, voi
 	uint8_t data;
 	do
 	{
-		data = ssp_readwrite(0xFF);
+		data = ssp_read();
 	} while(data == 0xFF && (ulTimeoutMsec == SD_TIMEOUT_INDEFINITE || time_tickcount() - ulStartTick < ulTimeoutMsec));
 
 	// Did we timeout?
@@ -192,7 +202,7 @@ bool sd_command(uint8_t index, uint32_t argument, SDResponseType_e respType, voi
 
 		// Read 4 more bytes (swap endian)
 		for(int8_t i = sizeof(pR7->extra) - 1; i >= 0; --i)
-			((uint8_t *)&pR7->extra)[i] = ssp_readwrite(0xFF);
+			((uint8_t *)&pR7->extra)[i] = ssp_read();
 
 		break;
 
@@ -203,23 +213,32 @@ bool sd_command(uint8_t index, uint32_t argument, SDResponseType_e respType, voi
 	return true;
 }
 
-void sd_test(void)
-{
-	f_mount(&g_fs, "", 1);
 
-	if(!(g_fSDStatus & SD_STATUS_READY))
+DWORD get_fattime(void)
+{
+	RTC_TIME_Type rtcTime;
+	RTC_GetFullTime(LPC_RTC, &rtcTime);
+
+	return (rtcTime.SEC |
+			(rtcTime.MIN << 5) |
+			(rtcTime.HOUR << 11) |
+			(rtcTime.DOM << 16) |
+			(rtcTime.MONTH << 21) |
+			((rtcTime.YEAR - 1980) << 25));
+}
+
+
+void fs_init(void)
+{
+	FRESULT res = f_mount(&g_fs, "", 1);
+
+	dbg_printf("Mounting file system... ");
+
+	if(res)
 	{
-		dbg_warning("cannot mount FS, no physical card available\r\n");
+		dbg_printf(ANSI_COLOR_RED "failed (%d)\r\n" ANSI_COLOR_RESET, res);
 		return;
 	}
 
-	FIL fh;
-	f_open(&fh, "test.txt", FA_READ);
-
-	char line[96];
-
-	while(f_gets(line, sizeof line, &fh))
-		dbg_printf("%s", line);
-
-	f_close(&fh);
+	dbg_printf(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
 }

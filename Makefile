@@ -51,9 +51,6 @@ OBJ=sercom.o \
 	ticktime.o \
 	led.o \
 	dbg.o \
-	i2c.o \
-	lcd.o \
-	keypad.o \
 	adc.o \
 	dac.o \
 	microtimer.o \
@@ -75,7 +72,9 @@ ifneq ($(strip $(SAUL)),)
 	OBJ += fatfs/ff.o \
 		ssp.o \
 		sd.o \
-		sdio.o
+		sdio.o \
+		chainstore.o \
+		rtc.o
 endif
 
 # Colours

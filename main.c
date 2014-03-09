@@ -9,8 +9,6 @@
 #include "ticktime.h"
 #include "led.h"
 #include "dbg.h"
-#include "i2c.h"
-#include "lcd.h"
 #include "adc.h"
 #include "dac.h"
 #include "microtimer.h"
@@ -27,10 +25,10 @@
 #ifdef INDIVIDUAL_BUILD_SAUL
 #	include "ssp.h"
 #	include "sd.h"
+#	include "rtc.h"
 #endif
 
 
-ChainStageHeader_t *g_pChainRoot = NULL;
 volatile bool g_bChainLock = false;
 volatile bool g_bPassThru = false;
 volatile float g_flChainVolume = 1.0;
@@ -96,7 +94,7 @@ static void time_tick(void *pUserData)
 
 		// If we have a filter chain, apply all filters to the sample
 		if(g_pChainRoot)
-			iFiltered = chain_apply(g_pChainRoot, iSample);
+			iFiltered = chain_apply(iSample);
 	}
 	else
 		led_set(LED_PASS_THRU, true);
@@ -188,16 +186,15 @@ void main(void)
 	time_init(1); // resolution: 1ms
 	uint32_t ulStartTick = time_tickcount();
 
-	// I2C init
-	i2c_init();
-	//i2c_scan();
-
-	// LCD init
-	//lcd_init();
-
 #ifdef INDIVIDUAL_BUILD_SAUL
 	// SSP init
 	ssp_init();
+
+	// FS init
+	fs_init();
+
+	// RTC init
+	rtc_init();
 #endif
 
 	// ADC init
@@ -217,20 +214,14 @@ void main(void)
 	// Check static assertions (does nothing at run-time)
 	packet_static_assertions();
 
-#ifdef INDIVIDUAL_BUILD_SAUL
-	sd_test();
-	return;
-#endif
-
 	// Clear sample buffer
 	for(uint16_t i = 0; i < BUFFER_SAMPLES; ++i)
 		sample_set(i, 0);
 
-	// Debug filters
-	filter_debug();
-
 	// Send filter list to UI (finalises boot sequence)
+	dbg_printf("Sending filter list... ");
 	packet_filter_list_send();
+	dbg_printf(ANSI_COLOR_GREEN "transferred!\r\n" ANSI_COLOR_RESET);
 
 	// Generate an empty filter chain
 	g_pChainRoot = stage_alloc();

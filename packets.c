@@ -15,6 +15,9 @@
 #include "packets.h"
 #include "chain.h"
 #include "samples.h"
+#ifdef INDIVIDUAL_BUILD_SAUL
+#	include "chainstore.h"
+#endif
 
 
 const char *g_ppszPacketTypes[] = {
@@ -46,7 +49,7 @@ PacketHandler_t g_pPacketHandlers[] = {
 	{packet_filter_mod_receive, true, PACKET_SIZE_MIN(sizeof(FilterModPacket_t))}, // U2B_FILTER_MOD
 	{packet_filter_mix_receive, true, PACKET_SIZE_EXACT(sizeof(FilterMixPacket_t))}, // U2B_FILTER_MIX
 	{packet_volume_receive, false, PACKET_SIZE_EXACT(sizeof(VolumePacket_t))}, // U2B_VOLUME
-	{packet_cmd_receive, false, PACKET_SIZE_MIN(sizeof(CommandPacket_t))}, // U2B_ARB_CMD
+	{packet_cmd_receive, true, PACKET_SIZE_MIN(sizeof(CommandPacket_t))}, // U2B_ARB_CMD
 #ifdef INDIVIDUAL_BUILD_TOM
 	{NULL, false, 0}, // B2U_ANALOG_CONTROL
 #endif // INDIVIDUAL_BUILD_TOM
@@ -54,7 +57,7 @@ PacketHandler_t g_pPacketHandlers[] = {
 
 
 static bool s_bDebugPacketReceipt = true;
-static bool s_bDebugChainAfterLock = false;
+static bool s_bDebugChainAfterLock = true;
 
 
 #pragma GCC diagnostic push
@@ -171,7 +174,7 @@ void packet_loop(void)
 		g_bChainLock = false;
 
 		if(s_bDebugChainAfterLock)
-			chain_debug(g_pChainRoot);
+			chain_debug();
 	}
 
 	free(pPayload);
@@ -191,7 +194,7 @@ void packet_filter_create_receive(const PacketHeader_t *pHdr, const uint8_t *pPa
 {
 	const FilterCreatePacket_t *pFilterCreate = (FilterCreatePacket_t *)pPayload;
 
-	ChainStageHeader_t *pStageHdr = chain_get_stage(g_pChainRoot, pFilterCreate->nStage);
+	ChainStageHeader_t *pStageHdr = chain_get_stage(pFilterCreate->nStage);
 	if(!pStageHdr)
 		return;
 
@@ -232,7 +235,7 @@ void packet_filter_delete_receive(const PacketHeader_t *pHdr, const uint8_t *pPa
 {
 	const FilterDeletePacket_t *pFilterDelete = (FilterDeletePacket_t *)pPayload;
 
-	ChainStageHeader_t *pStageHdr = chain_get_stage(g_pChainRoot, pFilterDelete->nStage);
+	ChainStageHeader_t *pStageHdr = chain_get_stage(pFilterDelete->nStage);
 	if(!pStageHdr)
 		return;
 
@@ -268,7 +271,7 @@ void packet_filter_delete_receive(const PacketHeader_t *pHdr, const uint8_t *pPa
 	}
 	else
 	{
-		ChainStageHeader_t *pPrevStageHdr = chain_get_stage(g_pChainRoot, pFilterDelete->nStage - 1);
+		ChainStageHeader_t *pPrevStageHdr = chain_get_stage(pFilterDelete->nStage - 1);
 		pPrevStageHdr->pNext = pStageHdr->pNext;
 	}
 
@@ -281,7 +284,7 @@ void packet_filter_flag_receive(const PacketHeader_t *pHdr, const uint8_t *pPayl
 {
 	const FilterFlagPacket_t *pFilterFlag = (FilterFlagPacket_t *)pPayload;
 
-	ChainStageHeader_t *pStageHdr = chain_get_stage(g_pChainRoot, pFilterFlag->nStage);
+	ChainStageHeader_t *pStageHdr = chain_get_stage(pFilterFlag->nStage);
 	if(!pStageHdr)
 		return;
 
@@ -301,7 +304,7 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 {
 	const FilterModPacket_t *pFilterMod = (FilterModPacket_t *)pPayload;
 
-	ChainStageHeader_t *pStageHdr = chain_get_stage(g_pChainRoot, pFilterMod->nStage);
+	ChainStageHeader_t *pStageHdr = chain_get_stage(pFilterMod->nStage);
 	if(!pStageHdr)
 		return;
 
@@ -340,7 +343,7 @@ void packet_filter_mix_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 {
 	const FilterMixPacket_t *pFilterMix = (FilterMixPacket_t *)pPayload;
 
-	ChainStageHeader_t *pStageHdr = chain_get_stage(g_pChainRoot, pFilterMix->nStage);
+	ChainStageHeader_t *pStageHdr = chain_get_stage(pFilterMix->nStage);
 	if(!pStageHdr)
 		return;
 
@@ -430,7 +433,7 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 
 	if(!strcmp(ppszArgs[0], "chain_debug"))
 	{
-		chain_debug(g_pChainRoot);
+		chain_debug();
 	}
 	else if(!strcmp(ppszArgs[0], "filter_debug"))
 	{
@@ -444,7 +447,7 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 			goto cleanup;
 		}
 
-		ChainStageHeader_t *pStageHdr = chain_get_stage(g_pChainRoot, atoi(ppszArgs[1]));
+		ChainStageHeader_t *pStageHdr = chain_get_stage(atoi(ppszArgs[1]));
 
 		if(pStageHdr)
 			stage_debug(pStageHdr);
@@ -490,6 +493,28 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 	{
 		dbg_printf("Pong!\r\n");
 	}
+#ifdef INDIVIDUAL_BUILD_SAUL
+	else if(!strcmp(ppszArgs[0], "chain_save"))
+	{
+		if(pCmd->nArgs != 2)
+		{
+			dbg_warning("syntax: <path>\r\n");
+			goto cleanup;
+		}
+
+		chainstore_save(ppszArgs[1]);
+	}
+	else if(!strcmp(ppszArgs[0], "chain_restore"))
+	{
+		if(pCmd->nArgs != 2)
+		{
+			dbg_warning("syntax: <path>\r\n");
+			goto cleanup;
+		}
+
+		chainstore_restore(ppszArgs[1]);
+	}
+#endif
 	else
 		dbg_warning("unknown command\r\n");
 

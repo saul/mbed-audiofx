@@ -82,9 +82,10 @@ StageBranch_t *branch_alloc(Filter_e iFilterType, uint8_t flags, float flMixPerc
 void branch_free(StageBranch_t *pBranch);
 
 
-uint16_t chain_apply(const ChainStageHeader_t *pRoot, uint16_t iSample);
-void chain_debug(const ChainStageHeader_t *pRoot);
-StageBranch_t *chain_get_branch(const ChainStageHeader_t *pRoot, uint8_t nStage, uint8_t nBranch);
-ChainStageHeader_t *chain_get_stage(const ChainStageHeader_t *pRoot, uint8_t nStage);
+void chain_free(void);
+uint16_t chain_apply(uint16_t iSample);
+void chain_debug();
+StageBranch_t *chain_get_branch(uint8_t nStage, uint8_t nBranch);
+ChainStageHeader_t *chain_get_stage(uint8_t nStage);
 
 #endif

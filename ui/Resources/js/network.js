@@ -65,8 +65,12 @@ packetHandlers[PacketTypes.B2U_PRINT] = function(packet) {
 		msg = parts[parts.length-1];
 	}
 
-	// Strip cursor movement
-	msg = msg.replace(/\x1b\[(\d+)?;?(\d+)?H/g, '');
+	// Strip cursor movement and make HTML safe
+	msg = msg.replace(/\x1b\[(\d+)?;?(\d+)?H/g, '')
+			 .replace(/&/g, '&amp;')
+		     .replace(/"/g, '&quot;')
+		     .replace(/</g, '&lt;')
+		     .replace(/>/g, '&gt;');
 
 	$('#console-text').append(ansi_up.ansi_to_html(msg));
 };

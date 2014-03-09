@@ -52,7 +52,7 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count)
 
 	// Wait for data packet
 	uint8_t token;
-	while((token = ssp_readwrite(0xFF)) == 0xFF);
+	while((token = ssp_read()) == 0xFF);
 
 	// Check for error token
 	if(!(token & (1<<5)))
@@ -63,11 +63,11 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count)
 
 	// Read data block
 	for(int i = 0; i < SD_BLOCK_SIZE; ++i)
-		buff[i] = ssp_readwrite(0xFF);
+		buff[i] = ssp_read();
 
 	// Read CRC
-	ssp_readwrite(0xFF);
-	ssp_readwrite(0xFF);
+	ssp_read();
+	ssp_read();
 
 	return RES_OK;
 }
@@ -76,7 +76,48 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count)
 DRESULT disk_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count)
 {
 	dbg_assert(pdrv == 0, "invalid drive number");
-	return RES_ERROR;
+	dbg_assert(count == 1, "multiple block write not supported");
+
+	uint32_t addr = sector;
+
+	if(!(g_fSDStatus & SD_STATUS_BLOCKADDR))
+		addr *= SD_BLOCK_SIZE;
+
+	uint8_t r1;
+	sd_command(SDCMD_WRITE_BLOCK, addr, SD_RESP_R1, &r1, SD_TIMEOUT_INDEFINITE);
+
+	if(r1 != 0)
+	{
+		dbg_warning("WRITE_BLOCK failed (%x)\r\n", r1);
+		return RES_ERROR;
+	}
+
+	// Write a byte before the data packet
+	ssp_read();
+
+	// Write data packet token for CMD24
+	ssp_readwrite(~0x1);
+
+	for(uint16_t i = 0; i < SD_BLOCK_SIZE; ++i)
+		ssp_readwrite(buff[i]);
+
+	// Write empty CRC
+	ssp_readwrite(0x0);
+	ssp_readwrite(0x0);
+
+	// Read data response
+	uint8_t iDataResponse = ssp_read() & 0x1F;
+
+	if(iDataResponse != 0x5)
+	{
+		dbg_warning("unexpected data response (%x)", iDataResponse);
+		return RES_ERROR;
+	}
+
+	// Wait until card not busy
+	while(ssp_read() != 0xFF);
+
+	return RES_OK;
 }
 
 

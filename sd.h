@@ -5,8 +5,12 @@
 #include <stdbool.h>
 #include "fatfs/ff.h"
 
+
+// Externs
+// ----------------------------------------------------------------------------
 extern FATFS g_fs;
 extern uint8_t g_fSDStatus;
+
 
 // Constants
 // ----------------------------------------------------------------------------
@@ -17,6 +21,7 @@ extern uint8_t g_fSDStatus;
 #define SD_STATUS_BLOCKADDR	(1<<2)
 
 #define SD_TIMEOUT_INDEFINITE	0
+
 
 // Commands
 // ----------------------------------------------------------------------------
@@ -36,6 +41,7 @@ extern uint8_t g_fSDStatus;
 #define SDCMD_WRITE_MULTIPLE_BLOCK 25
 #define SDCMD_APP_CMD			55 // Leading command of APP_* commands.
 #define SDCMD_READ_OCR			58
+
 
 // Responses
 // ----------------------------------------------------------------------------
@@ -76,6 +82,6 @@ void sd_init(void);
 void sd_cs(bool high);
 void sd_send_command(uint8_t index, uint32_t argument);
 bool sd_command(uint8_t index, uint32_t argument, SDResponseType_e respType, void *pRespData, uint32_t ulTimeoutMsec);
-void sd_test(void);
+void fs_init(void);
 
 #endif
