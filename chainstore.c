@@ -296,7 +296,12 @@ void chainstore_restore(const char *pszPath)
 					return;
 				}
 
-				// TODO: validate offset
+				// Check offset
+				if(storeParam.iOffset < pBranch->pFilter->nNonPublicDataSize || storeParam.iOffset + storeParam.nSize > pBranch->pFilter->nFilterDataSize)
+				{
+					dbg_warning("invalid offset/size for parameter data\r\n");
+					return;
+				}
 
 				// Read parameter data into memory
 				if((res = f_read(&fh, &pUnknown[storeParam.iOffset], storeParam.nSize, &nRead)) || nRead != storeParam.nSize)
@@ -305,6 +310,10 @@ void chainstore_restore(const char *pszPath)
 					return;
 				}
 			}
+
+			// Trigger filter modified
+			if(pBranch->pFilter->pfnModCallback)
+				pBranch->pFilter->pfnModCallback(pBranch->pUnknown);
 
 			if(pLastBranch)
 				pLastBranch = pLastBranch->pNext = pBranch;
@@ -318,6 +327,8 @@ void chainstore_restore(const char *pszPath)
 		// Allocate the next stage
 		pStageHdr = pStageHdr->pNext = stage_alloc();
 	}
+
+	f_close(&fh);
 
 	dbg_printf(ANSI_COLOR_GREEN "Restored chain from \"%s\"\r\n" ANSI_COLOR_RESET, pszPath);
 }
