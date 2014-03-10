@@ -4,6 +4,7 @@
 typedef struct
 {
 	uint16_t nDelay; ///< sample delay
+	float flDelayMixPerc;
 } FilterDelayData_t;
 
 
