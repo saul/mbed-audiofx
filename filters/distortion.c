@@ -4,7 +4,7 @@
 #include "distortion.h"
 
 
-uint32_t filter_bitcrusher_apply(uint32_t input, void *pUnknown)
+int32_t filter_bitcrusher_apply(int32_t input, void *pUnknown)
 {
 	const FilterBitcrusherData_t *pData = (const FilterBitcrusherData_t *)pUnknown;
 

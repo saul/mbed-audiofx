@@ -20,7 +20,7 @@ typedef struct
 #pragma pack(pop)
 
 
-uint32_t filter_fir_apply(uint32_t input, void *pUnknown);
+int32_t filter_fir_apply(int32_t input, void *pUnknown);
 void filter_bandpass_debug(void *pUnknown);
 void filter_bandpass_mod(void *pUnknown);
 void filter_bandpass_create(void *pUnknown);

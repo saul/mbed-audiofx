@@ -15,7 +15,7 @@ volatile uint16_t g_iVibratoSampleCursor = 0;
 static SampleAverage_t s_SampleAverage;
 
 
-static uint32_t sample_get_raw(int16_t index, bool bAffectedByVibrato)
+static int32_t sample_get_raw(int16_t index, bool bAffectedByVibrato)
 {
 	if(g_bVibratoActive && bAffectedByVibrato)
 		return sample_get_interpolated(index);
@@ -27,7 +27,7 @@ static uint32_t sample_get_raw(int16_t index, bool bAffectedByVibrato)
 }
 
 
-uint32_t sample_get(int16_t index)
+int32_t sample_get(int16_t index)
 {
 	// return sample from past
 	if(index < 0)
@@ -42,7 +42,7 @@ uint32_t sample_get(int16_t index)
 }
 
 
-void sample_set(int16_t index, uint16_t value)
+void sample_set(int16_t index, int16_t value)
 {
 	// set sample from past
 	if(index < 0)
@@ -61,7 +61,7 @@ void sample_set(int16_t index, uint16_t value)
 }
 
 
-uint32_t sample_get_interpolated(float index)
+int32_t sample_get_interpolated(float index)
 {
 	// return interpolated sample from past
 
@@ -79,8 +79,8 @@ uint32_t sample_get_interpolated(float index)
 	else
 		i = (int) index;
 
-	uint32_t si = sample_get_raw(i, false);
-	uint32_t sj = sample_get_raw(i+1, false);
+	int32_t si = sample_get_raw(i, false);
+	int32_t sj = sample_get_raw(i+1, false);
 
 	return si + ((index - i) * (sj - si));
 }

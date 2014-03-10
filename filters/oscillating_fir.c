@@ -10,7 +10,7 @@
 #include "oscillating_fir.h"
 
 
-uint32_t filter_oscillating_bandpass_apply(uint32_t input, void *pUnknown)
+int32_t filter_oscillating_bandpass_apply(int32_t input, void *pUnknown)
 {
 	FilterOscillatingBandPassData_t *pData = (FilterOscillatingBandPassData_t *)pUnknown;
 

@@ -26,7 +26,7 @@ typedef enum
  * `pUnknown` should be cast to the struct that holds the parameters for this
  * filter.
  */
-typedef uint32_t (*FilterApply_t)(uint32_t input, void *pUnknown);
+typedef int32_t (*FilterApply_t)(int32_t input, void *pUnknown);
 
 
 /*

@@ -61,7 +61,7 @@ void stage_free(ChainStageHeader_t *pStageHdr)
  *
  * @returns filtered 32-bit sample
  */
-uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample)
+int32_t stage_apply(const ChainStageHeader_t *pStageHdr, int32_t iSample)
 {
 	dbg_assert(pStageHdr->nBranches > 0, "stage has no branches");
 
@@ -226,10 +226,10 @@ void branch_free(StageBranch_t *pBranch)
  *
  * @returns filtered 10-bit sample
  */
-uint16_t chain_apply(uint16_t iSample)
+int16_t chain_apply(int16_t iSample)
 {
 	// Upscale 12-bit ADC sample to 32-bit
-	uint32_t iIntermediate = iSample << 20;
+	int32_t iIntermediate = iSample << 19;
 
 	const ChainStageHeader_t *pStageHdr = g_pChainRoot;
 

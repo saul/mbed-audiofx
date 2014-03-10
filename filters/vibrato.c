@@ -30,7 +30,7 @@ float vibrato_get_cursor(void *pUnknown)
 }
 
 
-uint32_t filter_vibrato_apply(uint32_t input, void *pUnknown)
+int32_t filter_vibrato_apply(int32_t input, void *pUnknown)
 {
 	g_bVibratoActive = true;
 	return input;

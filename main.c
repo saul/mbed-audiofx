@@ -78,11 +78,12 @@ static void time_tick(void *pUserData)
 	uint32_t ulStartTick = time_tickcount();
 
 	// Grab median sample from 3 ADC inputs (removes most of salt+pepper noise)
-	uint16_t iSample = get_median_sample();
+	// Subtract ADC_MID_POINT so we are working with 0 as the mid-point
+	int16_t iSample = get_median_sample() - ADC_MID_POINT;
 	sample_set(g_iSampleCursor, iSample);
 
 	// Scale sample down to 10-bit (DAC resolution)
-	uint16_t iFiltered = iSample >> 2;
+	int16_t iFiltered = iSample >> 2;
 
 	// If the filter chain is locked for modification (e.g., by a packet
 	// handler), don't try to apply the chain. It may be in an intermediate
@@ -100,8 +101,10 @@ static void time_tick(void *pUserData)
 		led_set(LED_PASS_THRU, true);
 
 	// Output to DAC
-	uint16_t iScaledOut = iFiltered * g_flChainVolume;
-	dac_set(iScaledOut);
+	int16_t iScaledOut = iFiltered * g_flChainVolume;
+
+	// Add ADC_MID_POINT to work from the 0-(2^10) range again
+	dac_set(iScaledOut + ADC_MID_POINT);
 
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;

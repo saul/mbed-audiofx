@@ -73,7 +73,7 @@ extern volatile float g_flChainVolume;
 
 ChainStageHeader_t *stage_alloc();
 void stage_free(ChainStageHeader_t *pStageHdr);
-uint32_t stage_apply(const ChainStageHeader_t *pStageHdr, uint32_t iSample);
+int32_t stage_apply(const ChainStageHeader_t *pStageHdr, int32_t iSample);
 void stage_debug(const ChainStageHeader_t *pStageHdr);
 StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBranch);
 

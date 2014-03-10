@@ -12,7 +12,7 @@
 // For this reason, there may need to be a change to the overall filter chain,
 // otherwise filters combined with a flange will be processing a 'newer' sample
 
-uint32_t filter_flange_apply(uint32_t input, void *pUnknown)
+int32_t filter_flange_apply(int32_t input, void *pUnknown)
 {
 	const FilterFlangeData_t *pData = (const FilterFlangeData_t *)pUnknown;
 
@@ -20,7 +20,7 @@ uint32_t filter_flange_apply(uint32_t input, void *pUnknown)
 	//       parameter checks in the filter apply code
 	dbg_assert(pData->nDelay < BUFFER_SAMPLES / 2, "invalid flange parameter (nDelay)");
 
-	uint32_t output = (1 - pData->flangedMix) * sample_get(-pData->nDelay);
+	int32_t output = (1 - pData->flangedMix) * sample_get(-pData->nDelay);
 
 	// TODO: validate waveType value
 	switch (pData->waveType)
