@@ -5,6 +5,10 @@
  *	File created by:	TB
  *	File modified by:	TB
  *	File debugged by:	TB
+ *
+ *	dynamic.c
+ *
+ *	Defines functions to apply various dynamic effects to a sample.
  */
 
 

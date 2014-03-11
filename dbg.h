@@ -1,4 +1,10 @@
 /*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *	Saul Rennison Individual Part
+ *
+ *	File modified from TB & SR Mini-Project work
+ *
  * dbg.c - Debug functions
  *
  * Defines several functions for assertions, warnings and errors (program

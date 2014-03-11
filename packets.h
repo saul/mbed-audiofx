@@ -1,4 +1,12 @@
 /*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *	Saul Rennison Individual Part
+ *
+ *	File created by:	SR
+ *	File modified by:	TB & SR
+ *	File debugged by:	TB & SR
+ *
  * packets.c - Packet receipt and transmission
  *
  * Defines several enumerations and functions to handle sending and receiving

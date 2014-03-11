@@ -1,3 +1,16 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *	Saul Rennison Individual Part
+ *
+ *	File modified from TB & SR Mini-Project work
+ *
+ * ticktime.c - Tick timer functions
+ *
+ * Defines functions for initialising and obtaining tick timer values
+ */
+
+
 #ifndef _TICKTIME_H_
 #define _TICKTIME_H_
 

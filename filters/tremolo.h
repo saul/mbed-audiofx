@@ -5,6 +5,10 @@
  *	File created by:	TB
  *	File modified by:	TB
  *	File debugged by:	TB
+ *
+ *	tremolo.c
+ *
+ *	Defines functions to apply a tremolo effect to a sample.
 */
 
 

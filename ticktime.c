@@ -1,3 +1,15 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *	Saul Rennison Individual Part
+ *
+ *	File modified from TB & SR Mini-Project work
+ *
+ * ticktime.c - Tick timer functions
+ *
+ * Defines functions for initialising and obtaining tick timer values
+ */
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
 #	include "lpc17xx_systick.h"
@@ -11,12 +23,14 @@ static volatile uint32_t s_ulTickCount = 0;
 static float s_flSecsPerTick;
 
 
+// Increment tickCount on interrupt
 void SysTick_Handler(void)
 {
 	s_ulTickCount++;
 }
 
 
+// Initialise time to the resolution of 'iResMsec'
 void time_init(uint32_t iResMsec)
 {
 	s_flSecsPerTick = iResMsec / 1000.0;
@@ -29,6 +43,7 @@ void time_init(uint32_t iResMsec)
 }
 
 
+// Returns true if time has been initialised, else false
 bool time_setup(void)
 {
 	return s_bTimeSetup;
@@ -43,6 +58,7 @@ float time_realtime(void)
 }
 
 
+// Sleep function (sleeps for 'msec' milliseconds)
 void time_sleep(uint32_t msec)
 {
 	dbg_assert(s_bTimeSetup, "time not initialised");
@@ -54,6 +70,7 @@ void time_sleep(uint32_t msec)
 }
 
 
+// Returns the current tick count
 uint32_t time_tickcount(void)
 {
 	dbg_assert(s_bTimeSetup, "time not initialised");
@@ -61,6 +78,7 @@ uint32_t time_tickcount(void)
 }
 
 
+// Returns the current tick interval
 float time_tickinterval(void)
 {
 	dbg_assert(s_bTimeSetup, "time not initialised");

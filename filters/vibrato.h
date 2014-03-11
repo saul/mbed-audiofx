@@ -5,6 +5,10 @@
  *	File created by:	TB
  *	File modified by:	TB
  *	File debugged by:	TB
+ *
+ *	vibrato.c
+ *
+ *	Defines functions to apply a vibrato effect to a sample.
 */
 
 

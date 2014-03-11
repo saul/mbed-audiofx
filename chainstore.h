@@ -1,4 +1,12 @@
 /*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *	Saul Rennison Individual Part
+ *
+ *	File created by:	SR
+ *	File modified by:	SR
+ *	File debugged by:	SR
+ *
  * chainstore.c - Chain loading and saving functions
  *
  * Defines functions to serialise the current filter chain and save it to disk

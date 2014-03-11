@@ -5,6 +5,10 @@
  *	File created by:	TB
  *	File modified by:	TB
  *	File debugged by:	TB
+ *
+ *	distortion.c
+ *
+ *	Defines functions to apply a distortion to a sample.
 */
 
 

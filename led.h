@@ -1,4 +1,9 @@
 /*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File modified from TB & SR Mini-Project work
+ *
  * led.c - on-board LED functions
  *
  * Defines several functions for management of on-board LED state.

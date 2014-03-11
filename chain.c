@@ -1,8 +1,14 @@
 /*
- * chainstore.c - Chain loading and saving functions
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
  *
- * Defines functions to serialise the current filter chain and save it to disk
- * in a binary format.
+ *	File created by:	SR
+ *	File modified by:	TB & SR
+ *	File debugged by:	TB & SR
+ *
+ * chain.c - Filter chain
+ *
+ * Defines structures and functions to manage and manipulate the filter chain.
  */
 
 #include <stdlib.h>

@@ -5,6 +5,10 @@
  *	File created by:	TB
  *	File modified by:	TB
  *	File debugged by:	TB
+ *
+ * waves.c - Wave functions
+ *
+ * Defines functions for obtaining various wave values.
  */
 
 

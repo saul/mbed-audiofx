@@ -1,4 +1,9 @@
 /*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File modified from TB & SR Mini-Project work
+ *
  * keypad.c - i2c keypad functions
  *
  * Defines several functions for testing and managing which keys are pressed

@@ -5,6 +5,10 @@
  *	File created by:	TB
  *	File modified by:	TB
  *	File debugged by:	TB
+ *
+ *	flange.c
+ *
+ *	Defines functions to apply a flange effect to a sample.
 */
 
 

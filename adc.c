@@ -1,4 +1,9 @@
 /*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File modified from TB & SR Mini-Project work
+ *
  * adc.c - Analog -> Digital functions
  *
  * Defines several functions for configuring and reading from the ADC.

@@ -1,4 +1,12 @@
 /*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *	Saul Rennison Individual Part
+ *
+ *	File created by:	SR
+ *	File modified by:	SR
+ *	File debugged by:	SR
+ *
  * microtimer.c - Match timer functions
  *
  * Defines several functions for managing microsecond timers.

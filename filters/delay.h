@@ -5,6 +5,10 @@
  *	File created by:	SR
  *	File modified by:	TB & SR
  *	File debugged by:	TB & SR
+ *
+ *	delay.c
+ *
+ *	Defines functions to apply a delay to a sample
 */
 
 

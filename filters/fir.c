@@ -5,6 +5,10 @@
  *	File created by:	SR
  *	File modified by:	SR
  *	File debugged by:	SR
+ *
+ *	fir.c
+ *
+ *	Defines functions to apply a band-pass filter to a sample.
 */
 
 
