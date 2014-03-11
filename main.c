@@ -220,9 +220,6 @@ void main(void)
 	// DAC init
 	dac_init();
 
-	// Check static assertions (does nothing at run-time)
-	packet_static_assertions();
-
 	// Clear sample buffer
 	for(uint16_t i = 0; i < BUFFER_SAMPLES; ++i)
 		sample_set(i, 0);

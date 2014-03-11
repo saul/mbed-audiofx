@@ -52,11 +52,6 @@ void filter_bandpass_mod(void *pUnknown)
 	float fc1 = FREQ_TO_PI_FRAC(iLowerFreq);
 	float fc2 = FREQ_TO_PI_FRAC(iUpperFreq);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdouble-promotion"
-	//dbg_printf("filter_bandpass_mod: coeffs=%d, lowcut=%.3f, uppercut=%.3f\r\n", pData->base.nCoefficients, fc1, fc2);
-#pragma GCC diagnostic pop
-
 	// Calculate new coefficients
 	for(uint8_t i = 0; i < pData->base.nCoefficients; ++i)
 	{
