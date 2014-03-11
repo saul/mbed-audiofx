@@ -1,3 +1,17 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File created by:	SR
+ *	File modified by:	TB & SR
+ *	File debugged by:	TB & SR
+ *
+ * ui.js
+ *
+ * Main js control functions for the UI.
+ */
+
+
 $(function() {
 	$('#reset-board').click(function() {
 		// Send a reset packet to the board
@@ -255,15 +269,14 @@ $(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.
 
 
 /* Tom individual */
+// Called when a user changes any of the analog control checkboxes
 $(document).on('change', '.ac-checkbox', $.debounce(250, function() {
 	updateAnalogControls(ac_value);
 }));
-/* End Tom individual */
 
-
-/* Tom individual */
 var ac_value = 0;
 
+// Update checked analoog controls with the analog value
 function updateAnalogControls(new_value) {
 	ac_value = new_value;
 
