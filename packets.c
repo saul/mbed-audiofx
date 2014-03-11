@@ -611,7 +611,7 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 			goto cleanup;
 		}
 
-		uint32_t iAverage = sample_get_average(atoi(ppszArgs[1]));
+		uint16_t iAverage = sample_get_average(atoi(ppszArgs[1]));
 		float flVolume = (iAverage * 100.0) / ADC_MAX_VALUE;
 		dbg_printf("average = %.2f%%\r\n", flVolume);
 	}

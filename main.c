@@ -83,13 +83,12 @@ static void time_tick(void *pUserData)
 	int16_t iSample = get_median_sample() - ADC_MID_POINT;
 	sample_set(g_iSampleCursor, iSample);
 
+	// Reset vibrato active
+	g_bVibratoActive = false;
 
 	// If the filter chain is locked for modification (e.g., by a packet
 	// handler), don't try to apply the chain. It may be in an intermediate
 	// state/cause crashes/sound funky. Just passthru.
-
-	g_bVibratoActive = false;
-
 	if(!g_bChainLock && !g_bPassThru)
 	{
 		led_set(LED_PASS_THRU, false);
@@ -105,9 +104,12 @@ static void time_tick(void *pUserData)
 	// Output to DAC
 	int16_t iScaledOut = iSample * g_flChainVolume;
 	iScaledOut += ADC_MID_POINT;
-	iScaledOut = iScaledOut >> 2;
 
-	// Add ADC_MID_POINT to work from the 0-(2^10) range again
+	if(iScaledOut < 0)
+		iScaledOut = 0;
+	else
+		iScaledOut = iScaledOut >> 2;
+
 	dac_set(iScaledOut);
 
 	// Increase sample cursor

@@ -88,7 +88,7 @@ int16_t sample_get_interpolated(float index)
 }
 
 
-uint32_t sample_get_average(uint16_t nSamples)
+uint16_t sample_get_average(uint16_t nSamples)
 {
 	// Returns the average of the most recent 'nSamples' samples.
 	// Result is the average distance from baseline to peak (result <= ADC_MAX_VALUE / 2).
@@ -102,7 +102,7 @@ uint32_t sample_get_average(uint16_t nSamples)
 	int32_t sum = 0;
 	for(uint16_t i = 0; i < nSamples; ++i)
 	{
-		int32_t intermediate = sample_get(-i);
+		int32_t intermediate = i == 0 ? : sample_get(g_iSampleCursor) : sample_get(-i);
 		sum += intermediate * intermediate;
 	}
 
