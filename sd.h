@@ -1,4 +1,12 @@
 /*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *	Saul Rennison Individual Part
+ *
+ *	File created by:	SR
+ *	File modified by:	SR
+ *	File debugged by:	SR
+ *
  * sd.c - SD card initialisation and communication
  *
  * How to use MMC/SDC:
