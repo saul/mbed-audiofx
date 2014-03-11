@@ -14,8 +14,11 @@
 // little-endian "MBED"
 #define PACKET_IDENT (('D' << 24) | ('E' << 16) | ('B' << 8) | 'M')
 
+extern volatile bool g_bUARTLock;
+
 void sercom_init(void);
 void sercom_send(PacketType_e packet_type, const uint8_t *pBuf, uint16_t size);
-bool sercom_receive(PacketHeader_t *pHdr, uint8_t **pPayload);
+PacketHeader_t *sercom_receive_nonblock(uint8_t **ppPayload);
+bool sercom_receive(PacketHeader_t *pHdr, uint8_t **ppPayload);
 
 #endif

@@ -13,6 +13,7 @@
 #include "dac.h"
 #include "microtimer.h"
 #include "i2c.h"
+#include "keypad.h"
 
 // audiofx
 #include "config.h"
@@ -219,9 +220,6 @@ void main(void)
 	// DAC init
 	dac_init();
 
-	// Check static assertions (does nothing at run-time)
-	packet_static_assertions();
-
 	// Clear sample buffer
 	for(uint16_t i = 0; i < BUFFER_SAMPLES; ++i)
 		sample_set(i, 0);
@@ -251,10 +249,17 @@ void main(void)
 	microtimer_enable(0, TIM_PRESCALE_USVAL, 100, 10000 / SAMPLE_RATE, time_tick, NULL);
 
 	//-----------------------------------------------------
-	// Packet receive loop
+	// Serial/keypad processing loop
 	//-----------------------------------------------------
 	while(1)
 	{
+		// Process any inbound packets
 		packet_loop();
+
+		// Update keypad key state
+		keypad_scan();
+
+		// Is the * key pressed?
+		g_bPassThru = keypad_is_keydown('*');
 	}
 }

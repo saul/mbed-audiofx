@@ -51,7 +51,6 @@ static void chainstore_save_branch(FIL *pFile, const StageBranch_t *pBranch)
 
 	// Calculate filter index
 	ptrdiff_t iFilterIndex = pBranch->pFilter - g_pFilters;
-	dbg_printf("\tbranch %s (index=%d):\r\n", pBranch->pFilter->pszName, iFilterIndex);
 
 	// Reserve space for branch header
 	DWORD iHdrCursor = f_tell(pFile);
@@ -121,8 +120,6 @@ static void chainstore_save_branch(FIL *pFile, const StageBranch_t *pBranch)
 			return;
 		}
 
-		dbg_printf("\t\tparam #%d: name=%.*s,absoffset=%d,size=%d\r\n", nParams, nParamNameLen, pParam, offset, param.nSize);
-
 		// Move to next parameter
 		pParam = pszNextParam;
 		nParams++;
@@ -181,7 +178,6 @@ void chainstore_save(const char *pszPath)
 
 	while(pStageHdr->pNext)
 	{
-		dbg_printf("Saving stage #%d...\r\n", nStages);
 		ChainStoreStageHeader_t stageHdr;
 		stageHdr.nBranches = pStageHdr->nBranches;
 

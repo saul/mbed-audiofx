@@ -64,23 +64,31 @@ void keypad_init(void)
  *
  * @returns is key `key` pressed?
  */
-int keypad_is_keydown(char key)
+bool keypad_is_keydown(char key)
 {
 	// Convert key -> row/col
+	bool bFound = false;
 	uint8_t row, col;
+
 	for(row = 0; row < 4; ++row)
 	{
 		for(col = 0; col < 4; ++col)
 		{
-			if(s_chKeyMap[row][col] == key)
-				break;
+			if(s_chKeyMap[row][col] != key)
+				continue;
+
+			bFound = true;
+			break;
 		}
+
+		if(bFound)
+			break;
 	}
 
 	if(row == 4 || col == 4)
 	{
 		dbg_error("key %c is not valid (not on keypad)", key);
-		return -1;
+		return false;
 	}
 
 	return s_KeypadState.ppKeyState[row][col].bKeyDown;
