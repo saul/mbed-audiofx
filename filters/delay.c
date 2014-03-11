@@ -4,7 +4,6 @@
 #include "samples.h"
 #include "delay.h"
 
-
 int32_t filter_delay_apply(int32_t input, void *pUnknown)
 {
 	const FilterDelayData_t *pData = (const FilterDelayData_t *)pUnknown;

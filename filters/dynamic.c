@@ -79,9 +79,9 @@ int32_t filter_expander_apply(int32_t input, void *pUnknown)
 	if(average > pData->threshold)
 		return input;
 
-	if(signed_input < -ADC_MID_POINT)
+	if(input < -ADC_MID_POINT)
 		return -ADC_MID_POINT << 20;
-	if(signed_input > ADC_MID_POINT)
+	if(input > ADC_MID_POINT)
 		return ADC_MID_POINT << 20;
 	return (input << 20);
 }

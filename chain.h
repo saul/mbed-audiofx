@@ -83,7 +83,7 @@ void branch_free(StageBranch_t *pBranch);
 
 
 void chain_free(void);
-uint16_t chain_apply(uint16_t iSample);
+int16_t chain_apply(int16_t iSample);
 void chain_debug();
 StageBranch_t *chain_get_branch(uint8_t nStage, uint8_t nBranch);
 ChainStageHeader_t *chain_get_stage(uint8_t nStage);
