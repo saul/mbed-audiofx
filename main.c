@@ -1,7 +1,6 @@
 /*
  *	HAPR Project 2014
  *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
- *	Saul Rennison Individual Part
  *
  *	File created by:	SR
  *	File modified by:	TB & SR
@@ -170,14 +169,24 @@ static void time_tick(void *pUserData)
 		led_set(LED_CLIP, false);
 
 #ifdef INDIVIDUAL_BUILD_TOM
+	/*
+	 *	Takes the value of an analog in pin connected via a variable
+	 *	resistor to the 3V3 output of the board.
+	 *	Takes a number of measurements, and then averages them out.
+	 *	If the average is significantly different from the average
+	 *	previously calculated, a serial packet is sent to the board
+	 *	with the new value.
+	 *	If not, the values are reset.
+	 */
 	if(iNumMeasurements == SAMPLE_RATE/5)
 	{
-		// dbg_printf("%d\n\r", (uint16_t)(iAnalogAverage/iNumMeasurements));
 		uint16_t average = (uint16_t)(iAnalogAverage/iNumMeasurements);
 		if(average < 100)
 			average = 0;
+		// If significantly different
 		if(average - iPreviousAverage > 50 || iPreviousAverage - average > 50)
 		{
+			// Send across the new average to the UI
 			packet_analog_control_send(average);
 			iPreviousAverage = average;
 		}
@@ -186,6 +195,7 @@ static void time_tick(void *pUserData)
 	}
 	else
 	{
+		// Get the analog data from ADC_CHANNEL_1
 		iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
 		iNumMeasurements++;
 	}
