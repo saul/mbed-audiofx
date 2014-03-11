@@ -1,8 +1,7 @@
 /*
- * chainstore.c - Chain loading and saving functions
+ * chain.c - Filter chain
  *
- * Defines functions to serialise the current filter chain and save it to disk
- * in a binary format.
+ * Defines structures and functions to manage and manipulate the filter chain.
  */
 
 #include <stdlib.h>
