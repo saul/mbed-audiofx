@@ -1,3 +1,14 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File created by:	SR
+ *	File modified by:	TB & SR
+ *	File debugged by:	TB & SR
+ *
+ * ui.js - Handles UI interaction events.
+ */
+
 $(function() {
 	$('#reset-board').click(function() {
 		// Send a reset packet to the board
@@ -75,15 +86,7 @@ function onBoardReset() {
 })(jQuery);
 
 
-Handlebars.registerHelper('exists', function(variable, options) {
-    if (typeof variable !== 'undefined') {
-        return options.fn(this);
-    } else {
-        return options.inverse(this);
-    }
-});
-
-
+// Create a new stage row
 function appendStage(completed) {
 	renderTemplateRemote('filter_stage.html', function(template) {
 		$('#filter-container').append(template({}));
@@ -101,6 +104,7 @@ function appendStage(completed) {
 }
 
 
+// Append a filter to a stage
 function appendFilterToStage(stageIdx, filterIdx) {
 	packet = FilterCreatePacket(serialStream);
 	packet.send(stageIdx, filterIdx, 0, 1.0);
@@ -135,6 +139,7 @@ $(document).on('change', '.filter input[name="filter-enabled"]', function() {
 		$filter.removeClass('panel-success').addClass('panel-danger');
 	}
 
+	// Enable/disable the filter
 	packet = FilterFlagPacket(serialStream);
 	packet.send($stage.index(), $filter.index(), 0, $this.prop('checked'));
 });
@@ -150,6 +155,7 @@ $(document).on('click', '.filter .close', function() {
 	var $filter = $this.parents('.filter');
 	var $stage = $this.parents('.stage-row');
 
+	// Delete the filter
 	packet = FilterDeletePacket(serialStream);
 	packet.send($stage.index(), $filter.index());
 
@@ -161,10 +167,12 @@ $(document).on('click', '.filter .close', function() {
 		if($stage.is(':last-child'))
 			return;
 
+		// Remove stage if it's empty
 		$stage.remove();
 		return;
 	}
 
+	// Remove the filter
 	$filter.remove();
 });
 
@@ -241,15 +249,18 @@ $(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.
 	var filter = filters[$filter.data('filter-index')];
 
 	if(paramName === 'mix') {
+		// Change branch mix percentage
 		packet = FilterMixPacket(serialStream);
 		packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
 	} else {
 		var param = filter.params[paramName];
 
+		// Modify filter parameter data on board
 		packet = FilterModPacket(serialStream);
 		packet.send($stage.index(), $filter.index(), param['o'], param['f'], $this.val());
 	}
 
+	// Update label text
 	$this.siblings('label').children('.value').text($this.val());
 }));
 

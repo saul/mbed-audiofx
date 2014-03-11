@@ -1,3 +1,14 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File created by:	SR
+ *	File modified by:	TB & SR
+ *	File debugged by:	TB & SR
+ *
+ * network.js - Processes packets from the MBED board.
+ */
+
 var readingThread = null;
 var packetHandlers = {};
 
@@ -133,11 +144,14 @@ function syncChain(packet) {
 			var branch = stage[j];
 			var defaultFilter = filters[branch.filter];
 			var filledFilter = {};
+
+			// Create the filter structure
 			filledFilter.index = branch.filter;
 			filledFilter.name = defaultFilter.name;
 			filledFilter.slug = defaultFilter.slug;
 			filledFilter.params = [];
 
+			// Create each parameter
 			for (var k = 0; k < branch.params.length; k++) {
 				var param = branch.params[k];
 				var filledParam = _.clone(defaultFilter.params[param.name]);
@@ -145,6 +159,7 @@ function syncChain(packet) {
 				filledFilter.params.push(filledParam);
 			};
 
+			// Render the filter to the correct row in the UI
 			(function(i, j, filledFilter, branch) {
 				renderTemplateRemote('filter.html', function(template) {
 					$('.stage-row:nth-child(' + (i+1) + ') .filter:nth-child(' + (j+1) + ')')[0].outerHTML = template({

@@ -1,3 +1,17 @@
+"""
+HAPR Project 2014
+Group 6 - Tom Bryant (TB) & Saul Rennison
+
+File created by:	SR
+File modified by:	TB & SR
+File debugged by:	TB & SR
+
+---
+
+sercom_bridge.py - Bridge between the Python sercom.py library and the
+JavaScript user interface.
+"""
+
 # Setup path
 import os
 import sys
@@ -42,11 +56,12 @@ def threaded(f):
 
 @threaded
 def read_packet(stream):
-	packet = stream.read_packet()
-	return packet
+	"""Read a packet from the serial (asynchronous)."""
+	return stream.read_packet()
 
 
 def get_thread_result(thread):
+	"""Get the result from a thread."""
 	try:
 		return thread.result_queue.get_nowait()
 	except Queue.Empty:

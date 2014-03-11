@@ -1,4 +1,17 @@
 #!/usr/bin/env python
+"""
+HAPR Project 2014
+Group 6 - Tom Bryant (TB) & Saul Rennison
+
+File created by:	SR
+File modified by:	TB & SR
+File debugged by:	TB & SR
+
+---
+
+sercom.py - Library to communicate with the MBED board via serial.
+"""
+
 import serial
 import struct
 import time
@@ -157,6 +170,7 @@ class FilterListPacket(Packet):
 
 			params = OrderedDict()
 
+			# Parse format string
 			for param in param_format.split('|'):
 				attrs = param.split(';')
 				param_name = attrs[0]
@@ -165,6 +179,7 @@ class FilterListPacket(Packet):
 				params[param_name]['name'] = param_name
 				params[param_name]['slug'] = slugify(param_name)
 
+				# Parse each KeyValue pair (key=value)
 				for kv in attrs[1:]:
 					key, value = kv.split('=', 1)
 
@@ -172,12 +187,14 @@ class FilterListPacket(Packet):
 						params[param_name][key] = value
 						continue
 
+					# If this key already exists, just add the value to a list
 					if not isinstance(params[param_name][key], list):
 						params[param_name][key] = [params[param_name][key]]
 
 					params[param_name][key].append(value)
 
-				if 'o' not in params[param_name] or 'f' not in params[param_name]:
+				# We require the "o", "f" and "t" KeyValue for each parameter
+				if 'o' not in params[param_name] or 'f' not in params[param_name] or 't' not in params[param_name]:
 					raise RuntimeError('parameter (%s) does not have required "o" or "f" KV pair' % param_name)
 
 			print 'Filter: %s, %s -> %s' % (name, param_format, pprint.pformat(params))
@@ -266,6 +283,7 @@ class ChainBlobPacket(Packet):
 	type_ = PacketTypes.B2U_CHAIN_BLOB
 
 	def receive(self, data):
+		# Read ChainStore file header
 		HEADER_FORMAT = '<IBB'
 		ident, version, num_stages = struct.unpack_from(HEADER_FORMAT, data)
 		data = data[struct.calcsize(HEADER_FORMAT):]
@@ -278,25 +296,21 @@ class ChainBlobPacket(Packet):
 			print 'Invalid chain store version!'
 			return
 
-		print 'num stages = %d' % num_stages
-
 		self.stages = []
 
 		for i in range(num_stages):
+			# Read stage header
 			STAGE_HEADER_FORMAT = '<B'
 			num_branches = struct.unpack_from(STAGE_HEADER_FORMAT, data)[0]
 			data = data[struct.calcsize(STAGE_HEADER_FORMAT):]
 
-			print '\tstage #%d: %d' % (i, num_branches)
-
 			stage = []
 
 			for j in range(num_branches):
+				# Read branch header
 				BRANCH_HEADER_FORMAT = '<BBfB'
 				filter_idx, flags, mix_perc, num_params = struct.unpack_from(BRANCH_HEADER_FORMAT, data)
 				data = data[struct.calcsize(BRANCH_HEADER_FORMAT):]
-
-				print '\t\tbranch: filter=%d,flags=%x,mixperc=%.2f,params=%d' % (filter_idx, flags, mix_perc, num_params)
 
 				filter_ = global_filters[filter_idx]
 
@@ -308,20 +322,17 @@ class ChainBlobPacket(Packet):
 				}
 
 				for k in range(num_params):
+					# Read parameter header
 					PARAM_FORMAT = '<BB'
 					offset, size = struct.unpack_from(PARAM_FORMAT, data)
 					data = data[struct.calcsize(PARAM_FORMAT):]
 
-					print '\t\t\to=%d,s=%d' % (offset, size)
-
 					# Find parameter in filter list
 					param = filter(lambda kv: kv['o'] == str(offset), filter_['params'].values())[0]
 
-					# Read parameter
+					# Read parameter data
 					value = struct.unpack_from('<' + str(param['f']), data)[0]
 					data = data[struct.calcsize('<' + str(param['f'])):]
-
-					print '\t\t\t\t=> %r' % (value)
 
 					branch['params'].append({
 						'name': param['name'],
@@ -359,19 +370,17 @@ PACKET_MAP = [
 
 class SerialStream:
 	def __init__(self, port=None, baudrate=9600):
+		# Automatically determine port based on platform
 		if port is None:
 			port = determine_port()
 
+		# Open serial port
 		self.serial = serial.Serial(port, baudrate)
-		self._read_buf = ''
 
 		# Flush input
 		print 'Waiting to flush serial buffer...'
 		time.sleep(1)
 		self.serial.flushInput()
-
-		# Send probe packet so board will reboot/resume startup
-		#ProbePacket(self).send()
 
 	def read_packet(self):
 		"""Reads a packet from the serial port, doesn't return until a packet
