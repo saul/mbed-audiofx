@@ -282,6 +282,8 @@ void chainstore_restore(const char *pszPath)
 
 		StageBranch_t *pLastBranch = NULL;
 
+		pStageHdr->nBranches = storeStageHdr.nBranches;
+
 		for(uint8_t j = 0; j < storeStageHdr.nBranches; ++j)
 		{
 			// Read branch header
@@ -337,7 +339,8 @@ void chainstore_restore(const char *pszPath)
 		}
 
 		// Allocate the next stage
-		pStageHdr = pStageHdr->pNext = stage_alloc();
+		pStageHdr->pNext = stage_alloc();
+		pStageHdr = pStageHdr->pNext;
 	}
 
 	f_close(&fh);
