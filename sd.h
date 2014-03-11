@@ -27,8 +27,8 @@ extern uint8_t g_fSDStatus;
 // ----------------------------------------------------------------------------
 #define SDCMD_GO_IDLE_STATE		0 // Software reset.
 #define SDCMD_SEND_OP_COND		1 // Initiate initialization process.
-#define SDCMD_APP_SEND_OP_COND	41 // For only SDC. Initiate initialization process.
-#define SDCMD_SEND_IF_COND		8 // For only SDC V2. Check voltage range.
+#define SDCMD_APP_SEND_OP_COND	41 // For only SDC. Start initialization process.
+#define SDCMD_SEND_IF_COND		8 // For only SDCv2. Check voltage range.
 #define SDCMD_SEND_CSD			9 // Read CSD register.
 #define SDCMD_SEND_CID 			10 // Read CID register.
 #define SDCMD_STOP_TRANSMISSION	12 // Stop to read data.

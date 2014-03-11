@@ -1,10 +1,16 @@
+/*
+ * main.c
+ *
+ * Main program entry.
+ */
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <math.h>
 #include <string.h>
 
-// common
+// project library
 #include "sercom.h"
 #include "ticktime.h"
 #include "led.h"
@@ -24,6 +30,7 @@
 #include "filters/dynamic.h"
 #include "filters/vibrato.h"
 #include "packets.h"
+
 #ifdef INDIVIDUAL_BUILD_SAUL
 #	include "ssp.h"
 #	include "sd.h"
@@ -31,9 +38,16 @@
 #endif
 
 
+// Is the chain locked for modification? If so just pass-thru
 volatile bool g_bChainLock = false;
+
+// Is the * key held down on the keypad?
 volatile bool g_bPassThru = false;
+
+// Sample multiplier (i.e., volume)
 volatile float g_flChainVolume = 1.0;
+
+// Last tick where the filter chain took longer than 1msec to process
 volatile uint32_t g_ulLastLongTick = 0;
 
 #ifdef INDIVIDUAL_BUILD_TOM
@@ -41,9 +55,14 @@ volatile uint32_t iAnalogAverage = 0;
 volatile bool bDoSendAverage = false;
 volatile uint16_t iNumMeasurements = 0;
 volatile uint16_t iPreviousAverage = 1;
-#endif // INDIVIDUAL_BUILD_TOM
+#endif
 
 
+/*
+ * get_median_sample
+ *
+ * Gets the median sample of all 3 input ADC channels.
+ */
 static uint16_t get_median_sample(void)
 {
 	uint16_t iSamples[] = {
@@ -73,6 +92,16 @@ static uint16_t get_median_sample(void)
 }
 
 
+/*
+ * time_tick
+ *
+ * Called SAMPLE_RATE times per second (see config.h)
+ *
+ * Reads input from ADC, passes through the filter chain then down samples to
+ * the DAC.
+ *
+ * Also sets pass thru, clip and slow LEDs.
+ */
 static void time_tick(void *pUserData)
 {
 	static uint32_t s_ulLastClipTick = 0;
@@ -106,6 +135,8 @@ static void time_tick(void *pUserData)
 	int16_t iScaledOut = iSample * g_flChainVolume;
 	iScaledOut += ADC_MID_POINT;
 
+	// Shouldn't *really* be less than 0 (unless DC bias in hardware is wrong)
+	// ...clamp to 0 anyway so we don't shift the sign bit
 	if(iScaledOut < 0)
 		iScaledOut = 0;
 	else
@@ -119,7 +150,7 @@ static void time_tick(void *pUserData)
 
 	uint32_t ulEndTick = time_tickcount();
 
-	// Clipped?
+	// Is output clipped? If so, enable the clip LED
 	if(iScaledOut == DAC_MAX_VALUE)
 	{
 		s_ulLastClipTick = ulEndTick;
@@ -131,28 +162,28 @@ static void time_tick(void *pUserData)
 		led_set(LED_CLIP, false);
 
 #ifdef INDIVIDUAL_BUILD_TOM
-		if(iNumMeasurements == SAMPLE_RATE/5)
+	if(iNumMeasurements == SAMPLE_RATE/5)
+	{
+		// dbg_printf("%d\n\r", (uint16_t)(iAnalogAverage/iNumMeasurements));
+		uint16_t average = (uint16_t)(iAnalogAverage/iNumMeasurements);
+		if(average < 100)
+			average = 0;
+		if(average - iPreviousAverage > 50 || iPreviousAverage - average > 50)
 		{
-			// dbg_printf("%d\n\r", (uint16_t)(iAnalogAverage/iNumMeasurements));
-			uint16_t average = (uint16_t)(iAnalogAverage/iNumMeasurements);
-			if(average < 100)
-				average = 0;
-			if(average - iPreviousAverage > 50 || iPreviousAverage - average > 50)
-			{
-				packet_analog_control_send(average);
-				iPreviousAverage = average;
-			}
-			iAnalogAverage = 0;
-			iNumMeasurements = 0;
+			packet_analog_control_send(average);
+			iPreviousAverage = average;
 		}
-		else
-		{
-			iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
-			iNumMeasurements++;
-		}
+		iAnalogAverage = 0;
+		iNumMeasurements = 0;
+	}
+	else
+	{
+		iAnalogAverage += ADC_ChannelGetData(LPC_ADC, ADC_CHANNEL_1);
+		iNumMeasurements++;
+	}
 #endif
 
-	// If we took longer than a millisecond to process sample, error
+	// If we took longer than a millisecond to process sample, print a warning
 	// Assumes resolution is 1 tick/msec
 	uint32_t ulElapsedTicks = ulEndTick - ulStartTick;
 
@@ -213,7 +244,7 @@ void main(void)
 	adc_config(5, true); // MBED pin 20
 #ifdef INDIVIDUAL_BUILD_TOM
 	adc_config(1, true); // MBED pin 16
-#endif // INDIVIDUAL_BUILD_TOM
+#endif
 	adc_start(ADC_START_CONTINUOUS);
 	adc_burst_config(true);
 
@@ -251,7 +282,7 @@ void main(void)
 	//-----------------------------------------------------
 	// Serial/keypad processing loop
 	//-----------------------------------------------------
-	while(1)
+	for(;;)
 	{
 		// Process any inbound packets
 		packet_loop();

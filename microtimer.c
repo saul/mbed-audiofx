@@ -1,5 +1,12 @@
+/*
+ * microtimer.c - Match timer functions
+ *
+ * Defines several functions for managing microsecond timers.
+ */
+
 #include "dbg.h"
 #include "microtimer.h"
+
 
 typedef struct
 {
@@ -7,15 +14,23 @@ typedef struct
 	void *pUserData;
 } Timer_t;
 
+// Global match timer states
 static Timer_t s_pHandlers[UTIM_NUM_TIMERS];
 
 
+/*
+ * microtimer_irq_handler
+ *
+ * Common handler function for microtimer interrupts.
+ */
 static void microtimer_irq_handler(uint8_t channel)
 {
+	// Has the interrupt been fired?
 	if(TIM_GetIntStatus(LPC_TIM0 + channel, TIM_MR0_INT) == SET)
 	{
 		const Timer_t *pTimer = &s_pHandlers[channel];
-		//dbg_assert(pTimer->pfnHandler != NULL, "timer interrupt fired on NULL handler (channel %u)", channel);
+
+		// Fire the callback
 		pTimer->pfnHandler(pTimer->pUserData);
 	}
 
@@ -29,6 +44,11 @@ void TIMER2_IRQHandler(void) { microtimer_irq_handler(2); }
 void TIMER3_IRQHandler(void) { microtimer_irq_handler(3); }
 
 
+/*
+ * microtimer_enable
+ *
+ * Enables a microtimer at the requested rate.
+ */
 void microtimer_enable(uint8_t channel, uint8_t prescaleOption, uint32_t prescaleVal, uint32_t matchValue, TimerHandler_t pfnHandler, void *pUserData)
 {
 	dbg_assert(pfnHandler != NULL, "handler must not be NULL");
@@ -59,6 +79,11 @@ void microtimer_enable(uint8_t channel, uint8_t prescaleOption, uint32_t prescal
 }
 
 
+/*
+ * microtimer_disable
+ *
+ * Disables a microtimer.
+ */
 void microtimer_disable(uint8_t channel)
 {
 	dbg_assert(channel < UTIM_NUM_TIMERS, "invalid channel (%u, max=%d)", channel, UTIM_NUM_TIMERS-1);

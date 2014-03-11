@@ -59,16 +59,16 @@ typedef struct StageBranch_t
 #pragma pack(push, 1)
 typedef struct ChainStageHeader_t
 {
-	uint8_t nBranches;
-	StageBranch_t *pFirst;
-	struct ChainStageHeader_t *pNext;
+	uint8_t nBranches;					///< number of branches in this stage
+	StageBranch_t *pFirst;				///< pointer to first branch in stage
+	struct ChainStageHeader_t *pNext;	///< pointer to next stage
 } ChainStageHeader_t;
 #pragma pack(pop)
 
 
 extern ChainStageHeader_t *g_pChainRoot;
-extern volatile bool g_bChainLock;
-extern volatile float g_flChainVolume;
+extern volatile bool g_bChainLock;		///< is chain locked for modification?
+extern volatile float g_flChainVolume;	///< current chain volume
 
 
 ChainStageHeader_t *stage_alloc();

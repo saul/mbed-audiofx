@@ -1,3 +1,9 @@
+/*
+ * rtc.c - Real-Time Clock functions
+ *
+ * Defines several functions for initialising the RTC peripheral.
+ */
+
 #include "rtc.h"
 
 

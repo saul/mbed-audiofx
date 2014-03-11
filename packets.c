@@ -1,3 +1,10 @@
+/*
+ * packets.c - Packet receipt and transmission
+ *
+ * Defines several enumerations and functions to handle sending and receiving
+ * packets via the sercom subsystem.
+ */
+
 #include <string.h>
 #include <stdint.h>
 
@@ -23,6 +30,11 @@
 #endif
 
 
+/*
+ * g_ppszPacketTypes
+ *
+ * String representations of each enum value in PacketType_e
+ */
 const char *g_ppszPacketTypes[] = {
 	"A2A_PROBE",
 	"U2B_RESET",
@@ -37,7 +49,7 @@ const char *g_ppszPacketTypes[] = {
 	"U2B_ARB_CMD",
 #ifdef INDIVIDUAL_BUILD_TOM
 	"B2U_ANALOG_CONTROL",
-#endif // INDIVIDUAL_BUILD_TOM
+#endif
 #ifdef INDIVIDUAL_BUILD_SAUL
 	"B2U_STORED_LIST",
 	"B2U_CHAIN_BLOB",
@@ -45,6 +57,11 @@ const char *g_ppszPacketTypes[] = {
 };
 
 
+/*
+ * PacketHandler_t
+ *
+ * Inbound packet handlers
+ */
 PacketHandler_t g_pPacketHandlers[] = {
 	{packet_reset_receive, false, PACKET_SIZE_EXACT(0)}, // A2A_PROBE
 	{packet_reset_receive, false, PACKET_SIZE_EXACT(0)}, // U2B_RESET
@@ -59,18 +76,26 @@ PacketHandler_t g_pPacketHandlers[] = {
 	{packet_cmd_receive, true, PACKET_SIZE_MIN(sizeof(CommandPacket_t))}, // U2B_ARB_CMD
 #ifdef INDIVIDUAL_BUILD_TOM
 	{NULL, false, 0}, // B2U_ANALOG_CONTROL
-#endif // INDIVIDUAL_BUILD_TOM
+#endif
 #ifdef INDIVIDUAL_BUILD_SAUL
 	{NULL, false, 0}, // B2U_STORED_LIST
 	{NULL, false, 0}, // B2U_CHAIN_BLOB
 #endif
 };
 
-
+// Should each receipt of each packet be debugged?
 static bool s_bDebugPacketReceipt = false;
+
+// Should the chain be debugged to console after the chain is unlocked?
 static bool s_bDebugChainAfterLock = false;
 
 
+/*
+ * packet_static_assertions
+ *
+ * Checks that g_ppszPacketTypes, g_pPacketHandlers and PacketType_e match in
+ * size at compile time.
+ */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
 void packet_static_assertions(void)
@@ -81,45 +106,47 @@ void packet_static_assertions(void)
 #pragma GCC diagnostic pop
 
 
+/*
+ * packet_probe_send
+ *
+ * Sends a probe packet to the UI. The board should respond with a probe, and
+ * then startup proceeds.
+ */
 void packet_probe_send(void)
 {
 	sercom_send(A2A_PROBE, NULL, 0);
 }
 
 
-void packet_reset_wait(void)
-{
-	PacketHeader_t hdr;
-	uint8_t *pPayload = NULL;
-
-	for(;;)
-	{
-		if(!sercom_receive(&hdr, &pPayload))
-			continue;
-
-		// If we receive a probe or reset packet, reset the board
-		if(hdr.type == U2B_RESET || hdr.type == A2A_PROBE)
-			packet_reset_receive(&hdr, pPayload);
-
-		free(pPayload);
-	}
-}
-
-
+/*
+ * packet_print_send
+ *
+ * Sends a print packet to the UI.
+ */
 void packet_print_send(const char *pszLine, size_t size)
 {
 	sercom_send(B2U_PRINT, (const uint8_t *)pszLine, size);
 }
 
 
+/*
+ * packet_analog_control_send
+ *
+ * Sends an analogue control packet to the UI.
+ */
 #ifdef INDIVIDUAL_BUILD_TOM
 void packet_analog_control_send(uint16_t analog_value)
 {
 	sercom_send(B2U_ANALOG_CONTROL, (const uint8_t *)&analog_value, sizeof(analog_value));
 }
-#endif // INDIVIDUAL_BUILD_TOM
+#endif
 
 
+/*
+ * packet_filter_list_send
+ *
+ * Send the filter list and parameter format strings to the UI.
+ */
 void packet_filter_list_send(void)
 {
 	byte_buffer *buf = bb_new_default(true);
@@ -137,28 +164,33 @@ void packet_filter_list_send(void)
 }
 
 
+/*
+ * packet_stored_list_send
+ *
+ * Send all files in the chains/ directory on the SD card to the UI.
+ */
 #ifdef INDIVIDUAL_BUILD_SAUL
 void packet_stored_list_send(void)
 {
 	FRESULT res;
 	DIR dir;
 
+	// Open the store directory in the SD card
 	if((res = f_opendir(&dir, STORE_DIRECTORY)))
 	{
 		dbg_warning("f_opendir failed %d\r\n", res);
 		return;
 	}
 
+	// Create a dynamic buffer
 	byte_buffer *buf = bb_new_default(true);
-
-	FILINFO fno;
 
 	for(;;)
 	{
-		res = f_readdir(&dir, &fno);
+		FILINFO fno;
 
 		// Break on error
-		if(res)
+		if((res = f_readdir(&dir, &fno)))
 		{
 			dbg_warning("f_readdir failed %d\r\n", res);
 			break;
@@ -193,6 +225,11 @@ void packet_stored_list_send(void)
 #endif
 
 
+/*
+ * packet_chain_blob_send
+ *
+ * Send the a stored filter chain whole to the UI for it to parse.
+ */
 #ifdef INDIVIDUAL_BUILD_SAUL
 void packet_chain_blob_send(const char *pszPath)
 {
@@ -202,7 +239,7 @@ void packet_chain_blob_send(const char *pszPath)
 	FIL fh;
 	if((res = f_open(&fh, pszPath, FA_READ)))
 	{
-		dbg_warning("f_open failed %d\r\n", res);
+		dbg_warning("f_open(%s) failed %d\r\n", pszPath, res);
 		return;
 	}
 
@@ -212,16 +249,17 @@ void packet_chain_blob_send(const char *pszPath)
 	// We manually send the packet data instead of using sercom_send as we send
 	// the file in chunks of 128 bytes
 
-	// Send packet header
 	PacketHeader_t packetHdr = {
 		.ident=PACKET_IDENT,
 		.type=B2U_CHAIN_BLOB,
 		.size=size
 	};
 
+	// Wait until UART is unlocked
 	while(g_bUARTLock);
 	g_bUARTLock = true;
 
+	// Send packet header
 	UART_Send((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)&packetHdr, sizeof(packetHdr), BLOCKING);
 
 	// Read store header
@@ -256,6 +294,7 @@ void packet_chain_blob_send(const char *pszPath)
 	}
 	while(nRead > 0);
 
+	// Unlock UART and close file
 error:
 	g_bUARTLock = false;
 	f_close(&fh);
@@ -263,6 +302,12 @@ error:
 #endif
 
 
+/*
+ * packet_loop
+ *
+ * Called by the main loop to process any inbound packets. Checks their
+ * validity and calls the appropriate packet receipt callback.
+ */
 void packet_loop(void)
 {
 	uint8_t *pPayload = NULL;
@@ -318,6 +363,11 @@ error:
 }
 
 
+/*
+ * packet_reset_receive
+ *
+ * Called on receipt of U2B_RESET. Resets board after 1 second.
+ */
 void packet_reset_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 {
 	dbg_printf("Received %s packet, system rebooting in 1 second...\r\n", g_ppszPacketTypes[pHdr->type]);
@@ -327,6 +377,12 @@ void packet_reset_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 }
 
 
+/*
+ * packet_filter_create_receive
+ *
+ * Called on receipt of U2B_FILTER_CREATE. Creates a new branch in a specific
+ * stage.
+ */
 void packet_filter_create_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 {
 	const FilterCreatePacket_t *pFilterCreate = (FilterCreatePacket_t *)pPayload;
@@ -368,6 +424,12 @@ void packet_filter_create_receive(const PacketHeader_t *pHdr, const uint8_t *pPa
 }
 
 
+/*
+ * packet_filter_delete_receive
+ *
+ * Called on receipt of U2B_FILTER_DELETE. Deletes a branch in a specific
+ * stage.
+ */
 void packet_filter_delete_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 {
 	const FilterDeletePacket_t *pFilterDelete = (FilterDeletePacket_t *)pPayload;
@@ -417,6 +479,11 @@ void packet_filter_delete_receive(const PacketHeader_t *pHdr, const uint8_t *pPa
 }
 
 
+/*
+ * packet_filter_flag_receive
+ *
+ * Called on receipt of U2B_FILTER_FLAG. Updates the flags on a branch.
+ */
 void packet_filter_flag_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 {
 	const FilterFlagPacket_t *pFilterFlag = (FilterFlagPacket_t *)pPayload;
@@ -437,6 +504,11 @@ void packet_filter_flag_receive(const PacketHeader_t *pHdr, const uint8_t *pPayl
 }
 
 
+/*
+ * packet_filter_mod_receive
+ *
+ * Called on receipt of U2B_FILTER_MOD. Updates parameter data on a branch.
+ */
 void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 {
 	const FilterModPacket_t *pFilterMod = (FilterModPacket_t *)pPayload;
@@ -449,8 +521,13 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 	if(!pBranch)
 		return;
 
+	// Calculate where to copy from
 	const uint8_t *pSource = pPayload + sizeof(FilterModPacket_t);
+
+	// Calculate number of bytes to copy
 	uint16_t nToCopy = pHdr->size - sizeof(FilterModPacket_t);
+
+	// Calculate destination in memory to copy packet payload to
 	uint8_t *pDest = ((uint8_t *)pBranch->pUnknown) + pFilterMod->iOffset + pBranch->pFilter->nNonPublicDataSize;
 
 	// Buffer overflow protection
@@ -474,6 +551,11 @@ void packet_filter_mod_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 }
 
 
+/*
+ * packet_filter_mix_receive
+ *
+ * Called on receipt of U2B_FILTER_MIX. Updates branch mix percentage.
+ */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
 void packet_filter_mix_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
@@ -499,23 +581,11 @@ void packet_filter_mix_receive(const PacketHeader_t *pHdr, const uint8_t *pPaylo
 #pragma GCC diagnostic push
 
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdouble-promotion"
-void packet_volume_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
-{
-	const VolumePacket_t *pVolume = (VolumePacket_t *)pPayload;
-
-	if(pVolume->flVolume < 0.0f || pVolume->flVolume > 2.0f)
-	{
-		dbg_warning("master volume (%.2f) not in range [0..2]\r\n", pVolume->flVolume);
-		return;
-	}
-
-	g_flChainVolume = pVolume->flVolume;
-}
-#pragma GCC diagnostic pop
-
-
+/*
+ * strnlen
+ *
+ * Calculates length of a string up to a maximum `maxlen`.
+ */
 static size_t strnlen(register const char *s, size_t maxlen)
 {
   register const char *e;
@@ -528,21 +598,30 @@ static size_t strnlen(register const char *s, size_t maxlen)
 }
 
 
+/*
+ * packet_cmd_receive
+ *
+ * Called on receipt of U2B_ARB_CMD.
+ */
 void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 {
 	const CommandPacket_t *pCmd = (CommandPacket_t *)pPayload;
 
 	uint16_t nBytesLeft = pHdr->size - sizeof(CommandPacket_t);
 
+	// Empty command?
 	if(!nBytesLeft)
 		return;
 
 	const char *pszArg = (const char *)(pCmd + 1);
+
+	// Allocate space to hold command arguments
 	const char **ppszArgs = calloc(pCmd->nArgs, sizeof(char *));
 	dbg_assert(ppszArgs, "unable to allocate memory for command");
 
 	dbg_printn("\r\n>>> ", 6);
 
+	// Parse arguments into ppszArgs
 	for(uint8_t i = 0; i < pCmd->nArgs; ++i)
 	{
 		size_t nLen = strnlen(pszArg, nBytesLeft);
@@ -556,26 +635,33 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 
 		dbg_printf("%s ", pszArg);
 
+		// Add argument to arguments list
 		ppszArgs[i] = pszArg;
 		pszArg += (nLen + 1);
 	}
 
 	dbg_printn("\r\n", 2);
 
+	// Have we been passed some syntax?
 	if(nBytesLeft != pCmd->nArgs)
 	{
 		dbg_warning("%u unexpected bytes left after parse\r\n", nBytesLeft - pCmd->nArgs);
 		goto cleanup;
 	}
 
+	// Debug entire chain
 	if(!strcmp(ppszArgs[0], "chain_debug"))
 	{
 		chain_debug();
 	}
+
+	// Debug all filters
 	else if(!strcmp(ppszArgs[0], "filter_debug"))
 	{
 		filter_debug();
 	}
+
+	// Debug a specific stage
 	else if(!strcmp(ppszArgs[0], "stage_debug"))
 	{
 		if(pCmd->nArgs != 2)
@@ -589,6 +675,8 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 		if(pStageHdr)
 			stage_debug(pStageHdr);
 	}
+
+	// Change s_bDebugPacketReceipt variable
 	else if(!strcmp(ppszArgs[0], "bDebugPacketReceipt"))
 	{
 		if(pCmd->nArgs != 2)
@@ -596,6 +684,8 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 		else
 			s_bDebugPacketReceipt = atoi(ppszArgs[1]);
 	}
+
+	// Change s_bDebugChainAfterLock variable
 	else if(!strcmp(ppszArgs[0], "bDebugChainAfterLock"))
 	{
 		if(pCmd->nArgs != 2)
@@ -603,6 +693,8 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 		else
 			s_bDebugChainAfterLock = atoi(ppszArgs[1]);
 	}
+
+	// Change system volume
 	else if(!strcmp(ppszArgs[0], "volume"))
 	{
 		if(pCmd->nArgs != 2)
@@ -610,6 +702,8 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 		else
 			g_flChainVolume = atof(ppszArgs[1]);
 	}
+
+	// Calculate average over a number of samples
 	else if(!strcmp(ppszArgs[0], "average"))
 	{
 		if(pCmd->nArgs != 2)
@@ -622,11 +716,15 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 		float flVolume = (iAverage * 100.0) / ADC_MAX_VALUE;
 		dbg_printf("average = %.2f%%\r\n", flVolume);
 	}
+
+	// Ping!
 	else if(!strcmp(ppszArgs[0], "ping"))
 	{
 		dbg_printf("Pong!\r\n");
 	}
+
 #ifdef INDIVIDUAL_BUILD_SAUL
+	// Save the current filter chain to SD card
 	else if(!strcmp(ppszArgs[0], "chain_save"))
 	{
 		if(pCmd->nArgs != 2)
@@ -635,14 +733,18 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 			goto cleanup;
 		}
 
+		// In format "chains/<file>.bin"
 		char pszPath[32];
 		snprintf(pszPath, sizeof(pszPath), STORE_DIRECTORY "/%s.bin", ppszArgs[1]);
 
+		// Save chain
 		chainstore_save(pszPath);
 
 		// Send stored chain list to UI
 		packet_stored_list_send();
 	}
+
+	// Restore filter chain from SD card
 	else if(!strcmp(ppszArgs[0], "chain_restore"))
 	{
 		if(pCmd->nArgs != 2)
@@ -651,14 +753,18 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 			goto cleanup;
 		}
 
+		// In format "chains/<file>.bin"
 		char pszPath[32];
 		snprintf(pszPath, sizeof(pszPath), STORE_DIRECTORY "/%s.bin", ppszArgs[1]);
 
+		// Restore chain
 		chainstore_restore(pszPath);
 
 		// Send chain blob to UI
 		packet_chain_blob_send(pszPath);
 	}
+
+	// Delete a filter chain from SD card
 	else if(!strcmp(ppszArgs[0], "chain_delete"))
 	{
 		if(pCmd->nArgs != 2)
@@ -667,6 +773,7 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 			goto cleanup;
 		}
 
+		// In format "chains/<file>.bin"
 		char pszPath[32];
 		snprintf(pszPath, sizeof(pszPath), STORE_DIRECTORY "/%s.bin", ppszArgs[1]);
 
@@ -677,6 +784,7 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 		packet_stored_list_send();
 	}
 #endif
+
 	else
 		dbg_warning("unknown command\r\n");
 

@@ -1,20 +1,30 @@
+/*
+ * keypad.c - i2c keypad functions
+ *
+ * Defines several functions for testing and managing which keys are pressed
+ * on the keypad. Handles multiple key presses.
+ */
+
 #include "i2c.h"
 #include "dbg.h"
 #include "keypad.h"
 
 
-typedef struct KeyState_t
+typedef struct
 {
 	bool bKeyDown;
 } KeyState_t;
 
-typedef struct KeypadState_t
+typedef struct
 {
 	char chLast;
 	KeyState_t ppKeyState[4][4]; // key states
 } KeypadState_t;
 
+// Global keypad keypress state
 static KeypadState_t s_KeypadState;
+
+// Map from row/col -> ASCII character
 static char s_chKeyMap[4][4] = {{'D', '#', '0', '*'}, {'C', '9', '8', '7'}, {'B', '6', '5', '4'}, {'A', '3', '2', '1'}};
 
 

@@ -81,14 +81,13 @@ class PacketTypes(object):
 	U2B_FILTER_FLAG = 6
 	U2B_FILTER_MOD = 7
 	U2B_FILTER_MIX = 8
-	U2B_VOLUME = 9
-	U2B_ARB_CMD = 10
+	U2B_ARB_CMD = 9
 	# Tom individual
-	B2U_ANALOG_CONTROL = 11
+	B2U_ANALOG_CONTROL = 10
 	# End Tom individual
 	# Saul individual
-	B2U_STORED_LIST = 12
-	B2U_CHAIN_BLOB = 13
+	B2U_STORED_LIST = 11
+	B2U_CHAIN_BLOB = 12
 	# End Saul individual
 
 

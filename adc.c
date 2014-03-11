@@ -1,18 +1,38 @@
+/*
+ * adc.c - Analog -> Digital functions
+ *
+ * Defines several functions for configuring and reading from the ADC.
+ *
+ * MBED Pin mapping available:
+ * 	http://www-users.cs.york.ac.uk/~pcc/MCP/MbedPins.html
+ */
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
 #	include "lpc17xx_pinsel.h"
 #pragma GCC diagnostic pop
 
+#include "config.h"
 #include "adc.h"
 #include "dbg.h"
 
+
+/*
+ * adc_init
+ *
+ * Initialises the ADC peripheral at a rate of `rate` Hz
+ */
 void adc_init(uint32_t rate)
 {
 	ADC_Init(ADC_DEV, rate);
 }
 
 
-// MBED Pin mapping: http://www-users.cs.york.ac.uk/~pcc/MCP/MbedPins.html
+/*
+ * adc_config
+ *
+ * Configures the pins and ADC peripheral for a specific channel.
+ */
 void adc_config(uint8_t chan, bool bEnable)
 {
 	dbg_assert(chan < ADC_NUM_CHANNELS, "invalid channel (%u, max=%u)", chan, ADC_NUM_CHANNELS-1);
@@ -60,19 +80,23 @@ void adc_config(uint8_t chan, bool bEnable)
 }
 
 
-void adc_interrupt_config(uint8_t chan, bool bEnable)
-{
-	dbg_assert(chan < ADC_NUM_CHANNELS, "invalid channel (%u, max=%u)", chan, ADC_NUM_CHANNELS-1);
-	ADC_IntConfig(ADC_DEV, ADC_ADINTEN0 + chan, bEnable);
-}
-
-
+/*
+ * adc_start
+ *
+ * Starts the ADC peripheral in a specific mode.
+ */
 void adc_start(uint8_t mode)
 {
 	ADC_StartCmd(ADC_DEV, mode);
 }
 
 
+/*
+ * adc_read
+ *
+ * Read a 12-bit value from the ADC. If there is no signal on `chan`, this
+ * function returns 0.
+ */
 uint16_t adc_read(uint8_t chan)
 {
 	dbg_assert(chan < ADC_NUM_CHANNELS, "invalid channel (%u, max=%u)", chan, ADC_NUM_CHANNELS-1);
@@ -80,19 +104,31 @@ uint16_t adc_read(uint8_t chan)
 	uint16_t val = ADC_ChannelGetData(ADC_DEV, chan);
 
 	// The ADC floats high. Return 0 if we're clipped
-	if(val == (1<<12) - 1)
+	if(val == ADC_MAX_VALUE)
 		val = 0;
 
 	return val;
 }
 
 
+/*
+ * adc_burst_config
+ *
+ * Enable burst mode for the ADC peripheral.
+ */
 void adc_burst_config(bool bEnable)
 {
 	ADC_BurstCmd(ADC_DEV, bEnable);
 }
 
 
+/*
+ * adc_status
+ *
+ * Get ADC channel done status from ADC data register.
+ *
+ * @returns SET if done, RESET if not
+ */
 FlagStatus adc_status(uint8_t chan)
 {
 	dbg_assert(chan < ADC_NUM_CHANNELS, "invalid channel (%u, max=%u)", chan, ADC_NUM_CHANNELS-1);

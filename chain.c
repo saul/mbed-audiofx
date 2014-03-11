@@ -1,7 +1,8 @@
 /*
- * chain.c - Filter chain
+ * chainstore.c - Chain loading and saving functions
  *
- * Defines structures and functions to manage and manipulate the filter chain.
+ * Defines functions to serialise the current filter chain and save it to disk
+ * in a binary format.
  */
 
 #include <stdlib.h>
@@ -10,6 +11,7 @@
 #include "chain.h"
 
 
+// Root stage in the filter chain linked list
 ChainStageHeader_t *g_pChainRoot = NULL;
 
 
@@ -41,6 +43,7 @@ void stage_free(ChainStageHeader_t *pStageHdr)
 
 	StageBranch_t *pBranch = pStageHdr->pFirst;
 
+	// Iterate through the stage and free each branch
 	while(pBranch)
 	{
 		StageBranch_t *pNextBranch = pBranch->pNext;
@@ -48,6 +51,7 @@ void stage_free(ChainStageHeader_t *pStageHdr)
 		pBranch = pNextBranch;
 	}
 
+	// Free the entire stage
 	free(pStageHdr);
 }
 
@@ -71,6 +75,7 @@ int16_t stage_apply(const ChainStageHeader_t *pStageHdr, int16_t iSample)
 	// Is this a simple one stage branch?
 	if(pStageHdr->nBranches == 1)
 	{
+		// Is this branch enabled?
 		if(!(pBranch->flags & BRANCHFLAG_ENABLED))
 			return iSample;
 
@@ -90,12 +95,14 @@ int16_t stage_apply(const ChainStageHeader_t *pStageHdr, int16_t iSample)
 
 		while(pBranch)
 		{
+			// Is this branch enabled?
 			if(!(pBranch->flags & BRANCHFLAG_ENABLED))
 			{
 				pBranch = pBranch->pNext;
 				continue;
 			}
 
+			// Add the result of this filter to the total for this stage
 			bAnyEnabled = true;
 			iResult += pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown) * pBranch->flMixPerc;
 
@@ -127,12 +134,14 @@ void stage_debug(const ChainStageHeader_t *pStageHdr)
 
 	while(pBranch)
 	{
+		// Print in red if disabled, green if enabled
 		const char *pszLinePrefix = ANSI_COLOR_RED;
 		if(pBranch->flags & BRANCHFLAG_ENABLED)
 			pszLinePrefix = ANSI_COLOR_GREEN;
 
 		dbg_printf("%s  - #%d: filter=%s" ANSI_COLOR_RESET ", flags=%x, mixperc=%.3f, data=%p", pszLinePrefix, ++i, pBranch->pFilter->pszName, pBranch->flags, pBranch->flMixPerc, (void *)pBranch->pUnknown);
 
+		// If this filter has a debug function, debug the filter data
 		if(pBranch->pFilter->pfnDebug)
 		{
 			dbg_printn(" -> ", -1);
@@ -157,12 +166,14 @@ StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBr
 	uint8_t i = 0;
 	StageBranch_t *pBranch = pStageHdr->pFirst;
 
+	// Iterate through the stage
 	while(pBranch && i < nBranch)
 	{
 		pBranch = pBranch->pNext;
 		i++;
 	}
 
+	// Not find branch of index `nBranch`?
 	if(i != nBranch)
 	{
 		dbg_warning("unable to get branch %u of stage\r\n", nBranch);
@@ -212,7 +223,11 @@ StageBranch_t *stage_get_branch(const ChainStageHeader_t *pStageHdr, uint8_t nBr
 void branch_free(StageBranch_t *pBranch)
 {
 	dbg_assert(pBranch, "cannot free NULL branch");
+
+	// Free the filter data associated with this branch
 	free(pBranch->pUnknown);
+
+	// Free the branch
 	free(pBranch);
 }
 
@@ -230,8 +245,10 @@ int16_t chain_apply(int16_t iSample)
 {
 	const ChainStageHeader_t *pStageHdr = g_pChainRoot;
 
+	// Iterate through the chain
 	while(pStageHdr)
 	{
+		// If this stage isn't empty, apply all filters to the sample
 		if(pStageHdr->nBranches > 0)
 			iSample = stage_apply(pStageHdr, iSample);
 
@@ -254,10 +271,13 @@ void chain_debug(void)
 	uint i = 0;
 	const ChainStageHeader_t *pStageHdr = g_pChainRoot;
 
+	// Iterate through the chain
 	while(pStageHdr)
 	{
+		// Debug this stage
 		dbg_printf("\r\n#%d: ", ++i);
 		stage_debug(pStageHdr);
+
 		pStageHdr = pStageHdr->pNext;
 	}
 
@@ -300,10 +320,13 @@ void chain_free(void)
 {
 	ChainStageHeader_t *pStageHdr = g_pChainRoot;
 
+	// Iterate all stages in the chain
 	while(pStageHdr)
 	{
+		// Free this stage
 		ChainStageHeader_t *pNextStage = pStageHdr->pNext;
 		stage_free(pStageHdr);
+
 		pStageHdr = pNextStage;
 	}
 }

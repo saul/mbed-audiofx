@@ -25,7 +25,7 @@
  * - f: struct.pack format character
  *      (see http://docs.python.org/2/library/struct.html#format-characters)
  * - o: offset into filter data struct
- * - t: widget type (range or choice)
+ * - t: widget type ("range" or "choice")
  */
 #define WAVE_TYPE_KV ";f=B;t=choice;c=Square;c=Sawtooth;c=Inverse Sawtooth;c=Triangle"
 
@@ -128,6 +128,7 @@ Filter_t g_pFilters[] = {
 	// }
 };
 
+// Number of filters available
 const size_t NUM_FILTERS = sizeof(g_pFilters)/sizeof(g_pFilters[0]);
 
 
@@ -145,6 +146,7 @@ void filter_debug(void)
 	for(uint8_t i = 0; i < NUM_FILTERS; ++i)
 	{
 		const Filter_t *pFilter = &g_pFilters[i];
+
 		dbg_printf("#%u: %s, apply=%p, debug=%p, create=%p, mod=%p, datasize=%u(%u private)\r\n", i, pFilter->pszName, (void *)pFilter->pfnApply, (void *)pFilter->pfnDebug, (void *)pFilter->pfnCreateCallback, (void *)pFilter->pfnModCallback, pFilter->nFilterDataSize, pFilter->nNonPublicDataSize);
 	}
 

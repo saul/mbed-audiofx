@@ -26,7 +26,7 @@ void _dbg_error(const char *file, int line, const char *func, const char *format
 	char buf[256];
 	VA_FMT_STR(format, buf, sizeof(buf));
 
-	// write error message
+	// Write error message
 	dbg_printf(
 		ANSI_COLOR_RED "ERROR "
 		ANSI_COLOR_GREEN "%s"
@@ -43,11 +43,11 @@ void _dbg_error(const char *file, int line, const char *func, const char *format
 	for(uint8_t i = 0; i < UTIM_NUM_TIMERS; ++i)
 		microtimer_disable(i);
 
-	// blink LEDs infinitely if LEDs are setup
+	// Blink LEDs infinitely if LEDs are setup
 	if(led_setup())
 		led_blink(200, LED_BLINK_INDEFINITE);
 
-	// halt program
+	// Halt program
 	while(1);
 }
 
@@ -56,6 +56,7 @@ void _dbg_error(const char *file, int line, const char *func, const char *format
  * _dbg_assert (use macro dbg_assert)
  *
  * If condition is false, error and halt program execution.
+ * Ignored if NO_ASSERT is defined.
  */
 void _dbg_assert(const char *file, int line, const char *func, const char *condition, const char *format, ...)
 {
