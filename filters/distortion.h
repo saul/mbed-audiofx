@@ -7,7 +7,7 @@ typedef struct
 } FilterBitcrusherData_t;
 
 
-int32_t filter_bitcrusher_apply(int32_t input, void *pUnknown);
+int16_t filter_bitcrusher_apply(int16_t input, void *pUnknown);
 void filter_bitcrusher_debug(void *pUnknown);
 void filter_bitcrusher_create(void *pUnknown);
 

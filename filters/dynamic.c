@@ -10,13 +10,13 @@ Noisegate filter takes an average of the amplitude over the last
 'pData->threshold', silence is returned. Otherwise, the input
 is returned the same as the input.
 */
-int32_t filter_noisegate_apply(int32_t input, void *pUnknown)
+int16_t filter_noisegate_apply(int16_t input, void *pUnknown)
 {
 	const FilterNoiseGateData_t *pData = (const FilterNoiseGateData_t *)pUnknown;
 
-	uint16_t average = sample_get_average(pData->sensitivity) >> 20;
+	uint16_t average = sample_get_average(pData->sensitivity);
 	if(average < pData->threshold)
-		return ADC_MID_POINT << 20;
+		return 0;
 	else
 		return input;
 }
@@ -37,20 +37,20 @@ void filter_noisegate_create(void *pUnknown)
 }
 
 
-int32_t filter_compressor_apply(int32_t input, void *pUnknown)
+int16_t filter_compressor_apply(int16_t input, void *pUnknown)
 {
 	const FilterCompressorData_t *pData = (const FilterCompressorData_t *)pUnknown;
-	input = input >> 20;
+	input = input;
 
-	uint16_t average = sample_get_average(pData->sensitivity) >> 20;
+	uint16_t average = sample_get_average(pData->sensitivity);
 	if(average < pData->threshold)
 		return input;
 
 	if(input < 0)
 		return 0;
 	if(input > ADC_MAX_VALUE)
-		return ADC_MAX_VALUE << 20;
-	return (input << 20);
+		return ADC_MAX_VALUE;
+	return input;
 }
 
 
@@ -73,20 +73,20 @@ void filter_compressor_create(void *pUnknown)
 }
 
 
-int32_t filter_expander_apply(int32_t input, void *pUnknown)
+int16_t filter_expander_apply(int16_t input, void *pUnknown)
 {
 	const FilterCompressorData_t *pData = (const FilterCompressorData_t *)pUnknown;
-	input = input >> 20;
+	input = input;
 
-	uint16_t average = sample_get_average(pData->sensitivity) >> 20;
+	uint16_t average = sample_get_average(pData->sensitivity);
 	if(average > pData->threshold)
 		return input;
 
 	if(input < -ADC_MID_POINT)
-		return -ADC_MID_POINT << 20;
+		return -ADC_MID_POINT;
 	if(input > ADC_MID_POINT)
-		return ADC_MID_POINT << 20;
-	return (input << 20);
+		return ADC_MID_POINT;
+	return (input);
 }
 
 

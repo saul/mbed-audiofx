@@ -15,7 +15,7 @@ extern volatile bool g_bVibratoActive;
 
 
 float vibrato_get_cursor(void *pUnknown);
-int32_t filter_vibrato_apply(int32_t input, void *pUnknown);
+int16_t filter_vibrato_apply(int16_t input, void *pUnknown);
 void filter_vibrato_debug(void *pUnknown);
 void filter_vibrato_create(void *pUnknown);
 

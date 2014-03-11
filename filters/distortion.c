@@ -4,11 +4,11 @@
 #include "distortion.h"
 
 
-int32_t filter_bitcrusher_apply(int32_t input, void *pUnknown)
+int16_t filter_bitcrusher_apply(int16_t input, void *pUnknown)
 {
 	const FilterBitcrusherData_t *pData = (const FilterBitcrusherData_t *)pUnknown;
 
-	return (input >> (20 + pData->bitLoss)) << (20 + pData->bitLoss);
+	return (input >> pData->bitLoss) << (pData->bitLoss);
 }
 
 

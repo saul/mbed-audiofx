@@ -8,7 +8,7 @@ typedef struct
 	float depth;		///< Float f; 0 <= f <= 1 (0 = silence, 1 = original signal)
 } FilterTremoloData_t;
 
-int32_t filter_tremolo_apply(int32_t input, void *pUnknown);
+int16_t filter_tremolo_apply(int16_t input, void *pUnknown);
 void filter_tremolo_debug(void *pUnknown);
 void filter_tremolo_create(void *pUnknown);
 

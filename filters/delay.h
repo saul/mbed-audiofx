@@ -8,9 +8,9 @@ typedef struct
 } FilterDelayData_t;
 
 
-int32_t filter_delay_apply(int32_t input, void *pUnknown);
+int16_t filter_delay_apply(int16_t input, void *pUnknown);
 void filter_delay_debug(void *pUnknown);
 void filter_delay_create(void *pUnknown);
-int32_t filter_delay_feedback_apply(int32_t input, void *pUnknown);
+int16_t filter_delay_feedback_apply(int16_t input, void *pUnknown);
 
 #endif
