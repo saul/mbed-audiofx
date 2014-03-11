@@ -102,7 +102,7 @@ uint16_t sample_get_average(uint16_t nSamples)
 	int32_t sum = 0;
 	for(uint16_t i = 0; i < nSamples; ++i)
 	{
-		int32_t intermediate = i == 0 ? : sample_get(g_iSampleCursor) : sample_get(-i);
+		int32_t intermediate = (i == 0) ? sample_get(g_iSampleCursor) : sample_get(-i);
 		sum += intermediate * intermediate;
 	}
 

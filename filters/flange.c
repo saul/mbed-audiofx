@@ -63,7 +63,7 @@ int16_t filter_flange_apply(int16_t input, void *pUnknown)
 void filter_flange_debug(void *pUnknown)
 {
 	const FilterFlangeData_t *pData = (const FilterFlangeData_t *)pUnknown;
-	dbg_printf("nDelay=%u, frequency=%u, waveType=%u, flangedMix=%f", pData->nDelay, pData->frequency, pData->waveType, pData->flangedMix);
+	dbg_printf("delay=%u, frequency=%u, waveType=%u, flangedMix=%f", pData->nDelay, pData->frequency, pData->waveType, pData->flangedMix);
 }
 #pragma GCC diagnostic pop
 

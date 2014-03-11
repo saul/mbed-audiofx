@@ -20,19 +20,22 @@ float vibrato_get_cursor(void *pUnknown)
 			if(get_square(pData->frequency))
 				vib_cursor = g_iSampleCursor;
 			else
-				vib_cursor = g_iSampleCursor - (2.0 * pData->nDelay);
+				vib_cursor = g_iSampleCursor - (2.0f * pData->nDelay);
 		case 1:
-			vib_cursor = g_iSampleCursor - (pData->nDelay * 2.0 * get_sawtooth(pData->frequency));
+			vib_cursor = g_iSampleCursor - (pData->nDelay * 2.0f * get_sawtooth(pData->frequency));
 		case 2:
-			vib_cursor = g_iSampleCursor - (pData->nDelay * 2.0 * get_inverse_sawtooth(pData->frequency));
+			vib_cursor = g_iSampleCursor - (pData->nDelay * 2.0f * get_inverse_sawtooth(pData->frequency));
 		case 3:
-			vib_cursor = g_iSampleCursor - (pData->nDelay * 2.0 * get_triangle(pData->frequency));
+			vib_cursor = g_iSampleCursor - (pData->nDelay * 2.0f * get_triangle(pData->frequency));
 		default:
 			vib_cursor = g_iSampleCursor;
 	}
+
 	vib_cursor += BUFFER_SAMPLES;
+
 	while(vib_cursor > BUFFER_SAMPLES)
 		vib_cursor -= BUFFER_SAMPLES;
+
 	return vib_cursor;
 }
 
@@ -48,7 +51,7 @@ int16_t filter_vibrato_apply(int16_t input, void *pUnknown)
 void filter_vibrato_debug(void *pUnknown)
 {
 	const FilterVibratoData_t *pData = (const FilterVibratoData_t *)pUnknown;
-	dbg_printf("nDelay=%u, frequency=%u, waveType=%u", pData->nDelay, pData->frequency, pData->waveType);
+	dbg_printf("delay=%u, frequency=%u, waveType=%u", pData->nDelay, pData->frequency, pData->waveType);
 }
 
 
