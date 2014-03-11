@@ -23,12 +23,23 @@
 <body>
 	<ul class="nav nav-tabs">
 		<li class="active"><a href="#chain" data-toggle="tab">Filter chain</a></li>
+		<li><a href="#chains" data-toggle="tab">Saved chains</a></li>
 		<li><a href="#debug" data-toggle="tab">Debugging</a></li>
 	</ul>
 
 	<div class="tab-content">
 		<div class="tab-pane active" id="chain">
 			<div id="filter-container" style="display: none"></div>
+		</div>
+
+		<div class="tab-pane" id="chains">
+			<div id="stored-chain-list" class="list-group">
+				<a href="#" class="list-group-item">(waiting...)</a>
+			</div>
+
+			<p>
+				<input type="text" class="form-control" id="save-chain-name" placeholder="Save current chain as...">
+			</p>
 		</div>
 
 		<div class="tab-pane" id="debug">

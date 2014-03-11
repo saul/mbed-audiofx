@@ -1,0 +1,9 @@
+{{#each chains}}
+	<a href="#" class="list-group-item" data-name="{{this}}">
+		{{this}}
+
+		<button type="button" class="close">&times;</button>
+	</a>
+{{else}}
+	<a href="#" class="list-group-item">(no chains stored)</a>
+{{/each}}

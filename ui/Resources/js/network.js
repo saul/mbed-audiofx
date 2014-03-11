@@ -104,6 +104,7 @@ packetHandlers[PacketTypes.B2U_FILTER_LIST] = function(packet) {
 	$('#filter-container').show();
 };
 
+
 // B2U_ANALOG_CONTROL (Tom individual)
 // ============================================================================
 packetHandlers[PacketTypes.B2U_ANALOG_CONTROL] = function(packet) {
@@ -114,7 +115,11 @@ packetHandlers[PacketTypes.B2U_ANALOG_CONTROL] = function(packet) {
 // B2U_STORED_LIST (Saul individual)
 // ============================================================================
 packetHandlers[PacketTypes.B2U_STORED_LIST] = function(packet) {
-	// todo!!!
+	renderTemplateRemote('stored_chains.html', function(template) {
+		$('#stored-chain-list').html(template({
+			chains: _.toArray(packet.stored_chains),
+		}));
+	});
 }
 
 
@@ -122,11 +127,9 @@ packetHandlers[PacketTypes.B2U_STORED_LIST] = function(packet) {
 // ============================================================================
 function syncChain(packet) {
 	for (var i = 0; i < packet.stages.length; i++) {
-		var stageIdx = i;
 		var stage = packet.stages[i];
 
 		for (var j = 0; j < stage.length; j++) {
-			var branchIdx = j;
 			var branch = stage[j];
 			var defaultFilter = filters[branch.filter];
 			var filledFilter = {};
@@ -142,15 +145,24 @@ function syncChain(packet) {
 				filledFilter.params.push(filledParam);
 			};
 
-			renderTemplateRemote('filter.html', function(template) {
-				$('.stage-row:nth-child(' + (stageIdx+1) + ') :nth-child(' + (branchIdx+1) + ')')[0].outerHTML = template({
-					index: filledFilter.index,
-					filter: filledFilter,
-					enabled: branch.flags & 1,
-					mixPerc: branch.mixPerc,
+			(function(i, j, filledFilter, branch) {
+				renderTemplateRemote('filter.html', function(template) {
+					$('.stage-row:nth-child(' + (i+1) + ') .filter:nth-child(' + (j+1) + ')')[0].outerHTML = template({
+						index: filledFilter.index,
+						filter: filledFilter,
+						enabled: branch.flags & 1,
+						mixPerc: branch.mixPerc.toFixed(3),
+					});
 				});
-			});
+			})(i, j, filledFilter, branch);
 		};
+
+		$('.stage-row:nth-child(' + (i+1) + ') .filter-create button').popover({
+			html: true,
+			placement: 'bottom',
+			content: getCreationPopoverContent,
+			container: '#' + $('.stage-row:nth-child(' + (i+1) + ')').uniqueId(),
+		});
 	};
 }
 

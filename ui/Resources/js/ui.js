@@ -22,6 +22,27 @@ $(function() {
 
 		// Clear the prompt
 		$this.val('');
+	});
+
+	$('#save-chain-name').keypress(function(event) {
+		var $this = $(this);
+
+		// We're only interested in the enter key
+		if(event.which != 13)
+			return;
+
+		// Clean up text (trim spaces and slugify)
+		var name = $.trim($this.val())
+					.toLowerCase()
+		       		.replace(/[^\w ]+/g,'')
+		       		.replace(/ +/g,'-');
+
+		// Send command packet
+		packet = CommandPacket(serialStream);
+		packet.send('chain_save ' + name);
+
+		// Clear the prompt
+		$this.val('');
 	})
 
 	// Simulate a board reset
@@ -90,6 +111,7 @@ function appendFilterToStage(stageIdx, filterIdx) {
 		$('.stage-row:nth-child(' + (stageIdx + 1) + ') .filter-create').before(template({
 			index: filterIdx,
 			filter: filter,
+			enabled: false,
 		}));
 	});
 }
@@ -171,6 +193,40 @@ $(document).on('change', 'select[name=filter-create]', function() {
 		appendStage();
 
 	appendFilterToStage($stage.index(), filterIdx);
+});
+
+
+// Chain item clicked
+// ============================================================================
+$(document).on('click', '#stored-chain-list a', function(event) {
+	var $this = $(event.target);
+
+	if(!$this.hasClass('list-group-item'))
+		return;
+
+	if(!confirm('Are you sure you want to overwrite your current chain?'))
+		return;
+
+	// Send command packet
+	packet = CommandPacket(serialStream);
+	packet.send('chain_restore ' + $this.data('name'));
+
+	// Go back to chain
+	$('[href="#chain"]').click();
+});
+
+
+// Chain delete clicked
+// ============================================================================
+$(document).on('click', '#stored-chain-list a .close', function(event) {
+	var $this = $(this);
+
+	if(!confirm('Are you sure you want to delete this chain?'))
+		return;
+
+	// Send command packet
+	packet = CommandPacket(serialStream);
+	packet.send('chain_delete ' + $this.parent().data('name'));
 });
 
 

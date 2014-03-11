@@ -319,8 +319,8 @@ class ChainBlobPacket(Packet):
 					param = filter(lambda kv: kv['o'] == str(offset), filter_['params'].values())[0]
 
 					# Read parameter
-					value = struct.unpack_from('<' + param['f'], data)[0]
-					data = data[struct.calcsize('<' + param['f']):]
+					value = struct.unpack_from('<' + str(param['f']), data)[0]
+					data = data[struct.calcsize('<' + str(param['f'])):]
 
 					print '\t\t\t\t=> %r' % (value)
 
