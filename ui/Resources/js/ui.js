@@ -266,15 +266,14 @@ $(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.
 
 
 /* Tom individual */
+// Called when a user changes any of the analog control checkboxes
 $(document).on('change', '.ac-checkbox', $.debounce(250, function() {
 	updateAnalogControls(ac_value);
 }));
-/* End Tom individual */
 
-
-/* Tom individual */
 var ac_value = 0;
 
+// Update checked analoog controls with the analog value
 function updateAnalogControls(new_value) {
 	ac_value = new_value;
 
