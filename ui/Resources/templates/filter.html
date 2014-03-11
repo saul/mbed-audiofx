@@ -1,8 +1,8 @@
-<div class="filter panel panel-danger" data-filter-index="{{index}}">
+<div class="filter panel {{#if enabled}}panel-success{{else}}panel-danger{{/if}}" data-filter-index="{{index}}">
 	<div class="panel-heading">
 		<h3 class="panel-title">
 			<label>
-				<input name="filter-enabled" type="checkbox"> {{filter.name}}
+				<input name="filter-enabled" type="checkbox" {{#if enabled}}checked="checked"{{/if}}> {{filter.name}}
 			</label>
 
 			<button type="button" class="close">&times;</button>
@@ -11,8 +11,8 @@
 
 	<div class="panel-body">
 		<div class="form-group" data-param-name="mix">
-			<label for="mix-perc">Mix percentage: <span class="value text-muted">1.000</span></label>
-			<input type="range" class="form-control" name="mix-perc" min="0" max="2" step="0.001" value="1">
+			<label for="mix-perc">Mix percentage: <span class="value text-muted">{{#exists mixPerc}}{{filter.mixPerc}}{{else}}1.000{{/endif}}</span></label>
+			<input type="range" class="form-control" name="mix-perc" min="0" max="2" step="0.001" value="{{#exists mixPerc}}{{filter.mixPerc}}{{else}}1.000{{/endif}}">
 		</div>
 
 		{{#each filter.params}}

@@ -54,6 +54,15 @@ function onBoardReset() {
 })(jQuery);
 
 
+Handlebars.registerHelper('exists', function(variable, options) {
+    if (typeof variable !== 'undefined') {
+        return options.fn(this);
+    } else {
+        return options.inverse(this);
+    }
+});
+
+
 function appendStage(completed) {
 	renderTemplateRemote('filter_stage.html', function(template) {
 		$('#filter-container').append(template({}));
@@ -178,7 +187,7 @@ $(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.
 	if(paramName === 'mix') {
 		packet = FilterMixPacket(serialStream);
 		packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
-	} else if(! $this.hasClass('checkbox')) {
+	} else {
 		var param = filter.params[paramName];
 
 		packet = FilterModPacket(serialStream);
@@ -186,7 +195,6 @@ $(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.
 	}
 
 	$this.siblings('label').children('.value').text($this.val());
-	updateFromEvent(event.target);
 }));
 
 

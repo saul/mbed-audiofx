@@ -303,7 +303,9 @@ class ChainBlobPacket(Packet):
 
 				branch = {
 					'filter': filter_idx,
-					'params': []
+					'flags': flags,
+					'mixPerc': mix_perc,
+					'params': [],
 				}
 
 				for k in range(num_params):

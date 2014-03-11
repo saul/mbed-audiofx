@@ -146,6 +146,8 @@ function syncChain(packet) {
 				$('.stage-row:nth-child(' + (stageIdx+1) + ') :nth-child(' + (branchIdx+1) + ')')[0].outerHTML = template({
 					index: filledFilter.index,
 					filter: filledFilter,
+					enabled: branch.flags & 1,
+					mixPerc: branch.mixPerc,
 				});
 			});
 		};
@@ -165,5 +167,6 @@ packetHandlers[PacketTypes.B2U_CHAIN_BLOB] = function(packet) {
 			stages: stages,
 		}));
 		syncChain(packet);
+		appendStage();
 	});
 }
