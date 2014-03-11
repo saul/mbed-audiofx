@@ -11,7 +11,7 @@
 /*volatile*/ SamplePair_t g_pSampleBuffer[BUFFER_SAMPLES / 2];
 volatile uint16_t g_iSampleCursor = 0;
 volatile uint16_t g_iWaveCursor = 0;
-volatile uint16_t g_iVibratoSampleCursor = 0;
+volatile float g_flVibratoSampleCursor = 0;
 static SampleAverage_t s_SampleAverage;
 
 
@@ -67,10 +67,9 @@ int32_t sample_get_interpolated(float index)
 
 	if(g_bVibratoActive)
 	{
-		if(index < 0)
-			index = (g_iVibratoSampleCursor - g_iSampleCursor) + index;
-		else
-			index = (g_iSampleCursor - g_iVibratoSampleCursor) + index;
+		index = (g_iSampleCursor - g_flVibratoSampleCursor) + index + BUFFER_SAMPLES;
+		if(index > BUFFER_SAMPLES)
+			index = index - BUFFER_SAMPLES;
 	}
 
 	int16_t i;

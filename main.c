@@ -110,11 +110,6 @@ static void time_tick(void *pUserData)
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
 	g_iWaveCursor = (g_iWaveCursor + 1) % (BUFFER_SAMPLES * 4);
 
-#ifdef VIBRATO_TO_FIX
-	if(g_bVibratoActive)
-		g_iVibratoSampleCursor = vibrato_get_cursor();
-#endif
-
 	uint32_t ulEndTick = time_tickcount();
 
 	// Clipped?

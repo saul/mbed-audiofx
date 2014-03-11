@@ -33,6 +33,7 @@ float vibrato_get_cursor(void *pUnknown)
 int32_t filter_vibrato_apply(int32_t input, void *pUnknown)
 {
 	g_bVibratoActive = true;
+	g_flVibratoSampleCursor = vibrato_get_cursor(pUnknown);
 	return input;
 }
 

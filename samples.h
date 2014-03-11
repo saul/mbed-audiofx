@@ -6,7 +6,7 @@
 
 extern volatile uint16_t g_iSampleCursor;
 extern volatile uint16_t g_iWaveCursor;
-extern volatile uint16_t g_iVibratoSampleCursor;
+extern volatile float g_flVibratoSampleCursor;
 
 
 #pragma GCC diagnostic push
