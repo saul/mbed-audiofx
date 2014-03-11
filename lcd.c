@@ -85,7 +85,8 @@ void lcd_wait_non_busy(void)
 	do
 	{
 		lcd_read(&rxb, 1);
-	} while(rxb & 0x80);
+	}
+	while(rxb & 0x80);
 }
 
 

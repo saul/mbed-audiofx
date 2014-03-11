@@ -167,50 +167,48 @@ $(document).on('change', 'select[name=filter-create]', function() {
 
 // Filter parameter input change
 // ============================================================================
-$(document).on('change', '.form-group[data-param-name]', $.debounce(250, function(event) {
+$(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.debounce(250, function(event) {
+	var $this = $(event.target);
+	var $stage = $this.parents('.stage-row');
+	var $filter = $this.parents('.filter');
+	var $widget = $this.parent();
+	var paramName = $widget.data('param-name');
+	var filter = filters[$filter.data('filter-index')];
+
+	if(paramName === 'mix') {
+		packet = FilterMixPacket(serialStream);
+		packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
+	} else if(! $this.hasClass('checkbox')) {
+		var param = filter.params[paramName];
+
+		packet = FilterModPacket(serialStream);
+		packet.send($stage.index(), $filter.index(), param['o'], param['f'], $this.val());
+	}
+
+	$this.siblings('label').children('.value').text($this.val());
 	updateFromEvent(event.target);
 }));
 
-function updateFromEvent(target) {
-	var $this = $(target);
-	if ($this.hasClass('ac-checkbox')) {
-		updateAnalogControls(ac_value);
-	} else {
-		var $stage = $this.parents('.stage-row');
-		var $filter = $this.parents('.filter');
-		var $widget = $this.parent();
-		var paramName = $widget.data('param-name');
-		var filter = filters[$filter.data('filter-index')];
 
-		if(paramName === 'mix') {
-			packet = FilterMixPacket(serialStream);
-			packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
-		} else if(! $this.hasClass('checkbox')) {
-			var param = filter.params[paramName];
-
-			packet = FilterModPacket(serialStream);
-			packet.send($stage.index(), $filter.index(), param['o'], param['f'], $this.val());
-		}
-
-		$this.siblings('label').children('.value').text($this.val());
-	}
-}
+/* Tom individual */
+$(document).on('change', '.ac-checkbox', $.debounce(250, function() {
+	updateAnalogControls(ac_value);
+}));
+/* End Tom individual */
 
 
 /* Tom individual */
+var ac_value = 0;
+
 function updateAnalogControls(new_value) {
 	ac_value = new_value;
-	new_value = new_value / 100;
-	$('.ac-checkbox:checked').each(function(entry) {
-		var element = $('.ac-checkbox:checked')[entry];
-		var name = element.name;
-		var control_element = $('[name="'+(name.replace('-ac', ''))+'"]');
-		var min = control_element.attr('min');
-		var max = control_element.attr('max');
-		new_value = min + (max-min)*new_value;
-		control_element.val(new_value);
-		var form_element = control_element.parent();
-		// setTimeout(function(){updateFromEvent(form_element)}, 3);
+
+	$('.ac-checkbox:checked').each(function() {
+		var $element = $(this).parents('.form-group').children('input');
+		var min = $element.attr('min');
+		var max = $element.attr('max');
+		var scaled_value = min + (max-min)*new_value;
+		$element.val(scaled_value);
 	});
 }
 /* End Tom individual */

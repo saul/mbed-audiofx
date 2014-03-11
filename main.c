@@ -12,6 +12,7 @@
 #include "adc.h"
 #include "dac.h"
 #include "microtimer.h"
+#include "i2c.h"
 
 // audiofx
 #include "config.h"
@@ -198,6 +199,10 @@ void main(void)
 	rtc_init();
 #endif
 
+	// I2C init
+	i2c_init();
+	i2c_scan();
+
 	// ADC init
 	adc_init(SAMPLE_RATE);
 	adc_config(0, true); // MBED pin 15
@@ -218,6 +223,11 @@ void main(void)
 	// Clear sample buffer
 	for(uint16_t i = 0; i < BUFFER_SAMPLES; ++i)
 		sample_set(i, 0);
+
+	// Send stored chains list to UI
+	dbg_printf("Sending stored chains list... ");
+	packet_stored_list_send();
+	dbg_printf(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
 
 	// Send filter list to UI (finalises boot sequence)
 	dbg_printf("Sending filter list... ");

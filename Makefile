@@ -53,6 +53,8 @@ OBJ=sercom.o \
 	dbg.o \
 	adc.o \
 	dac.o \
+	i2c.o \
+	keypad.o \
 	microtimer.o \
 	chain.o \
 	filters.o \

@@ -34,6 +34,8 @@ int16_t filter_oscillating_bandpass_apply(int16_t input, void *pUnknown)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
 void filter_oscillating_bandpass_debug(void *pUnknown)
 {
 	const FilterOscillatingBandPassData_t *pData = (const FilterOscillatingBandPassData_t *)pUnknown;
@@ -41,6 +43,7 @@ void filter_oscillating_bandpass_debug(void *pUnknown)
 					pData->flOscillatingFrequency, pData->waveType, pData->iMinFreq, pData->iMaxFreq);
 	filter_bandpass_debug(pUnknown);
 }
+#pragma GCC diagnostic pop
 
 
 void filter_oscillating_bandpass_create(void *pUnknown)

@@ -11,10 +11,16 @@ import unicodedata
 from ordereddict import OrderedDict
 
 
-__all__ = ['ProbePacket', 'ResetPacket', 'PrintPacket', 'FilterListPacket', 'FilterCreatePacket', 'FilterDeletePacket', 'FilterFlagPacket', 'FilterModPacket', 'FilterMixPacket', 'CommandPacket', 'SerialStream', 'PacketTypes', 'PACKET_MAP']
+__all__ = ['ProbePacket', 'ResetPacket', 'PrintPacket', 'FilterListPacket', 'FilterCreatePacket', 'FilterDeletePacket', 'FilterFlagPacket', 'FilterModPacket', 'FilterMixPacket', 'CommandPacket', 'AnalogControlPacket', 'StoredListPacket', 'ChainBlobPacket', 'SerialStream', 'PacketTypes', 'PACKET_MAP']
 
-# little-endian "MBED"
-PACKET_IDENT = ord('D') << 24 | ord('E') << 16 | ord('B') << 8 | ord('M')
+# little-endian "MBED" encoded into a 32-bit integer
+PACKET_IDENT = ord('M') | ord('B') << 8 | ord('E') << 16 | ord('D') << 24
+
+# little-endian "CHST" encoded into a 32-bit integer
+CHAIN_STORE_IDENT = ord('C') | ord('H') << 8 | ord('S') << 16 | ord('T') << 24
+CHAIN_STORE_VERSION = 1
+
+global_filters = []
 
 
 def read_ascii_string(s, offset):
@@ -80,6 +86,10 @@ class PacketTypes(object):
 	# Tom individual
 	B2U_ANALOG_CONTROL = 11
 	# End Tom individual
+	# Saul individual
+	B2U_STORED_LIST = 12
+	B2U_CHAIN_BLOB = 13
+	# End Saul individual
 
 
 class Packet(object):
@@ -125,26 +135,16 @@ class PrintPacket(Packet):
 
 	def receive(self, data):
 		chars = struct.unpack('<%dc' % len(data), data)
-		try:
-			self.msg = ''.join(chars).decode('ascii')
-		except:
-			self.msg = "Corrupted Print Package"
-		finally:
-			print self.msg,
-
-# Tom individual
-class AnalogControlPacket(Packet):
-	type_ = PacketTypes.B2U_ANALOG_CONTROL
-
-	def receive(self, data):
-		self.value = struct.unpack('<H', data)[0]
-# End Tom individual
+		self.msg = ''.join(chars).decode('ascii')
+		print self.msg,
 
 
 class FilterListPacket(Packet):
 	type_ = PacketTypes.B2U_FILTER_LIST
 
 	def receive(self, data):
+		global global_filters
+
 		HEADER_FORMAT = '<B'
 		offset = 0
 		num_filters = struct.unpack_from(HEADER_FORMAT, data, offset)[0]
@@ -187,8 +187,9 @@ class FilterListPacket(Packet):
 				'name': name,
 				'slug': slugify(name),
 				'params': params,
-				'paramKeys': list(params.iterkeys()),
 			})
+
+		global_filters = self.filters
 
 
 class FilterCreatePacket(Packet):
@@ -238,6 +239,102 @@ class CommandPacket(Packet):
 		return struct.pack('<B', len(c_args)) + ''.join(c_args)
 
 
+# Tom individual
+class AnalogControlPacket(Packet):
+	type_ = PacketTypes.B2U_ANALOG_CONTROL
+
+	def receive(self, data):
+		self.value = struct.unpack('<H', data)[0]
+# End Tom individual
+
+
+# Saul individual
+class StoredListPacket(Packet):
+	type_ = PacketTypes.B2U_STORED_LIST
+
+	def receive(self, data):
+		self.stored_chains = []
+		offset = 0
+
+		while offset < len(data):
+			name, offset = read_ascii_string(data, offset)
+			self.stored_chains.append(name)
+# End Saul individual
+
+
+# Saul individual
+class ChainBlobPacket(Packet):
+	type_ = PacketTypes.B2U_CHAIN_BLOB
+
+	def receive(self, data):
+		HEADER_FORMAT = '<IBB'
+		ident, version, num_stages = struct.unpack_from(HEADER_FORMAT, data)
+		data = data[struct.calcsize(HEADER_FORMAT):]
+
+		if ident != CHAIN_STORE_IDENT:
+			print 'Invalid chain store ident!'
+			return
+
+		if version != CHAIN_STORE_VERSION:
+			print 'Invalid chain store version!'
+			return
+
+		print 'num stages = %d' % num_stages
+
+		self.stages = []
+
+		for i in range(num_stages):
+			STAGE_HEADER_FORMAT = '<B'
+			num_branches = struct.unpack_from(STAGE_HEADER_FORMAT, data)[0]
+			data = data[struct.calcsize(STAGE_HEADER_FORMAT):]
+
+			print '\tstage #%d: %d' % (i, num_branches)
+
+			stage = []
+
+			for j in range(num_branches):
+				BRANCH_HEADER_FORMAT = '<BBfB'
+				filter_idx, flags, mix_perc, num_params = struct.unpack_from(BRANCH_HEADER_FORMAT, data)
+				data = data[struct.calcsize(BRANCH_HEADER_FORMAT):]
+
+				print '\t\tbranch: filter=%d,flags=%x,mixperc=%.2f,params=%d' % (filter_idx, flags, mix_perc, num_params)
+
+				filter_ = global_filters[filter_idx]
+
+				branch = {
+					'filter': filter_idx,
+					'params': []
+				}
+
+				for k in range(num_params):
+					PARAM_FORMAT = '<BB'
+					offset, size = struct.unpack_from(PARAM_FORMAT, data)
+					data = data[struct.calcsize(PARAM_FORMAT):]
+
+					print '\t\t\to=%d,s=%d' % (offset, size)
+
+					# Find parameter in filter list
+					param = filter(lambda kv: kv['o'] == str(offset), filter_['params'].values())[0]
+
+					# Read parameter
+					value = struct.unpack_from('<' + param['f'], data)[0]
+					data = data[struct.calcsize('<' + param['f']):]
+
+					print '\t\t\t\t=> %r' % (value)
+
+					branch['params'].append({
+						'name': param['name'],
+						'slug': slugify(param['name']),
+						'offset': offset,
+						'value': value,
+					})
+
+				stage.append(branch)
+
+			self.stages.append(stage)
+# End Saul individual
+
+
 PACKET_MAP = [
 	ProbePacket, # B2U_PROBE
 	ResetPacket, # U2B_RESET
@@ -250,8 +347,12 @@ PACKET_MAP = [
 	FilterMixPacket, # U2B_FILTER_MIX
 	CommandPacket, # U2B_ARB_CMD
 	# Tom individual
-	AnalogControlPacket,
+	AnalogControlPacket, # B2U_ANALOG_CONTROL
 	# End Tom individual
+	# Saul individual
+	StoredListPacket, # B2U_STORED_LIST
+	ChainBlobPacket, # B2U_CHAIN_BLOB
+	# End Saul individual
 ]
 
 

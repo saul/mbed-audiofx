@@ -5,6 +5,7 @@
 #pragma GCC diagnostic ignored "-pedantic"
 #	include "LPC17xx.h"
 #	include "lpc_types.h"
+#	include "lpc17xx_uart.h"
 #pragma GCC diagnostic pop
 
 #include "sercom.h"
@@ -18,6 +19,7 @@
 #include "config.h"
 #ifdef INDIVIDUAL_BUILD_SAUL
 #	include "chainstore.h"
+#	include "fatfs/ff.h"
 #endif
 
 
@@ -36,6 +38,10 @@ const char *g_ppszPacketTypes[] = {
 #ifdef INDIVIDUAL_BUILD_TOM
 	"B2U_ANALOG_CONTROL",
 #endif // INDIVIDUAL_BUILD_TOM
+#ifdef INDIVIDUAL_BUILD_SAUL
+	"B2U_STORED_LIST",
+	"B2U_CHAIN_BLOB",
+#endif
 };
 
 
@@ -54,6 +60,10 @@ PacketHandler_t g_pPacketHandlers[] = {
 #ifdef INDIVIDUAL_BUILD_TOM
 	{NULL, false, 0}, // B2U_ANALOG_CONTROL
 #endif // INDIVIDUAL_BUILD_TOM
+#ifdef INDIVIDUAL_BUILD_SAUL
+	{NULL, false, 0}, // B2U_STORED_LIST
+	{NULL, false, 0}, // B2U_CHAIN_BLOB
+#endif
 };
 
 
@@ -125,6 +135,125 @@ void packet_filter_list_send(void)
 	sercom_send(B2U_FILTER_LIST, buf->buf, buf->pos);
 	bb_free(buf);
 }
+
+
+#ifdef INDIVIDUAL_BUILD_SAUL
+void packet_stored_list_send(void)
+{
+	FRESULT res;
+	DIR dir;
+
+	if((res = f_opendir(&dir, STORE_DIRECTORY)))
+	{
+		dbg_warning("f_opendir failed %d\r\n", res);
+		return;
+	}
+
+	byte_buffer *buf = bb_new_default(true);
+
+	FILINFO fno;
+
+	for(;;)
+	{
+		res = f_readdir(&dir, &fno);
+
+		// Break on error
+		if(res)
+		{
+			dbg_warning("f_readdir failed %d\r\n", res);
+			break;
+		}
+
+		// Break on end of dir
+		if(!fno.fname[0])
+			break;
+
+		// Ignore dot entry
+		if(fno.fname[0] == '.')
+			continue;
+
+		// Skip directories
+		if(fno.fattrib & AM_DIR)
+			continue;
+
+		// Write file name and NOT the extension
+		for(const char *pszName = fno.fname; *pszName && *pszName != '.'; pszName++)
+			bb_put(buf, *pszName);
+
+		bb_put(buf, 0);
+	}
+
+	// Send packet
+	sercom_send(B2U_STORED_LIST, buf->buf, buf->pos);
+
+	// Cleanup
+	f_closedir(&dir);
+	bb_free(buf);
+}
+#endif
+
+
+#ifdef INDIVIDUAL_BUILD_SAUL
+void packet_chain_blob_send(const char *pszPath)
+{
+	FRESULT res;
+	UINT nRead;
+
+	FIL fh;
+	if((res = f_open(&fh, pszPath, FA_READ)))
+	{
+		dbg_warning("f_open failed %d\r\n", res);
+		return;
+	}
+
+	// Get file size
+	DWORD size = f_size(&fh);
+
+	// We manually send the packet data instead of using sercom_send as we send
+	// the file in chunks of 128 bytes
+
+	// Send packet header
+	PacketHeader_t packetHdr = {
+		.ident=PACKET_IDENT,
+		.type=B2U_CHAIN_BLOB,
+		.size=size
+	};
+
+	UART_Send((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)&packetHdr, sizeof(packetHdr), BLOCKING);
+
+	// Read store header
+	ChainStoreHeader_t storeHdr;
+	if((res = f_read(&fh, &storeHdr, sizeof(storeHdr), &nRead)) || nRead != sizeof(storeHdr))
+	{
+		dbg_warning("header read failed %d\r\n", res);
+		return;
+	}
+
+	if(!chainstore_header_validate(&storeHdr))
+		return;
+
+	// Write header
+	UART_Send((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)&storeHdr, sizeof(storeHdr), BLOCKING);
+
+	// Write remaining file data
+	uint8_t pData[128];
+
+	do
+	{
+		if((res = f_read(&fh, pData, sizeof(pData), &nRead)))
+		{
+			dbg_warning("file read failed %d\r\n", res);
+			return;
+		}
+
+		// Write file data to UART
+		UART_Send((LPC_UART_TypeDef *)LPC_UART0, pData, nRead, BLOCKING);
+	}
+	while(nRead > 0);
+
+	f_close(&fh);
+}
+#endif
 
 
 void packet_loop(void)
@@ -495,21 +624,33 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 	{
 		if(pCmd->nArgs != 2)
 		{
-			dbg_warning("syntax: <path>\r\n");
+			dbg_warning("syntax: <name>\r\n");
 			goto cleanup;
 		}
 
-		chainstore_save(ppszArgs[1]);
+		char pszPath[32];
+		snprintf(pszPath, sizeof(pszPath), STORE_DIRECTORY "/%s.bin", ppszArgs[1]);
+
+		chainstore_save(pszPath);
+
+		// Send stored chain list to UI
+		packet_stored_list_send();
 	}
 	else if(!strcmp(ppszArgs[0], "chain_restore"))
 	{
 		if(pCmd->nArgs != 2)
 		{
-			dbg_warning("syntax: <path>\r\n");
+			dbg_warning("syntax: <name>\r\n");
 			goto cleanup;
 		}
 
-		chainstore_restore(ppszArgs[1]);
+		char pszPath[32];
+		snprintf(pszPath, sizeof(pszPath), STORE_DIRECTORY "/%s.bin", ppszArgs[1]);
+
+		chainstore_restore(pszPath);
+
+		// Send chain blob to UI
+		packet_chain_blob_send(pszPath);
 	}
 #endif
 	else

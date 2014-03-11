@@ -58,11 +58,14 @@ int16_t filter_flange_apply(int16_t input, void *pUnknown)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
 void filter_flange_debug(void *pUnknown)
 {
 	const FilterFlangeData_t *pData = (const FilterFlangeData_t *)pUnknown;
 	dbg_printf("nDelay=%u, frequency=%u, waveType=%u, flangedMix=%f", pData->nDelay, pData->frequency, pData->waveType, pData->flangedMix);
 }
+#pragma GCC diagnostic pop
 
 
 void filter_flange_create(void *pUnknown)
