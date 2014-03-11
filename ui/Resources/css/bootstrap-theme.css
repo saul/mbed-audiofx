@@ -388,4 +388,7 @@ body {
   overflow-y: hidden;
   -webkit-user-select: text;
 }
+#stored-chain-list {
+  margin: 10px 0;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */
