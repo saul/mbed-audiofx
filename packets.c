@@ -652,6 +652,23 @@ void packet_cmd_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload)
 		// Send chain blob to UI
 		packet_chain_blob_send(pszPath);
 	}
+	else if(!strcmp(ppszArgs[0], "chain_delete"))
+	{
+		if(pCmd->nArgs != 2)
+		{
+			dbg_warning("syntax: <name>\r\n");
+			goto cleanup;
+		}
+
+		char pszPath[32];
+		snprintf(pszPath, sizeof(pszPath), STORE_DIRECTORY "/%s.bin", ppszArgs[1]);
+
+		// Delete chain file
+		f_unlink(pszPath);
+
+		// Send stored chain list to UI
+		packet_stored_list_send();
+	}
 #endif
 	else
 		dbg_warning("unknown command\r\n");
