@@ -249,7 +249,7 @@ void chainstore_restore(const char *pszPath)
 	FIL fh;
 	if((res = f_open(&fh, pszPath, FA_READ)))
 	{
-		dbg_warning("f_open failed %d\r\n", res);
+		dbg_warning("f_open(%s) failed %d\r\n", pszPath, res);
 		return;
 	}
 
