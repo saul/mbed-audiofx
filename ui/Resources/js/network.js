@@ -104,8 +104,66 @@ packetHandlers[PacketTypes.B2U_FILTER_LIST] = function(packet) {
 	$('#filter-container').show();
 };
 
-/* Tom individual */
+// B2U_ANALOG_CONTROL (Tom individual)
+// ============================================================================
 packetHandlers[PacketTypes.B2U_ANALOG_CONTROL] = function(packet) {
-	updateAnalogControls((packet.value/4096) *100);
+	updateAnalogControls(packet.value / 4096);
 }
-/* End Tom individual */
+
+
+// B2U_STORED_LIST (Saul individual)
+// ============================================================================
+packetHandlers[PacketTypes.B2U_STORED_LIST] = function(packet) {
+	// todo!!!
+}
+
+
+// B2U_CHAIN_BLOB (Saul individual)
+// ============================================================================
+function syncChain(packet) {
+	for (var i = 0; i < packet.stages.length; i++) {
+		var stageIdx = i;
+		var stage = packet.stages[i];
+
+		for (var j = 0; j < stage.length; j++) {
+			var branchIdx = j;
+			var branch = stage[j];
+			var defaultFilter = filters[branch.filter];
+			var filledFilter = {};
+			filledFilter.index = branch.filter;
+			filledFilter.name = defaultFilter.name;
+			filledFilter.slug = defaultFilter.slug;
+			filledFilter.params = [];
+
+			for (var k = 0; k < branch.params.length; k++) {
+				var param = branch.params[k];
+				var filledParam = _.clone(defaultFilter.params[param.name]);
+				filledParam.val = param.value;
+				filledFilter.params.push(filledParam);
+			};
+
+			renderTemplateRemote('filter.html', function(template) {
+				$('.stage-row:nth-child(' + (stageIdx+1) + ') :nth-child(' + (branchIdx+1) + ')')[0].outerHTML = template({
+					index: filledFilter.index,
+					filter: filledFilter,
+				});
+			});
+		};
+	};
+}
+
+packetHandlers[PacketTypes.B2U_CHAIN_BLOB] = function(packet) {
+	var stages = [];
+
+	for (var i = 0; i < packet.stages.length; i++) {
+		stages.push(_.toArray(packet.stages[i]));
+	};
+
+	// Create skeleton DOM structure of chain
+	renderTemplateRemote('chain_sync.html', function(template) {
+		$('#filter-container').html(template({
+			stages: stages,
+		}));
+		syncChain(packet);
+	});
+}
