@@ -1,3 +1,10 @@
+/*
+ * ssp.c - SSP communication
+ *
+ * Defines several functions for communicating with SSP (e.g., to the SD card)
+ *
+ */
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
 #	include "lpc17xx_pinsel.h"
@@ -9,9 +16,12 @@
 #include "ssp.h"
 #include "sd.h"
 
-// ssp.h documentation: http://www-module.cs.york.ac.uk/hapr/resources/mbed_resources/CMSIS/drivers/html/group__SSP__Public__Functions.html#ga27795785a9e9370ea2c17d65d3e2fcd6
-// Pin mapping: http://www-users.cs.york.ac.uk/~pcc/MCP/MbedPins.html
 
+/*
+ * ssp_init
+ *
+ * Initialises the SSP pins and peripheral.
+ */
 void ssp_init(void)
 {
 	dbg_printf("Initialising SSP... ");
@@ -54,6 +64,12 @@ void ssp_init(void)
 }
 
 
+/*
+ * ssp_readwrite
+ *
+ * Writes a byte to the SSP line then reads one byte back. Waits for device
+ * to be ready for both operations.
+ */
 uint8_t ssp_readwrite(uint8_t byte)
 {
 	// Wait for device to be ready
@@ -66,6 +82,11 @@ uint8_t ssp_readwrite(uint8_t byte)
 }
 
 
+/*
+ * ssp_read
+ *
+ * Reads a byte from the SSP. Sends 0xFF to trigger the clock.
+ */
 uint8_t ssp_read(void)
 {
 	return ssp_readwrite(0xFF);

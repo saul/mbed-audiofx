@@ -1,3 +1,7 @@
+/*
+ * sdio.c - Interface between FatFS and the SD card.
+ */
+
 #include "dbg.h"
 #include "sd.h"
 #include "ssp.h"
@@ -5,6 +9,7 @@
 #include "fatfs/diskio.h"
 
 
+// Global FatFS workspace
 FATFS g_fs;
 
 
@@ -24,6 +29,7 @@ DSTATUS disk_status(BYTE pdrv)
 	dbg_assert(pdrv == 0, "invalid drive number");
 	DSTATUS status = 0;
 
+	// If the SD card is not ready define STA_NOINIT
 	if(!(g_fSDStatus & SD_STATUS_READY))
 		status |= STA_NOINIT;
 
@@ -38,9 +44,11 @@ DRESULT disk_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count)
 
 	uint32_t addr = sector;
 
+	// If we're byte addressing, multiply by blocksize
 	if(!(g_fSDStatus & SD_STATUS_BLOCKADDR))
 		addr *= SD_BLOCK_SIZE;
 
+	// Send read block command
 	uint8_t r1;
 	sd_command(SDCMD_READ_SINGLE_BLOCK, addr, SD_RESP_R1, &r1, SD_TIMEOUT_INDEFINITE);
 
@@ -80,9 +88,11 @@ DRESULT disk_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count)
 
 	uint32_t addr = sector;
 
+	// If we're byte addressing, multiply by blocksize
 	if(!(g_fSDStatus & SD_STATUS_BLOCKADDR))
 		addr *= SD_BLOCK_SIZE;
 
+	// Send write block command
 	uint8_t r1;
 	sd_command(SDCMD_WRITE_BLOCK, addr, SD_RESP_R1, &r1, SD_TIMEOUT_INDEFINITE);
 

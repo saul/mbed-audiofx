@@ -1,3 +1,16 @@
+/*
+ * sd.c - SD card initialisation and communication
+ *
+ * How to use MMC/SDC:
+ *	http://elm-chan.org/docs/mmc/mmc_e.html
+ *
+ * FatFs:
+ *	http://elm-chan.org/fsw/ff/00index_e.html
+ *
+ * SD card specifications:
+ *	https://www.sdcard.org/downloads/pls/simplified_specs/part1_410.pdf
+ */
+
 #ifndef _SD_H_
 #define _SD_H_
 

@@ -1,3 +1,16 @@
+/*
+ * sd.c - SD card initialisation and communication
+ *
+ * How to use MMC/SDC:
+ *	http://elm-chan.org/docs/mmc/mmc_e.html
+ *
+ * FatFs:
+ *	http://elm-chan.org/fsw/ff/00index_e.html
+ *
+ * SD card specifications:
+ *	https://www.sdcard.org/downloads/pls/simplified_specs/part1_410.pdf
+ */
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-pedantic"
 #	include "lpc17xx_gpio.h"
@@ -9,14 +22,16 @@
 #include "ticktime.h"
 #include "rtc.h"
 
-// How to use MMC/SDC: http://elm-chan.org/docs/mmc/mmc_e.html
-// FatFs: http://elm-chan.org/fsw/ff/00index_e.html
-// SD card specifications: https://www.sdcard.org/downloads/pls/simplified_specs/part1_410.pdf
 
-
+// Holds global SD card state (see SD_STATUS_* constants in sd.h)
 uint8_t g_fSDStatus = 0;
 
 
+/*
+ * sd_init
+ *
+ * Initialises the SD card.
+ */
 void sd_init(void)
 {
 	dbg_assert(!(g_fSDStatus & SD_STATUS_READY), "card already initialised");
@@ -49,12 +64,15 @@ void sd_init(void)
 
 	dbg_printf("\tidentifying card... ");
 	sd_command(SDCMD_SEND_IF_COND, 0x000001AA, SD_RESP_R7, &r7, SD_TIMEOUT_INDEFINITE);
+
+	// If the SD card reports the command as illegal, it's an SDCv2 card
 	if(r7.result & SD_R1_ILLEGAL_COMMAND)
 	{
 		dbg_printf(ANSI_COLOR_RED "unsupported (SDCv1/MMC)\r\n" ANSI_COLOR_RESET);
 		return;
 	}
 
+	// Read lower 12 bits in extra response
 	uint16_t lower12 = r7.extra & ((1<<12) - 1);
 	if(lower12 != 0x1AA)
 	{
@@ -62,6 +80,7 @@ void sd_init(void)
 		return;
 	}
 
+	// SDv2 card
 	dbg_printf(ANSI_COLOR_GREEN "SDCv2\r\n" ANSI_COLOR_RESET);
 	g_fSDStatus |= SD_STATUS_SDV2;
 
@@ -70,6 +89,7 @@ void sd_init(void)
 	//-----------------------------------------------------
 	dbg_printf("\tinitialising card... ");
 
+	// Send ACMD41 until IN_IDLE_STATE isn't set
 	do
 	{
 		sd_command(SDCMD_APP_CMD, 0, SD_RESP_R1, &r1, SD_TIMEOUT_INDEFINITE);
@@ -87,6 +107,7 @@ void sd_init(void)
 	dbg_printf("\tchecking card capacity info... ");
 	sd_command(SDCMD_READ_OCR, 0, SD_RESP_R3, &r3, SD_TIMEOUT_INDEFINITE);
 
+	// Are read/write addresses addressed by block or byte?
 	if(r3.extra & (1<<30))
 	{
 		dbg_printf("block addressing\r\n");
@@ -113,6 +134,11 @@ void sd_init(void)
 }
 
 
+/*
+ * sd_cs
+ *
+ * Set chip select signal value.
+ */
 void sd_cs(bool bHigh)
 {
 	if(bHigh)
@@ -122,6 +148,11 @@ void sd_cs(bool bHigh)
 }
 
 
+/*
+ * swap32
+ *
+ * Endian swap of a 32-bit integer as SD card is in different endian to board.
+ */
 static uint32_t swap32(uint32_t num)
 {
 	return ((num>>24) & 0x000000ff) |	// move byte 3 to byte 0
@@ -131,11 +162,15 @@ static uint32_t swap32(uint32_t num)
 }
 
 
+/*
+ * sd_send_command
+ *
+ * Send a command frame to the SD card via SSP/SPI.
+ */
 void sd_send_command(uint8_t index, uint32_t argument)
 {
 	dbg_assert(index < 0x40, "invalid command index");
 
-	// TODO: calculate CRC properly
 	uint8_t crc = 0;
 
 	if(index == SDCMD_GO_IDLE_STATE)
@@ -150,6 +185,7 @@ void sd_send_command(uint8_t index, uint32_t argument)
 		crc = 0x86;
 	}
 
+	// Populate command frame
 	SSPCommandFrame_t frame;
 	frame.index = index | 0x40;
 	frame.argument = swap32(argument);
@@ -158,23 +194,20 @@ void sd_send_command(uint8_t index, uint32_t argument)
 	// Send each byte of the command frame
 	for(uint8_t i = 0; i < sizeof(frame); ++i)
 		ssp_readwrite(((uint8_t *)&frame)[i]);
-
-#ifdef SSP_DEBUG_TX
-	dbg_printn("{", 1);
-	for(uint8_t i = 0; i < sizeof(frame); ++i)
-	{
-		uint8_t b = ((uint8_t*)&frame)[i];
-		dbg_printf(" %02x", b);
-	}
-	dbg_printn(" } ", 3);
-#endif
 }
 
 
+/*
+ * sd_command
+ *
+ * Send a command frame to the SD card via SSP/SPI and read a response in a
+ * given timeout window.
+ */
 bool sd_command(uint8_t index, uint32_t argument, SDResponseType_e respType, void *pRespData, uint32_t ulTimeoutMsec)
 {
 	dbg_assert(pRespData, "NULL response data");
 
+	// Send the command
 	sd_send_command(index, argument);
 
 	// Keep reading data until we get an R1 response...
@@ -202,7 +235,7 @@ bool sd_command(uint8_t index, uint32_t argument, SDResponseType_e respType, voi
 		SDR7Response_t *pR7 = (SDR7Response_t *)pRespData;
 		pR7->result = data;
 
-		// Read 4 more bytes (swap endian)
+		// Read 4 more bytes (in reverse as to swap endian)
 		for(int8_t i = sizeof(pR7->extra) - 1; i >= 0; --i)
 			((uint8_t *)&pR7->extra)[i] = ssp_read();
 
@@ -216,6 +249,11 @@ bool sd_command(uint8_t index, uint32_t argument, SDResponseType_e respType, voi
 }
 
 
+/*
+ * get_fattime
+ *
+ * Consult the RTC to calculate the time to save files as.
+ */
 DWORD get_fattime(void)
 {
 	RTC_TIME_Type rtcTime;
@@ -230,6 +268,11 @@ DWORD get_fattime(void)
 }
 
 
+/*
+ * fs_init
+ *
+ * Mount the FAT filesystem.
+ */
 void fs_init(void)
 {
 	FRESULT res = f_mount(&g_fs, "", 1);

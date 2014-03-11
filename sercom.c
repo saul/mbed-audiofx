@@ -25,9 +25,16 @@
 #include "sercom.h"
 #include "dbg.h"
 
+
+// Is the UART locked for reading/writing?
 volatile bool g_bUARTLock = false;
 
 
+/*
+ * startup_probe_wait
+ *
+ * Wait for a probe packet or reset packet to finalise the boot procedure.
+ */
 static void startup_probe_wait(void)
 {
 	PacketHeader_t hdr;
@@ -133,9 +140,10 @@ void sercom_send(PacketType_e packet_type, const uint8_t *pBuf, uint16_t size)
 		.size=size
 	};
 
+	// Wait for UART lock
 	while(g_bUARTLock);
-
 	g_bUARTLock = true;
+
 	UART_Send((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)&hdr, sizeof(hdr), BLOCKING);
 
 	if(!size)
@@ -148,10 +156,18 @@ void sercom_send(PacketType_e packet_type, const uint8_t *pBuf, uint16_t size)
 
 	// Send packet data
 	UART_Send((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)pBuf, size, BLOCKING);
+
+	// Release UART lock
 	g_bUARTLock = false;
 }
 
 
+/*
+ * sercom_receive_nonblock
+ *
+ * Reads a packet from the UART. Returns NULL if a packet isn't ready to be
+ * processed IMMEDIATELY.
+ */
 PacketHeader_t *sercom_receive_nonblock(uint8_t **ppPayload)
 {
 	static PacketHeader_t hdr;
@@ -198,10 +214,13 @@ PacketHeader_t *sercom_receive_nonblock(uint8_t **ppPayload)
 			return NULL;
 		}
 
+		// Allocate space for the payload
 		*ppPayload = malloc(hdr.size);
 		dbg_assert(*ppPayload, "unable to allocate enough space for packet");
 
+		// Read the payload from the serial
 		uint32_t nBytes = UART_Receive((LPC_UART_TypeDef *)LPC_UART0, *ppPayload, hdr.size, BLOCKING);
+
 		dbg_assert(nBytes == hdr.size, "failed to read payload (%lu of %u) from serial", nBytes, hdr.size);
 	}
 
@@ -209,6 +228,12 @@ PacketHeader_t *sercom_receive_nonblock(uint8_t **ppPayload)
 }
 
 
+/*
+ * sercom_receive
+ *
+ * Reads a packet from the UART. Blocks until an entire packet (including
+ * payload) has been read from serial.
+ */
 bool sercom_receive(PacketHeader_t *pHdr, uint8_t **ppPayload)
 {
 	dbg_assert(pHdr, "header must not be NULL");
@@ -243,10 +268,13 @@ bool sercom_receive(PacketHeader_t *pHdr, uint8_t **ppPayload)
 			return false;
 		}
 
+		// Allocate space for the payload
 		*ppPayload = malloc(pHdr->size);
 		dbg_assert(*ppPayload, "unable to allocate enough space for packet");
 
+		// Read the payload
 		nBytes = UART_Receive((LPC_UART_TypeDef *)LPC_UART0, *ppPayload, pHdr->size, BLOCKING);
+
 		dbg_assert(nBytes == pHdr->size, "failed to read payload (%lu of %u) from serial", nBytes, pHdr->size);
 	}
 

@@ -18,11 +18,16 @@
 #include <stdbool.h>
 #include "packets.h"
 
-// little-endian "MBED"
+
+// Little-endian "MBED"
 #define PACKET_IDENT (('D' << 24) | ('E' << 16) | ('B' << 8) | 'M')
 
+// Is the UART locked for reading/writing?
 extern volatile bool g_bUARTLock;
 
+
+// Function declarations
+// ----------------------------------------------------------------------------
 void sercom_init(void);
 void sercom_send(PacketType_e packet_type, const uint8_t *pBuf, uint16_t size);
 PacketHeader_t *sercom_receive_nonblock(uint8_t **ppPayload);
