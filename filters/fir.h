@@ -1,11 +1,21 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File created by:	SR
+ *	File modified by:	SR
+ *	File debugged by:	SR
+*/
+
+
 #ifndef _FILTER_FIR_H_
 #define _FILTER_FIR_H_
 
 #pragma pack(push, 1)
 typedef struct
 {
-	float *pflCoefficients;
-	uint8_t nCoefficients;
+	float *pflCoefficients;	///< Pointer to the coefficients array
+	uint8_t nCoefficients;	///< Number of coefficients to be calculated/used
 } FilterFIRBaseData_t;
 #pragma pack(pop)
 
@@ -14,8 +24,8 @@ typedef struct
 typedef struct
 {
 	FilterFIRBaseData_t base;
-	uint16_t iCentreFreq;
-	uint16_t iWidth;
+	uint16_t iCentreFreq;		///< Centre frequency of the band pass (Hz)
+	uint16_t iWidth;			///< Width of the band pass (Hz)
 } FilterBandPassData_t;
 #pragma pack(pop)
 

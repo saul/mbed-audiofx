@@ -69,6 +69,7 @@ typedef struct ChainStageHeader_t
 extern ChainStageHeader_t *g_pChainRoot;
 extern volatile bool g_bChainLock;		///< is chain locked for modification?
 extern volatile float g_flChainVolume;	///< current chain volume
+extern volatile bool g_writeBack;
 
 
 ChainStageHeader_t *stage_alloc();

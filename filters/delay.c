@@ -1,9 +1,32 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File created by:	SR
+ *	File modified by:	TB & SR
+ *	File debugged by:	TB & SR
+ */
+
+
 #include <stdint.h>
 
 #include "dbg.h"
 #include "samples.h"
 #include "delay.h"
 
+
+/*
+ *	Delay filter adds together the current 'input' with a sample
+ *	'pData->nDelay' in the past, at a ratio of
+ *	1 - 'pData->flDelayMixPerc' : 'pData->flDelayMixPerc'.
+ *
+ *	inputs:
+ *		input		signed 12 bit audio sample
+ *		pUnknown	null pointer to a FilterDelayData_t data structure
+ *
+ *	output:
+ *		signed 12 bit audio sample
+ */
 int16_t filter_delay_apply(int16_t input, void *pUnknown)
 {
 	const FilterDelayData_t *pData = (const FilterDelayData_t *)pUnknown;
@@ -15,6 +38,7 @@ int16_t filter_delay_apply(int16_t input, void *pUnknown)
 }
 
 
+// Prints delay filter parameter information to UI console
 void filter_delay_debug(void *pUnknown)
 {
 	const FilterDelayData_t *pData = (const FilterDelayData_t *)pUnknown;
@@ -22,6 +46,7 @@ void filter_delay_debug(void *pUnknown)
 }
 
 
+// Set delay filter initial creation values
 void filter_delay_create(void *pUnknown)
 {
 	FilterDelayData_t *pData = (FilterDelayData_t *)pUnknown;
@@ -30,10 +55,14 @@ void filter_delay_create(void *pUnknown)
 }
 
 
+/*
+ *	Delay with feedback applies writeback facility.
+ *	The current sample will be overwritten with the two mixed samples
+*/
 int16_t filter_delay_feedback_apply(int16_t input, void *pUnknown)
 {
 	int16_t result = filter_delay_apply(input, pUnknown);
-	sample_set(g_iSampleCursor, result);
+	g_writeBack = true;
 
 	return result;
 }
