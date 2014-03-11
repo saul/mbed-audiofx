@@ -30,11 +30,14 @@ int32_t filter_tremolo_apply(int32_t input, void *pUnknown)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
 void filter_tremolo_debug(void *pUnknown)
 {
 	const FilterTremoloData_t *pData = (const FilterTremoloData_t *)pUnknown;
 	dbg_printf("frequency=%u, waveType=%u, depth=%f", pData->frequency, pData->waveType, pData->depth);
 }
+#pragma GCC diagnostic pop
 
 
 void filter_tremolo_create(void *pUnknown)

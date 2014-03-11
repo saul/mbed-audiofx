@@ -214,6 +214,12 @@ void bb_put(byte_buffer *bb, uint8_t value) {
 	bb->buf[bb->pos++] = value;
 }
 
+void bb_put_many(byte_buffer *bb, uint8_t value, uint32_t count)
+{
+	for(uint32_t i = 0; i < count; ++i)
+		bb_put(bb, value);
+}
+
 void bb_put_at(byte_buffer *bb, uint8_t value, uint32_t index) {
 	dbg_assert(bb->pos < bb->len, "buffer overflow");
 	bb->buf[index] = value;

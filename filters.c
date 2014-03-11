@@ -32,7 +32,7 @@ Filter_t g_pFilters[] = {
 	{
 		"Delay",
 		"Delay;f=H;o=0;t=range;min=0;max=9999;step=1;val=5000" PARAM_SEP
-		"Mix level;f=f;o=2;min=0;max=1;step=0.05;val=0.5",
+		"Mix level;f=f;o=2;t=range;min=0;max=1;step=0.05;val=0.5",
 		filter_delay_apply, filter_delay_debug, filter_delay_create, NULL,
 		sizeof(FilterDelayData_t), 0
 	},
@@ -40,7 +40,7 @@ Filter_t g_pFilters[] = {
 	{
 		"Reverb",
 		"Delay;f=H;o=0;t=range;min=0;max=9999;step=1;val=5000" PARAM_SEP
-		"Mix level;f=f;o=2;min=0;max=1;step=0.05;val=0.5",
+		"Mix level;f=f;o=2;t=range;min=0;max=1;step=0.05;val=0.5",
 		filter_delay_feedback_apply, filter_delay_debug, filter_delay_create, NULL, // Using delay as they share data structure
 		sizeof(FilterDelayData_t), 0
 	},

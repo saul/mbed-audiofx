@@ -24,6 +24,10 @@ typedef enum
 #ifdef INDIVIDUAL_BUILD_TOM
 	B2U_ANALOG_CONTROL, ///< Board sends analog control value
 #endif // INDIVIDUAL_BUILD_TOM
+#ifdef INDIVIDUAL_BUILD_SAUL
+	B2U_STORED_LIST,	///< Board sends list of possible chains to load
+	B2U_CHAIN_BLOB,		///< Board sends a binary chain blob to the UI to sync up restored chain
+#endif
 
 	// Must be last
 	PACKET_TYPE_MAX,
@@ -64,6 +68,11 @@ void packet_filter_list_send(void);
 #ifdef INDIVIDUAL_BUILD_TOM
 void packet_analog_control_send(uint16_t analog_value);
 #endif // INDIVIDUAL_BUILD_TOM
+
+#ifdef INDIVIDUAL_BUILD_SAUL
+void packet_stored_list_send(void);
+void packet_chain_blob_send(const char *pszPath);
+#endif
 
 void packet_loop(void);
 void packet_reset_receive(const PacketHeader_t *pHdr, const uint8_t *pPayload);

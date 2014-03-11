@@ -74,7 +74,8 @@ void sd_init(void)
 	{
 		sd_command(SDCMD_APP_CMD, 0, SD_RESP_R1, &r1, SD_TIMEOUT_INDEFINITE);
 		sd_command(SDCMD_APP_SEND_OP_COND, 1<<30, SD_RESP_R1, &r1, SD_TIMEOUT_INDEFINITE);
-	} while(r1 & SD_R1_IN_IDLE_STATE);
+	}
+	while(r1 & SD_R1_IN_IDLE_STATE);
 
 	dbg_printf(ANSI_COLOR_GREEN "OK!\r\n" ANSI_COLOR_RESET);
 
@@ -182,7 +183,8 @@ bool sd_command(uint8_t index, uint32_t argument, SDResponseType_e respType, voi
 	do
 	{
 		data = ssp_read();
-	} while(data == 0xFF && (ulTimeoutMsec == SD_TIMEOUT_INDEFINITE || time_tickcount() - ulStartTick < ulTimeoutMsec));
+	}
+	while(data == 0xFF && (ulTimeoutMsec == SD_TIMEOUT_INDEFINITE || time_tickcount() - ulStartTick < ulTimeoutMsec));
 
 	// Did we timeout?
 	if(data == 0xFF)

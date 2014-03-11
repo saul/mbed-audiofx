@@ -70,6 +70,7 @@ uint16_t bb_get_short_at(byte_buffer *bb, uint32_t index);
 // Put functions (simply drop bytes until there is no more room)
 void bb_put_bb(byte_buffer *dest, byte_buffer* src);
 void bb_put(byte_buffer *bb, uint8_t value);
+void bb_put_many(byte_buffer *bb, uint8_t value, uint32_t count);
 void bb_put_at(byte_buffer *bb, uint8_t value, uint32_t index);
 void bb_put_bytes(byte_buffer *bb, const uint8_t *arr, size_t len);
 void bb_put_bytes_at(byte_buffer *bb, const uint8_t *arr, size_t len, uint32_t index);

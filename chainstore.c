@@ -223,6 +223,24 @@ void chainstore_save(const char *pszPath)
 }
 
 
+bool chainstore_header_validate(const ChainStoreHeader_t *pHdr)
+{
+	if(pHdr->ident != STORE_IDENT)
+	{
+		dbg_warning("invalid ident (%.4s)\r\n", (const char *)&pHdr->ident);
+		return false;
+	}
+
+	if(pHdr->iVersion != STORE_VERSION)
+	{
+		dbg_warning("invalid version (%d), expected %d\r\n", pHdr->iVersion, STORE_VERSION);
+		return false;
+	}
+
+	return true;
+}
+
+
 void chainstore_restore(const char *pszPath)
 {
 	FRESULT res;
@@ -243,17 +261,8 @@ void chainstore_restore(const char *pszPath)
 		return;
 	}
 
-	if(hdr.ident != STORE_IDENT)
-	{
-		dbg_warning("invalid ident (%.4s)\r\n", (const char *)&hdr.ident);
+	if(!chainstore_header_validate(&hdr))
 		return;
-	}
-
-	if(hdr.iVersion != STORE_VERSION)
-	{
-		dbg_warning("invalid version (%d), expected %d\r\n", hdr.iVersion, STORE_VERSION);
-		return;
-	}
 
 	// Deallocate current chain
 	chain_free();

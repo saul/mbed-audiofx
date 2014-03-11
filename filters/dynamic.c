@@ -54,11 +54,14 @@ int32_t filter_compressor_apply(int32_t input, void *pUnknown)
 }
 
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
 void filter_compressor_debug(void *pUnknown)
 {
 	const FilterCompressorData_t *pData = (const FilterCompressorData_t *)pUnknown;
 	dbg_printf("sensitivity=%u, threshold=%u, scalar=%f", pData->sensitivity, pData->threshold, pData->scalar);
 }
+#pragma GCC diagnostic pop
 
 
 void filter_compressor_create(void *pUnknown)
