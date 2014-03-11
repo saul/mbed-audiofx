@@ -7,7 +7,7 @@
 #include "tremolo.h"
 
 
-int32_t filter_tremolo_apply(int32_t input, void *pUnknown)
+int16_t filter_tremolo_apply(int16_t input, void *pUnknown)
 {
 	const FilterTremoloData_t *pData = (const FilterTremoloData_t *)pUnknown;
 

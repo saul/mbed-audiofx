@@ -21,13 +21,13 @@ static int32_t sample_get_raw(int16_t index, bool bAffectedByVibrato)
 		return sample_get_interpolated(index);
 
 	if(index & 1)
-		return g_pSampleBuffer[(index-1)/2].b << 20;
+		return g_pSampleBuffer[(index-1)/2].b;
 
-	return g_pSampleBuffer[index/2].a << 20;
+	return g_pSampleBuffer[index/2].a;
 }
 
 
-int32_t sample_get(int16_t index)
+int16_t sample_get(int16_t index)
 {
 	// return sample from past
 	if(index < 0)
@@ -61,7 +61,7 @@ void sample_set(int16_t index, int16_t value)
 }
 
 
-int32_t sample_get_interpolated(float index)
+int16_t sample_get_interpolated(float index)
 {
 	// return interpolated sample from past
 
@@ -78,8 +78,8 @@ int32_t sample_get_interpolated(float index)
 	else
 		i = (int) index;
 
-	int32_t si = sample_get_raw(i, false);
-	int32_t sj = sample_get_raw(i+1, false);
+	int16_t si = sample_get_raw(i, false);
+	int16_t sj = sample_get_raw(i+1, false);
 
 	return si + ((index - i) * (sj - si));
 }
@@ -99,12 +99,11 @@ uint32_t sample_get_average(uint16_t nSamples)
 	int32_t sum = 0;
 	for(uint16_t i = 0; i < nSamples; ++i)
 	{
-		int32_t intermediate = sample_get(-i) >> 20;
-		intermediate -= ((ADC_MAX_VALUE + 1) / 2);
+		int32_t intermediate = sample_get(-i);
 		sum += intermediate * intermediate;
 	}
 
-	sum = ((int)sqrt(sum / nSamples)) << 20;
+	sum = ((int)sqrt(sum / nSamples));
 	if(s_SampleAverage.nSamples == 0)
 	{
 		s_SampleAverage.nSamples = nSamples;

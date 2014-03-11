@@ -27,9 +27,9 @@ typedef struct
 } SampleAverage_t;
 
 
-int32_t sample_get(int16_t index);
+int16_t sample_get(int16_t index);
 void sample_set(int16_t index, int16_t value);
-int32_t sample_get_interpolated(float index);
+int16_t sample_get_interpolated(float index);
 uint32_t sample_get_average(uint16_t nSamples);
 void sample_clear_average(void);
 

@@ -11,15 +11,15 @@
 #define FREQ_TO_PI_FRAC(hz) (2 * hz / ((float)SAMPLE_RATE))
 
 
-int32_t filter_fir_apply(int32_t input, void *pUnknown)
+int16_t filter_fir_apply(int16_t input, void *pUnknown)
 {
 	const FilterFIRBaseData_t *pData = (const FilterFIRBaseData_t *)pUnknown;
 
-	int32_t output = 0;
+	int16_t output = 0;
 
 	for(uint8_t i = 0; i < pData->nCoefficients; ++i)
 	{
-		int32_t iSample = i == 0 ? input : sample_get(-i);
+		int16_t iSample = i == 0 ? input : sample_get(-i);
 		output += iSample * pData->pflCoefficients[i];
 	}
 
@@ -76,7 +76,7 @@ void filter_bandpass_mod(void *pUnknown)
 void filter_bandpass_create(void *pUnknown)
 {
 	FilterBandPassData_t *pData = (FilterBandPassData_t *)pUnknown;
-	pData->base.nCoefficients = 25;
+	pData->base.nCoefficients = 15;
 	pData->iCentreFreq = 1000;
 	pData->iWidth = 500;
 

@@ -16,13 +16,13 @@ typedef struct
 } FilterCompressorData_t;
 
 
-int32_t filter_noisegate_apply(int32_t input, void *pUnknown);
+int16_t filter_noisegate_apply(int16_t input, void *pUnknown);
 void filter_noisegate_debug(void *pUnknown);
 void filter_noisegate_create(void *pUnknown);
-int32_t filter_compressor_apply(int32_t input, void *pUnknown);
+int16_t filter_compressor_apply(int16_t input, void *pUnknown);
 void filter_compressor_debug(void *pUnknown);
 void filter_compressor_create(void *pUnknown);
-int32_t filter_expander_apply(int32_t input, void *pUnknown);
+int16_t filter_expander_apply(int16_t input, void *pUnknown);
 void filter_expander_create(void *pUnknown);
 
 #endif

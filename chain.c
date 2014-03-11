@@ -57,11 +57,11 @@ void stage_free(ChainStageHeader_t *pStageHdr)
  *
  * Applies each branch in a chain stage to a sample `iSample`.
  *
- * Note `iSample` should be a 32-bit sample i.e., in the range [0..4294967295))
+ * Note `iSample` should be a 12-bit signed sample i.e., in the range))
  *
- * @returns filtered 32-bit sample
+ * @returns filtered 12-bit sample
  */
-int32_t stage_apply(const ChainStageHeader_t *pStageHdr, int32_t iSample)
+int16_t stage_apply(const ChainStageHeader_t *pStageHdr, int16_t iSample)
 {
 	dbg_assert(pStageHdr->nBranches > 0, "stage has no branches");
 
@@ -85,7 +85,7 @@ int32_t stage_apply(const ChainStageHeader_t *pStageHdr, int32_t iSample)
 	// Does this stage have multiple parallel branches that must be mixed?
 	else
 	{
-		uint32_t iResult = 0;
+		int16_t iResult = 0;
 		bool bAnyEnabled = false;
 
 		while(pBranch)
@@ -224,25 +224,21 @@ void branch_free(StageBranch_t *pBranch)
  *
  * Note `iSample` should be a 12-bit sample from the ADC.
  *
- * @returns filtered 10-bit sample
+ * @returns filtered 12-bit sample
  */
 int16_t chain_apply(int16_t iSample)
 {
-	// Upscale 12-bit ADC sample to 32-bit
-	int32_t iIntermediate = iSample << 19;
-
 	const ChainStageHeader_t *pStageHdr = g_pChainRoot;
 
 	while(pStageHdr)
 	{
 		if(pStageHdr->nBranches > 0)
-			iIntermediate = stage_apply(pStageHdr, iIntermediate);
+			iSample = stage_apply(pStageHdr, iSample);
 
 		pStageHdr = pStageHdr->pNext;
 	}
 
-	// Downscale 32-bit intermediate value to 10-bit for DAC
-	return iIntermediate >> 22;
+	return iSample;
 }
 
 

@@ -82,12 +82,13 @@ static void time_tick(void *pUserData)
 	int16_t iSample = get_median_sample() - ADC_MID_POINT;
 	sample_set(g_iSampleCursor, iSample);
 
-	// Scale sample down to 10-bit (DAC resolution)
-	int16_t iFiltered = iSample >> 2;
 
 	// If the filter chain is locked for modification (e.g., by a packet
 	// handler), don't try to apply the chain. It may be in an intermediate
 	// state/cause crashes/sound funky. Just passthru.
+
+	g_bVibratoActive = false;
+
 	if(!g_bChainLock && !g_bPassThru)
 	{
 		led_set(LED_PASS_THRU, false);
@@ -95,16 +96,18 @@ static void time_tick(void *pUserData)
 
 		// If we have a filter chain, apply all filters to the sample
 		if(g_pChainRoot)
-			iFiltered = chain_apply(iSample);
+			iSample = chain_apply(iSample);
 	}
 	else
 		led_set(LED_PASS_THRU, true);
 
 	// Output to DAC
-	int16_t iScaledOut = iFiltered * g_flChainVolume;
+	int16_t iScaledOut = iSample * g_flChainVolume;
+	iScaledOut += ADC_MID_POINT;
+	iScaledOut = iScaledOut >> 2;
 
 	// Add ADC_MID_POINT to work from the 0-(2^10) range again
-	dac_set(iScaledOut + ADC_MID_POINT);
+	dac_set(iScaledOut);
 
 	// Increase sample cursor
 	g_iSampleCursor = (g_iSampleCursor + 1) % BUFFER_SAMPLES;
