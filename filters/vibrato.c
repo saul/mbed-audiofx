@@ -2,6 +2,7 @@
 #include "samples.h"
 #include "vibrato.h"
 #include "waves.h"
+#include "config.h"
 
 
 volatile bool g_bVibratoActive = false;
@@ -11,22 +12,28 @@ float vibrato_get_cursor(void *pUnknown)
 {
 	const FilterVibratoData_t *pData = (const FilterVibratoData_t *)pUnknown;
 
+	float vib_cursor;
+
 	switch (pData->waveType)
 	{
 		case 0:
 			if(get_square(pData->frequency))
-				return g_iSampleCursor;
+				vib_cursor = g_iSampleCursor;
 			else
-				return g_iSampleCursor - (2 * pData->nDelay);
+				vib_cursor = g_iSampleCursor - (2.0 * pData->nDelay);
 		case 1:
-			return g_iSampleCursor - (pData->nDelay * 2 * get_sawtooth(pData->frequency));
+			vib_cursor = g_iSampleCursor - (pData->nDelay * 2.0 * get_sawtooth(pData->frequency));
 		case 2:
-			return g_iSampleCursor - (pData->nDelay * 2 * get_inverse_sawtooth(pData->frequency));
+			vib_cursor = g_iSampleCursor - (pData->nDelay * 2.0 * get_inverse_sawtooth(pData->frequency));
 		case 3:
-			return g_iSampleCursor - (pData->nDelay * 2 * get_triangle(pData->frequency));
+			vib_cursor = g_iSampleCursor - (pData->nDelay * 2.0 * get_triangle(pData->frequency));
 		default:
-			return g_iSampleCursor;
+			vib_cursor = g_iSampleCursor;
 	}
+	vib_cursor += BUFFER_SAMPLES;
+	while(vib_cursor > BUFFER_SAMPLES)
+		vib_cursor -= BUFFER_SAMPLES;
+	return vib_cursor;
 }
 
 
@@ -34,7 +41,7 @@ int16_t filter_vibrato_apply(int16_t input, void *pUnknown)
 {
 	g_bVibratoActive = true;
 	g_flVibratoSampleCursor = vibrato_get_cursor(pUnknown);
-	return sample_get_interpolated(0.0f);
+	return sample_get(g_iSampleCursor);
 }
 
 

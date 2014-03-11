@@ -12,5 +12,6 @@ typedef struct
 
 int16_t filter_flange_apply(int16_t input, void *pUnknown);
 void filter_flange_debug(void *pUnknown);
+void filter_flange_create(void *pUnknown);
 
 #endif
