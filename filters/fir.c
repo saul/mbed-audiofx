@@ -1,3 +1,13 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File created by:	SR
+ *	File modified by:	SR
+ *	File debugged by:	SR
+*/
+
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
@@ -11,6 +21,19 @@
 #define FREQ_TO_PI_FRAC(hz) (2 * hz / ((float)SAMPLE_RATE))
 
 
+/*
+ *	FIR apply uses the calculated coefficients to sum together
+ *	the previous 'pData->nCoefficients' samples, each independently
+ *	scaled by their corresponding coefficient.
+ *	This creates a bandpass effect.
+ *
+ *	inputs:
+ *		input		signed 12 bit sample
+ *		pUnknown	null pointer to FilterFIRBaseData_t data
+ *
+ *	output:
+ *		signed 12 bit sample
+ */
 int16_t filter_fir_apply(int16_t input, void *pUnknown)
 {
 	const FilterFIRBaseData_t *pData = (const FilterFIRBaseData_t *)pUnknown;
@@ -27,6 +50,7 @@ int16_t filter_fir_apply(int16_t input, void *pUnknown)
 }
 
 
+// Print bandpass parameter values to UI console
 void filter_bandpass_debug(void *pUnknown)
 {
 	const FilterBandPassData_t *pData = (const FilterBandPassData_t *)pUnknown;
@@ -34,6 +58,17 @@ void filter_bandpass_debug(void *pUnknown)
 }
 
 
+/*
+ *	As recalculation of coefficients takes a long time,
+ *	filter_bandpass_mod function is used to allow the
+ *	coefficients to be calculated only once per parameter
+ *	change.
+ *	First, it is ensured that their is enough space to store
+ *	the parameters by allocating them in memory before
+ *	calculating.
+ *	Then, each coefficient is calculated and stored in the
+ *	array.
+ */
 void filter_bandpass_mod(void *pUnknown)
 {
 	FilterBandPassData_t *pData = (FilterBandPassData_t *)pUnknown;
@@ -52,11 +87,6 @@ void filter_bandpass_mod(void *pUnknown)
 	float fc1 = FREQ_TO_PI_FRAC(iLowerFreq);
 	float fc2 = FREQ_TO_PI_FRAC(iUpperFreq);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdouble-promotion"
-	//dbg_printf("filter_bandpass_mod: coeffs=%d, lowcut=%.3f, uppercut=%.3f\r\n", pData->base.nCoefficients, fc1, fc2);
-#pragma GCC diagnostic pop
-
 	// Calculate new coefficients
 	for(uint8_t i = 0; i < pData->base.nCoefficients; ++i)
 	{
@@ -73,6 +103,7 @@ void filter_bandpass_mod(void *pUnknown)
 }
 
 
+// Set initial bandpass creation parameters
 void filter_bandpass_create(void *pUnknown)
 {
 	FilterBandPassData_t *pData = (FilterBandPassData_t *)pUnknown;

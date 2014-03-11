@@ -1,3 +1,13 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File created by:	TB
+ *	File modified by:	TB
+ *	File debugged by:	TB
+*/
+
+
 #include <stdint.h>
 
 #include "dbg.h"
@@ -6,58 +16,56 @@
 #include "flange.h"
 #include "waves.h"
 
-// Flange works by assuming the current sample to be the one in the past.
-// Using this assumption, it then combines this 'current' sample with ones
-// a differing distance before and after it.
-// For this reason, there may need to be a change to the overall filter chain,
-// otherwise filters combined with a flange will be processing a 'newer' sample
 
+/*
+ *	Flange effect is created by combining the current 'input' with
+ *	a sample a varying amount in the past.
+ *
+ *	inputs:
+ *		input		signed 12 bit sample
+ *		pUnknown	null pointer to FilterFlangeData_t data
+ *
+ *	output:
+ *		signed 12 bit sample
+ */
 int16_t filter_flange_apply(int16_t input, void *pUnknown)
 {
 	const FilterFlangeData_t *pData = (const FilterFlangeData_t *)pUnknown;
 
-	// TODO: move to filter_flange_validate. We shouldn't have assertions or
-	//       parameter checks in the filter apply code
 	dbg_assert(pData->nDelay < BUFFER_SAMPLES / 2, "invalid flange parameter (nDelay)");
 
-	int16_t output = (1 - pData->flangedMix) * sample_get(-pData->nDelay);
+	int16_t output = (1 - pData->flangedMix) * input;
 
-	// TODO: validate waveType value
 	float index;
 	switch (pData->waveType)
 	{
 		case 0:
 			if(get_square(pData->frequency))
-				return output + pData->flangedMix * sample_get(-pData->nDelay*2);
+				index = g_iSampleCursor;
 			else
-				return output + pData->flangedMix * sample_get(g_iSampleCursor);
+				index = -pData->nDelay;
+			break;
 		case 1:
-			index = -get_sawtooth(pData->frequency)*pData->nDelay*2;
-			if(index == 0)
-			{
-				index = g_iSampleCursor;
-			}
-			return output + pData->flangedMix * sample_get_interpolated(index);
+			index = -get_sawtooth(pData->frequency) * pData->nDelay;
+			break;
 		case 2:
-			index = -get_inverse_sawtooth(pData->frequency)*pData->nDelay*2;
-			if(index == 0)
-			{
-				index = g_iSampleCursor;
-			}
-			return output + pData->flangedMix * sample_get_interpolated(index);
+			index = -get_inverse_sawtooth(pData->frequency) * pData->nDelay;
+			break;
 		case 3:
-			index = -get_triangle(pData->frequency)*pData->nDelay*2;
-			if(index == 0)
-			{
-				index = g_iSampleCursor;
-			}
-			return output + pData->flangedMix * sample_get_interpolated(index);
+			index = -get_triangle(pData->frequency) * pData->nDelay;
+			break;
 		default:
-			return 0;
+			index = g_iSampleCursor;
 	}
+	if(index == 0)
+	{
+		index = g_iSampleCursor;
+	}
+	return output + pData->flangedMix * sample_get_interpolated(index);
 }
 
 
+// Print flange parameters to UI console
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
 void filter_flange_debug(void *pUnknown)
@@ -68,6 +76,7 @@ void filter_flange_debug(void *pUnknown)
 #pragma GCC diagnostic pop
 
 
+// Set initial creation flange parameter values
 void filter_flange_create(void *pUnknown)
 {
 	FilterFlangeData_t *pData = (FilterFlangeData_t *)pUnknown;

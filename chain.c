@@ -68,6 +68,9 @@ int16_t stage_apply(const ChainStageHeader_t *pStageHdr, int16_t iSample)
 	const StageBranch_t *pBranch = pStageHdr->pFirst;
 	dbg_assert(pBranch, "stage has no branches (NULL pFirst)");
 
+	g_writeBack = false;
+	int16_t iResult = 0;
+
 	// Is this a simple one stage branch?
 	if(pStageHdr->nBranches == 1)
 	{
@@ -77,15 +80,19 @@ int16_t stage_apply(const ChainStageHeader_t *pStageHdr, int16_t iSample)
 		// If we are using BRANCHFLAG_FULL_MIX, skip the floating point
 		// multiplication to save some clock cycles
 		if(pBranch->flags & BRANCHFLAG_FULL_MIX)
-			return pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown);
+			iResult = pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown);
+		else
+			iResult =  pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown) * pBranch->flMixPerc;
 
-		return pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown) * pBranch->flMixPerc;
+		if(g_writeBack)
+			set_sample(g_iSampleCursor, iResult);
+
+		return iResult;
 	}
 
 	// Does this stage have multiple parallel branches that must be mixed?
 	else
 	{
-		int16_t iResult = 0;
 		bool bAnyEnabled = false;
 
 		while(pBranch)
@@ -103,7 +110,11 @@ int16_t stage_apply(const ChainStageHeader_t *pStageHdr, int16_t iSample)
 		}
 
 		if(!bAnyEnabled)
+		{
+			if(g_writeBack)
+				set_sample(g_iSampleCursor, iSample);
 			return iSample;
+		}
 
 		return iResult;
 	}

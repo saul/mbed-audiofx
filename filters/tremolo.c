@@ -1,3 +1,13 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File created by:	TB
+ *	File modified by:	TB
+ *	File debugged by:	TB
+*/
+
+
 #include <stdint.h>
 
 #include "dbg.h"
@@ -7,6 +17,20 @@
 #include "tremolo.h"
 
 
+/*
+ *	Tremolo filter varies the amplitude of the
+ *	input signal over time.
+ *	Using a low frequency oscillator of the
+ *	desired wave type, differing amplitude scalars
+ *	are applied to the input value.
+ *
+ *	inputs:
+ *		input		signed 12 bit sample
+ 		pUnknown	null pointer to FilterTremoloData_t data
+ *
+ *	output
+ *		signed 12 bit sample
+ */
 int16_t filter_tremolo_apply(int16_t input, void *pUnknown)
 {
 	const FilterTremoloData_t *pData = (const FilterTremoloData_t *)pUnknown;
@@ -30,6 +54,7 @@ int16_t filter_tremolo_apply(int16_t input, void *pUnknown)
 }
 
 
+// Print tremolo parameter data to UI console
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdouble-promotion"
 void filter_tremolo_debug(void *pUnknown)
@@ -40,6 +65,7 @@ void filter_tremolo_debug(void *pUnknown)
 #pragma GCC diagnostic pop
 
 
+// Set initial creation values of tremolo parameters
 void filter_tremolo_create(void *pUnknown)
 {
 	FilterTremoloData_t *pData = (FilterTremoloData_t *)pUnknown;
