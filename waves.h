@@ -1,3 +1,13 @@
+/*
+ *	HAPR Project 2014
+ *	Group 6 - Tom Bryant (TB) & Saul Rennison (SR)
+ *
+ *	File created by:	TB
+ *	File modified by:	TB
+ *	File debugged by:	TB
+ */
+
+
 #ifndef _WAVES_H_
 #define _WAVES_H_
 
