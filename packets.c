@@ -67,8 +67,8 @@ PacketHandler_t g_pPacketHandlers[] = {
 };
 
 
-static bool s_bDebugPacketReceipt = true;
-static bool s_bDebugChainAfterLock = true;
+static bool s_bDebugPacketReceipt = false;
+static bool s_bDebugChainAfterLock = false;
 
 
 #pragma GCC diagnostic push
@@ -90,7 +90,7 @@ void packet_probe_send(void)
 void packet_reset_wait(void)
 {
 	PacketHeader_t hdr;
-	uint8_t *pPayload;
+	uint8_t *pPayload = NULL;
 
 	for(;;)
 	{
@@ -219,6 +219,9 @@ void packet_chain_blob_send(const char *pszPath)
 		.size=size
 	};
 
+	while(g_bUARTLock);
+	g_bUARTLock = true;
+
 	UART_Send((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)&packetHdr, sizeof(packetHdr), BLOCKING);
 
 	// Read store header
@@ -226,11 +229,13 @@ void packet_chain_blob_send(const char *pszPath)
 	if((res = f_read(&fh, &storeHdr, sizeof(storeHdr), &nRead)) || nRead != sizeof(storeHdr))
 	{
 		dbg_warning("header read failed %d\r\n", res);
+
+		g_bUARTLock = false;
 		return;
 	}
 
 	if(!chainstore_header_validate(&storeHdr))
-		return;
+		goto error;
 
 	// Write header
 	UART_Send((LPC_UART_TypeDef *)LPC_UART0, (uint8_t *)&storeHdr, sizeof(storeHdr), BLOCKING);
@@ -243,7 +248,7 @@ void packet_chain_blob_send(const char *pszPath)
 		if((res = f_read(&fh, pData, sizeof(pData), &nRead)))
 		{
 			dbg_warning("file read failed %d\r\n", res);
-			return;
+			goto error;
 		}
 
 		// Write file data to UART
@@ -251,6 +256,8 @@ void packet_chain_blob_send(const char *pszPath)
 	}
 	while(nRead > 0);
 
+error:
+	g_bUARTLock = false;
 	f_close(&fh);
 }
 #endif
@@ -258,36 +265,35 @@ void packet_chain_blob_send(const char *pszPath)
 
 void packet_loop(void)
 {
-	PacketHeader_t hdr;
-	uint8_t *pPayload;
+	uint8_t *pPayload = NULL;
+	PacketHeader_t *pHdr = sercom_receive_nonblock(&pPayload);
 
-	if(!sercom_receive(&hdr, &pPayload))
+	if(!pHdr)
 		return;
 
-	const PacketHandler_t *pHandler = &g_pPacketHandlers[hdr.type];
+	const PacketHandler_t *pHandler = &g_pPacketHandlers[pHdr->type];
 	if(!pHandler->pfnCallback)
 	{
-		dbg_warning("received packet (%s) that has no handler!\r\n", g_ppszPacketTypes[hdr.type]);
-		free(pPayload);
-		return;
+		dbg_warning("received packet (%s) that has no handler!\r\n", g_ppszPacketTypes[pHdr->type]);
+		goto error;
 	}
 
 	// Check packet payload size
 	uint16_t nPacketSize = pHandler->nPacketSize & ~PACKET_SIZE_COMPARATOR_BIT;
 
-	if((pHandler->nPacketSize & PACKET_SIZE_COMPARATOR_BIT) && hdr.size < nPacketSize)
+	if((pHandler->nPacketSize & PACKET_SIZE_COMPARATOR_BIT) && pHdr->size < nPacketSize)
 	{
-		dbg_warning("received packet (%s) with invalid size: got %u bytes, expected at least %u bytes\r\n", g_ppszPacketTypes[hdr.type], hdr.size, nPacketSize);
-		return;
+		dbg_warning("received packet (%s) with invalid size: got %u bytes, expected at least %u bytes\r\n", g_ppszPacketTypes[pHdr->type], pHdr->size, nPacketSize);
+		goto error;
 	}
-	else if(!(pHandler->nPacketSize & PACKET_SIZE_COMPARATOR_BIT) && hdr.size != nPacketSize)
+	else if(!(pHandler->nPacketSize & PACKET_SIZE_COMPARATOR_BIT) && pHdr->size != nPacketSize)
 	{
-		dbg_warning("received packet (%s) with invalid size: got %u, expected exactly %u bytes\r\n", g_ppszPacketTypes[hdr.type], hdr.size, nPacketSize);
-		return;
+		dbg_warning("received packet (%s) with invalid size: got %u, expected exactly %u bytes\r\n", g_ppszPacketTypes[pHdr->type], pHdr->size, nPacketSize);
+		goto error;
 	}
 
 	if(s_bDebugPacketReceipt)
-		dbg_printf("Received packet %u(%s) with size %u bytes\r\n", hdr.type, g_ppszPacketTypes[hdr.type], hdr.size);
+		dbg_printf("Received packet %u(%s) with size %u bytes\r\n", pHdr->type, g_ppszPacketTypes[pHdr->type], pHdr->size);
 
 	// Lock the chain if the callback requires it
 	if(pHandler->bLocksChain)
@@ -296,7 +302,7 @@ void packet_loop(void)
 		g_bChainLock = true;
 	}
 
-	pHandler->pfnCallback(&hdr, pPayload);
+	pHandler->pfnCallback(pHdr, pPayload);
 
 	// Unlock the chain
 	if(pHandler->bLocksChain)
@@ -307,6 +313,7 @@ void packet_loop(void)
 			chain_debug();
 	}
 
+error:
 	free(pPayload);
 }
 
