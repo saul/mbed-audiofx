@@ -325,7 +325,10 @@ void chainstore_restore(const char *pszPath)
 				pBranch->pFilter->pfnModCallback(pBranch->pUnknown);
 
 			if(pLastBranch)
-				pLastBranch = pLastBranch->pNext = pBranch;
+			{
+				pLastBranch->pNext = pBranch;
+				pLastBranch = pBranch;
+			}
 			else
 			{
 				pStageHdr->pFirst = pBranch;
