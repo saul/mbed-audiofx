@@ -204,7 +204,7 @@ $(document).on('change', 'select[name=filter-create]', function() {
 });
 
 
-// Chain item clicked
+// Chain item clicked (Saul individual)
 // ============================================================================
 $(document).on('click', '#stored-chain-list a[data-name]', function(event) {
 	var $this = $(event.target);
@@ -224,7 +224,7 @@ $(document).on('click', '#stored-chain-list a[data-name]', function(event) {
 });
 
 
-// Chain delete clicked
+// Chain delete clicked (Saul individual)
 // ============================================================================
 $(document).on('click', '#stored-chain-list a[data-name] .close', function(event) {
 	var $this = $(this);
