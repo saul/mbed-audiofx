@@ -121,17 +121,6 @@ Filter_t g_pFilters[] = {
 		filter_flange_apply, filter_flange_debug, filter_flange_create, NULL,
 		sizeof(FilterFlangeData_t), 0
 	}
-
-	// {
-	// 	"Oscillating BP",
-	// 	"Frequency;f=f;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
-	// 	"Wave Type;o=6" WAVE_TYPE_KV PARAM_SEP
-	// 	"Width;f=H;o=0;t=range;min=20;max=5000;step=2;val=500" PARAM_SEP
-	// 	"Min Frequency;f=H;o=7;t=range;min=20;max=2500;step=1;val=50" PARAM_SEP
-	// 	"Max Frequency;f=H;o=9;t=range;min=20;max=2500;step=1;val=1000",
-	// 	filter_oscillating_bandpass_apply, filter_oscillating_bandpass_debug, filter_oscillating_bandpass_create, NULL,
-	// 	sizeof(FilterOscillatingBandPassData_t), offsetof(FilterBandPassData_t, iWidth)
-	// }
 };
 
 // Number of filters available
