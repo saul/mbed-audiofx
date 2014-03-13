@@ -38,20 +38,22 @@ float vibrato_get_cursor(void *pUnknown)
 				vib_cursor = g_iSampleCursor;
 			else
 				vib_cursor = g_iSampleCursor - (pData->nDelay);
+			break;
 		case 1:
 			vib_cursor = g_iSampleCursor - (pData->nDelay * get_sawtooth(pData->frequency));
+			break;
 		case 2:
 			vib_cursor = g_iSampleCursor - (pData->nDelay * get_inverse_sawtooth(pData->frequency));
+			break;
 		case 3:
 			vib_cursor = g_iSampleCursor - (pData->nDelay * get_triangle(pData->frequency));
+			break;
 		default:
 			vib_cursor = g_iSampleCursor;
 	}
 
-	vib_cursor += BUFFER_SAMPLES;
-
-	while(vib_cursor > BUFFER_SAMPLES)
-		vib_cursor -= BUFFER_SAMPLES;
+	if(vib_cursor < 0)
+		vib_cursor += BUFFER_SAMPLES;
 
 	return vib_cursor;
 }
@@ -74,7 +76,7 @@ int16_t filter_vibrato_apply(int16_t input, void *pUnknown)
 {
 	g_bVibratoActive = true;
 	g_flVibratoSampleCursor = vibrato_get_cursor(pUnknown);
-	return sample_get(g_flVibratoSampleCursor);
+	return sample_get(g_iSampleCursor);
 }
 
 
