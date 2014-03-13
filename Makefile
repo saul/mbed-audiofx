@@ -66,7 +66,6 @@ OBJ=sercom.o \
 	filters/vibrato.o \
 	filters/tremolo.o \
 	filters/fir.o \
-	filters/oscillating_fir.o \
 	filters/distortion.o \
 	waves.o \
 	samples.o \

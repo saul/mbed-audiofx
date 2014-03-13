@@ -66,7 +66,6 @@ void filter_delay_create(void *pUnknown)
 int16_t filter_delay_feedback_apply(int16_t input, void *pUnknown)
 {
 	int16_t result = filter_delay_apply(input, pUnknown);
-	g_writeBack = true;
-
+	sample_set(g_iSampleCursor, result);
 	return result;
 }

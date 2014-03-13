@@ -52,7 +52,6 @@ const char *g_ppszPacketTypes[] = {
 	"U2B_FILTER_FLAG",
 	"U2B_FILTER_MOD",
 	"U2B_FILTER_MIX",
-	"U2B_VOLUME",
 	"U2B_ARB_CMD",
 #ifdef INDIVIDUAL_BUILD_TOM
 	"B2U_ANALOG_CONTROL",
@@ -79,7 +78,6 @@ PacketHandler_t g_pPacketHandlers[] = {
 	{packet_filter_flag_receive, true, PACKET_SIZE_EXACT(sizeof(FilterFlagPacket_t))}, // U2B_FILTER_FLAG
 	{packet_filter_mod_receive, true, PACKET_SIZE_MIN(sizeof(FilterModPacket_t))}, // U2B_FILTER_MOD
 	{packet_filter_mix_receive, true, PACKET_SIZE_EXACT(sizeof(FilterMixPacket_t))}, // U2B_FILTER_MIX
-	{packet_volume_receive, false, PACKET_SIZE_EXACT(sizeof(VolumePacket_t))}, // U2B_VOLUME
 	{packet_cmd_receive, true, PACKET_SIZE_MIN(sizeof(CommandPacket_t))}, // U2B_ARB_CMD
 #ifdef INDIVIDUAL_BUILD_TOM
 	{NULL, false, 0}, // B2U_ANALOG_CONTROL

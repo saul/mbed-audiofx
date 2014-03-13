@@ -19,7 +19,6 @@
 #include "filters/vibrato.h"
 #include "filters/tremolo.h"
 #include "filters/fir.h"
-#include "filters/oscillating_fir.h"
 #include "filters/distortion.h"
 #include "filters/flange.h"
 

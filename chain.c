@@ -15,6 +15,7 @@
 
 #include "dbg.h"
 #include "chain.h"
+#include "samples.h"
 
 
 // Root stage in the filter chain linked list
@@ -78,7 +79,6 @@ int16_t stage_apply(const ChainStageHeader_t *pStageHdr, int16_t iSample)
 	const StageBranch_t *pBranch = pStageHdr->pFirst;
 	dbg_assert(pBranch, "stage has no branches (NULL pFirst)");
 
-	g_writeBack = false;
 	int16_t iResult = 0;
 
 	// Is this a simple one stage branch?
@@ -94,9 +94,6 @@ int16_t stage_apply(const ChainStageHeader_t *pStageHdr, int16_t iSample)
 			iResult = pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown);
 		else
 			iResult =  pBranch->pFilter->pfnApply(iSample, pBranch->pUnknown) * pBranch->flMixPerc;
-
-		if(g_writeBack)
-			set_sample(g_iSampleCursor, iResult);
 
 		return iResult;
 	}
@@ -123,11 +120,7 @@ int16_t stage_apply(const ChainStageHeader_t *pStageHdr, int16_t iSample)
 		}
 
 		if(!bAnyEnabled)
-		{
-			if(g_writeBack)
-				set_sample(g_iSampleCursor, iSample);
 			return iSample;
-		}
 
 		return iResult;
 	}

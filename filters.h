@@ -16,10 +16,6 @@
 #define PARAM_SEP "|"
 
 
-extern Filter_t g_pFilters[];
-extern const size_t NUM_FILTERS;
-
-
 /*
  * Enumeration of available filters.
  *
@@ -73,5 +69,9 @@ typedef struct
 
 
 void filter_debug(void);
+
+
+extern Filter_t g_pFilters[];
+extern const size_t NUM_FILTERS;
 
 #endif
