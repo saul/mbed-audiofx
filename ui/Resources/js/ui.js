@@ -204,9 +204,9 @@ $(document).on('change', 'select[name=filter-create]', function() {
 });
 
 
-// Chain item clicked
+// Chain item clicked (Saul individual)
 // ============================================================================
-$(document).on('click', '#stored-chain-list a', function(event) {
+$(document).on('click', '#stored-chain-list a[data-name]', function(event) {
 	var $this = $(event.target);
 
 	if(!$this.hasClass('list-group-item'))
@@ -224,9 +224,9 @@ $(document).on('click', '#stored-chain-list a', function(event) {
 });
 
 
-// Chain delete clicked
+// Chain delete clicked (Saul individual)
 // ============================================================================
-$(document).on('click', '#stored-chain-list a .close', function(event) {
+$(document).on('click', '#stored-chain-list a[data-name] .close', function(event) {
 	var $this = $(this);
 
 	if(!confirm('Are you sure you want to delete this chain?'))
@@ -248,20 +248,27 @@ $(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.
 	var paramName = $widget.data('param-name');
 	var filter = filters[$filter.data('filter-index')];
 
+	var newVal = $this.val();
+
 	if(paramName === 'mix') {
+		newVal = parseFloat(newVal).toFixed(3);
+
 		// Change branch mix percentage
 		packet = FilterMixPacket(serialStream);
-		packet.send($stage.index(), $filter.index(), parseFloat($this.val()));
+		packet.send($stage.index(), $filter.index(), newVal);
 	} else {
 		var param = filter.params[paramName];
 
+		if(param['f'] == 'f')
+			newVal = parseFloat(newVal).toFixed(3);
+
 		// Modify filter parameter data on board
 		packet = FilterModPacket(serialStream);
-		packet.send($stage.index(), $filter.index(), param['o'], param['f'], $this.val());
+		packet.send($stage.index(), $filter.index(), param['o'], param['f'], newVal);
 	}
 
 	// Update label text
-	$this.siblings('label').children('.value').text($this.val());
+	$this.siblings('label').children('.value').text(newVal);
 }));
 
 
