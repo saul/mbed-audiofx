@@ -141,7 +141,8 @@ int16_t sample_get_interpolated(float index)
 		if(index < 0)
 			index = (g_flVibratoSampleCursor + index);
 		else
-			index = (g_iSampleCursor - g_flVibratoSampleCursor) + index;
+			index = index + (g_flVibratoSampleCursor - g_iSampleCursor);
+			// index = (g_iSampleCursor - g_flVibratoSampleCursor) + index;
 		index += BUFFER_SAMPLES;
 		while(index > BUFFER_SAMPLES)
 			index -= BUFFER_SAMPLES;
