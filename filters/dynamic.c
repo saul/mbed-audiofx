@@ -56,7 +56,7 @@ void filter_noisegate_create(void *pUnknown)
 {
 	FilterNoiseGateData_t *pData = (FilterNoiseGateData_t *)pUnknown;
 	pData->sensitivity = 25;
-	pData->threshold = 200;
+	pData->threshold = 50;
 }
 
 
@@ -108,7 +108,7 @@ void filter_compressor_create(void *pUnknown)
 {
 	FilterCompressorData_t *pData = (FilterCompressorData_t *)pUnknown;
 	pData->sensitivity = 25;
-	pData->threshold = 200;
+	pData->threshold = 65;
 	pData->scalar = 0.8;
 }
 
@@ -151,6 +151,6 @@ void filter_expander_create(void *pUnknown)
 {
 	FilterCompressorData_t *pData = (FilterCompressorData_t *)pUnknown;
 	pData->sensitivity = 25;
-	pData->threshold = 200;
+	pData->threshold = 65;
 	pData->scalar = 1.5;
 }
