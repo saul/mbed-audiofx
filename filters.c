@@ -55,7 +55,7 @@ Filter_t g_pFilters[] = {
 	{
 		"Noise Gate",
 		"Sensitivity;f=H;o=0;t=range;min=1;max=100;step=1;val=25" PARAM_SEP
-		"Threshold;f=H;o=2;t=range;min=0;max=1433;step=1;val=200",
+		"Threshold;f=H;o=2;t=range;min=0;max=350;step=1;val=50",
 		filter_noisegate_apply, filter_noisegate_debug, filter_noisegate_create, NULL,
 		sizeof(FilterNoiseGateData_t), 0
 	},
@@ -87,7 +87,7 @@ Filter_t g_pFilters[] = {
 
 	{
 		"Vibrato",
-		"Delay;f=H;o=0;t=range;min=1;max=4999;step=1;val=10" PARAM_SEP
+		"Delay;f=H;o=0;t=range;min=1;max=500;step=1;val=10" PARAM_SEP
 		"Frequency;f=B;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
 		"Wave Type;o=3" WAVE_TYPE_KV,
 		filter_vibrato_apply, filter_vibrato_debug, filter_vibrato_create, NULL,
@@ -112,15 +112,15 @@ Filter_t g_pFilters[] = {
 		sizeof(FilterBandPassData_t), offsetof(FilterFIRBaseData_t, nCoefficients)
 	},
 
-	{
-		"Flange",
-		"Delay;f=H;o=0;t=range;min=1;max=4999;step=1;val=10" PARAM_SEP
-		"Frequency;f=B;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
-		"Wave Type;o=3" WAVE_TYPE_KV PARAM_SEP
-		"Flanged mix;f=f;o=4;t=range;min=0;max=1;step=0.05;val=0.5",
-		filter_flange_apply, filter_flange_debug, filter_flange_create, NULL,
-		sizeof(FilterFlangeData_t), 0
-	}
+	// {
+	// 	"Flange",
+	// 	"Delay;f=H;o=0;t=range;min=1;max=4999;step=1;val=10" PARAM_SEP
+	// 	"Frequency;f=B;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
+	// 	"Wave Type;o=3" WAVE_TYPE_KV PARAM_SEP
+	// 	"Flanged mix;f=f;o=4;t=range;min=0;max=1;step=0.05;val=0.5",
+	// 	filter_flange_apply, filter_flange_debug, filter_flange_create, NULL,
+	// 	sizeof(FilterFlangeData_t), 0
+	// }
 };
 
 // Number of filters available

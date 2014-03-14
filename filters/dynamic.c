@@ -56,7 +56,7 @@ void filter_noisegate_create(void *pUnknown)
 {
 	FilterNoiseGateData_t *pData = (FilterNoiseGateData_t *)pUnknown;
 	pData->sensitivity = 25;
-	pData->threshold = 200;
+	pData->threshold = 50;
 }
 
 
