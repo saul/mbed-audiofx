@@ -112,15 +112,15 @@ Filter_t g_pFilters[] = {
 		sizeof(FilterBandPassData_t), offsetof(FilterFIRBaseData_t, nCoefficients)
 	},
 
-	// {
-	// 	"Flange",
-	// 	"Delay;f=H;o=0;t=range;min=1;max=4999;step=1;val=10" PARAM_SEP
-	// 	"Frequency;f=B;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
-	// 	"Wave Type;o=3" WAVE_TYPE_KV PARAM_SEP
-	// 	"Flanged mix;f=f;o=4;t=range;min=0;max=1;step=0.05;val=0.5",
-	// 	filter_flange_apply, filter_flange_debug, filter_flange_create, NULL,
-	// 	sizeof(FilterFlangeData_t), 0
-	// }
+	{
+		"Flange",
+		"Delay;f=H;o=0;t=range;min=1;max=4999;step=1;val=10" PARAM_SEP
+		"Frequency;f=B;o=2;t=range;min=1;max=10;step=1;val=1" PARAM_SEP
+		"Wave Type;o=3" WAVE_TYPE_KV PARAM_SEP
+		"Flanged mix;f=f;o=4;t=range;min=0;max=1;step=0.05;val=0.5",
+		filter_flange_apply, filter_flange_debug, filter_flange_create, NULL,
+		sizeof(FilterFlangeData_t), 0
+	}
 };
 
 // Number of filters available

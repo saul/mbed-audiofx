@@ -47,23 +47,23 @@ int16_t filter_flange_apply(int16_t input, void *pUnknown)
 			if(get_square(pData->frequency))
 				index = g_iSampleCursor;
 			else
-				index = -pData->nDelay;
+				index = g_iSampleCursor - pData->nDelay;
 			break;
 		case 1:
-			index = -get_sawtooth(pData->frequency) * pData->nDelay;
+			index = g_iSampleCursor - get_sawtooth(pData->frequency) * pData->nDelay;
 			break;
 		case 2:
-			index = -get_inverse_sawtooth(pData->frequency) * pData->nDelay;
+			index = g_iSampleCursor - get_inverse_sawtooth(pData->frequency) * pData->nDelay;
 			break;
 		case 3:
-			index = -get_triangle(pData->frequency) * pData->nDelay;
+			index = g_iSampleCursor - get_triangle(pData->frequency) * pData->nDelay;
 			break;
 		default:
 			index = g_iSampleCursor;
 	}
-	if(index == 0)
+	if(index <= 0)
 	{
-		index = g_iSampleCursor;
+		index += g_iSampleCursor;
 	}
 	return output + pData->flangedMix * sample_get_interpolated(index);
 }
