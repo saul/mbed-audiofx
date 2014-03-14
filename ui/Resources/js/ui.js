@@ -241,7 +241,11 @@ $(document).on('click', '#stored-chain-list a[data-name] .close', function(event
 // Filter parameter input change
 // ============================================================================
 $(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.debounce(250, function(event) {
-	var $this = $(event.target);
+	updateFilterParameter($(event.target));
+}));
+
+
+function updateFilterParameter($this) {
 	var $stage = $this.parents('.stage-row');
 	var $filter = $this.parents('.filter');
 	var $widget = $this.parent();
@@ -249,18 +253,21 @@ $(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.
 	var filter = filters[$filter.data('filter-index')];
 
 	var newVal = $this.val();
+	var textVal = newVal;
 
 	if(paramName === 'mix') {
-		newVal = parseFloat(newVal).toFixed(3);
+		textVal = parseFloat(textVal).toFixed(3);
 
 		// Change branch mix percentage
 		packet = FilterMixPacket(serialStream);
-		packet.send($stage.index(), $filter.index(), newVal);
+		packet.send($stage.index(), $filter.index(), parseFloat(newVal));
 	} else {
 		var param = filter.params[paramName];
 
-		if(param['f'] == 'f')
-			newVal = parseFloat(newVal).toFixed(3);
+		if(param['f'] == 'f') {
+			newVal = parseFloat(newVal);
+			textVal = newVal.toFixed(3);
+		}
 
 		// Modify filter parameter data on board
 		packet = FilterModPacket(serialStream);
@@ -268,8 +275,8 @@ $(document).on('change', '.form-group[data-param-name]:not([type=checkbox])', $.
 	}
 
 	// Update label text
-	$this.siblings('label').children('.value').text(newVal);
-}));
+	$this.siblings('label').children('.value').text(textVal);
+}
 
 
 /* Tom individual */
@@ -286,10 +293,13 @@ function updateAnalogControls(new_value) {
 
 	$('.ac-checkbox:checked').each(function() {
 		var $element = $(this).parents('.form-group').children('input');
-		var min = $element.attr('min');
-		var max = $element.attr('max');
-		var scaled_value = min + (max-min)*new_value;
+		var min = parseInt($element.attr('min'));
+		var max = parseInt($element.attr('max'));
+		var step = parseFloat($element.attr('step'));
+		var scaled_value = Math.floor((min + (max-min)*new_value) / step) * step;
 		$element.val(scaled_value);
+		updateFilterParameter($element);
+		console.log("ac=" + new_value + ", min=" + min + ", max=" + max + ", step=" + step + " => " + scaled_value);
 	});
 }
 /* End Tom individual */
