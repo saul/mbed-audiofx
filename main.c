@@ -158,7 +158,7 @@ static void time_tick(void *pUserData)
 	uint32_t ulEndTick = time_tickcount();
 
 	// Is output clipped? If so, enable the clip LED
-	if(iScaledOut == DAC_MAX_VALUE)
+	if(iScaledOut == DAC_MAX_VALUE || iScaledOut == 0)
 	{
 		s_ulLastClipTick = ulEndTick;
 		led_set(LED_CLIP, true);
